@@ -71,7 +71,7 @@ export default function AdminSidebar() {
           const Icon = item.icon
 
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} className="block mx-2 mb-2">
               <Card 
                 className={`p-4 transition-all cursor-pointer hover:shadow-sm ${
                   isActive 
