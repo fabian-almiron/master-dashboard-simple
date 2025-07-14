@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { 
   LayoutDashboard,
   FileText,
-  Palette,
   Settings,
   Users,
   BarChart3,
@@ -28,12 +27,6 @@ const navigationItems = [
     href: '/admin/pages',
     icon: FileText,
     description: 'Manage all pages'
-  },
-  {
-    title: 'Page Builder',
-    href: '/admin/builder',
-    icon: Palette,
-    description: 'Drag & drop editor'
   },
   {
     title: 'Navigation',
@@ -72,7 +65,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="p-4 space-y-2">
+      <div className="px-4 py-2 space-y-1">
         {navigationItems.map((item) => {
           const isActive = pathname === item.href
           const Icon = item.icon
@@ -80,7 +73,7 @@ export default function AdminSidebar() {
           return (
             <Link key={item.href} href={item.href}>
               <Card 
-                className={`p-3 transition-all cursor-pointer hover:shadow-sm ${
+                className={`p-4 transition-all cursor-pointer hover:shadow-sm ${
                   isActive 
                     ? 'bg-primary text-primary-foreground shadow-sm' 
                     : 'hover:bg-muted'
@@ -106,7 +99,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Quick Actions */}
-      <div className="p-4 border-t mt-auto">
+      <div className="px-4 py-4 border-t mt-auto">
         <div className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
           Quick Actions
         </div>
