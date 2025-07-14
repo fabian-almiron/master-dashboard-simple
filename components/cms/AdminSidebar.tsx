@@ -52,7 +52,7 @@ export default function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="w-64 bg-background border-r h-full overflow-y-auto">
+    <div className="w-64 bg-background border-r h-full overflow-y-auto flex-shrink-0">
       {/* Header */}
       <div className="p-6 border-b">
         <Link href="/" className="flex items-center gap-2 group">

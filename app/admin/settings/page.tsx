@@ -8,7 +8,7 @@ import { Settings, Globe, Database, Shield, Palette } from 'lucide-react'
 export default function SettingsPage() {
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-8">
+      <div className="p-4 lg:p-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-2 mb-8">
           <Settings className="h-8 w-8" />
           <div>
@@ -19,7 +19,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
           {/* Site Settings */}
           <Card>
             <CardHeader>
@@ -161,11 +161,11 @@ export default function SettingsPage() {
         </div>
 
         {/* Coming Soon Notice */}
-        <Card className="mt-8">
+        <Card className="mt-6 lg:mt-8">
           <CardContent className="text-center py-8">
             <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Advanced Settings Coming Soon</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
+            <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base">
               We're working on additional configuration options including custom domains, 
               email settings, backup management, and more.
             </p>
