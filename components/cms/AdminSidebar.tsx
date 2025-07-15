@@ -12,7 +12,8 @@ import {
   BarChart3,
   Home,
   Zap,
-  Menu
+  Menu,
+  Layout
 } from 'lucide-react'
 
 const navigationItems = [
@@ -33,6 +34,12 @@ const navigationItems = [
     href: '/admin/navigation',
     icon: Menu,
     description: 'Manage navigation menus'
+  },
+  {
+    title: 'Templates',
+    href: '/admin/templates',
+    icon: Layout,
+    description: 'Manage page templates'
   },
   {
     title: 'Analytics',

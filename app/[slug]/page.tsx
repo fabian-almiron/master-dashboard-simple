@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react'
 import { notFound } from 'next/navigation'
 import { PageBlock } from '@/lib/cms-types'
-import { renderComponent } from '@/lib/component-registry'
+import PageRenderer from '@/components/cms/PageRenderer'
 
 // localStorage utilities
 const STORAGE_KEY = 'cms_pages'
@@ -85,28 +85,23 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
   return (
     <div className="min-h-screen">
-      {/* Render Page Blocks */}
-      <div className="w-full">
-        {blocks.length === 0 ? (
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
-              <p className="text-muted-foreground">
-                This page is under construction.
-              </p>
-            </div>
+      {/* Render Page with Templates */}
+      {blocks.length === 0 ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
+            <p className="text-muted-foreground">
+              This page is under construction.
+            </p>
           </div>
-        ) : (
-          blocks
-            .filter(block => block.isVisible)
-            .sort((a, b) => a.order - b.order)
-            .map((block) => (
-              <div key={block.id} className="w-full">
-                {renderComponent(block.type, block.props)}
-              </div>
-            ))
-        )}
-      </div>
+        </div>
+      ) : (
+        <PageRenderer 
+          blocks={blocks} 
+          pageId={page.id}
+          className="w-full"
+        />
+      )}
     </div>
   )
 }

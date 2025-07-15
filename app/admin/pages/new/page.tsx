@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,17 +9,36 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Save, Eye } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ArrowLeft, Save, Eye, Layout } from 'lucide-react'
+import { Template, TemplateType, PageBlock } from '@/lib/cms-types'
 
 export default function NewPagePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [templates, setTemplates] = useState<Template[]>([])
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     description: '',
-    isPublished: false
+    isPublished: false,
+    templateId: ''
   })
+
+  // Load templates
+  useEffect(() => {
+    const savedTemplates = localStorage.getItem('cms-templates')
+    if (savedTemplates) {
+      const templateList = JSON.parse(savedTemplates)
+      setTemplates(templateList)
+      
+      // Auto-select default page template if available
+      const defaultPageTemplate = templateList.find((t: Template) => t.type === 'page' && t.isDefault)
+      if (defaultPageTemplate) {
+        setFormData(prev => ({ ...prev, templateId: defaultPageTemplate.id }))
+      }
+    }
+  }, [])
 
   // Auto-generate slug from title
   const handleTitleChange = (title: string) => {
@@ -39,6 +58,15 @@ export default function NewPagePage() {
     setIsLoading(true)
 
     try {
+      // Get template blocks if a template is selected
+      let templateBlocks: PageBlock[] = []
+      if (formData.templateId) {
+        const selectedTemplate = templates.find(t => t.id === formData.templateId)
+        if (selectedTemplate) {
+          templateBlocks = selectedTemplate.blocks
+        }
+      }
+
       // Create new page object
       const newPage = {
         id: Date.now().toString(),
@@ -46,6 +74,8 @@ export default function NewPagePage() {
         slug: formData.slug,
         description: formData.description,
         status: formData.isPublished ? 'published' : 'draft',
+        blocks: templateBlocks,
+        templateId: formData.templateId || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -143,6 +173,38 @@ export default function NewPagePage() {
                     />
                     <p className="text-sm text-muted-foreground">
                       Used for SEO meta description and internal reference
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="template">Page Template (Optional)</Label>
+                    <Select
+                      value={formData.templateId}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, templateId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a template or start blank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No Template (Blank Page)</SelectItem>
+                        {templates
+                          .filter(template => template.type === 'page')
+                          .map(template => (
+                            <SelectItem key={template.id} value={template.id}>
+                              <div className="flex items-center gap-2">
+                                <Layout className="h-4 w-4" />
+                                <span>{template.name}</span>
+                                {template.isDefault && (
+                                  <span className="text-xs text-muted-foreground">(Default)</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Templates provide pre-built layouts and components to get started faster
                     </p>
                   </div>
 
