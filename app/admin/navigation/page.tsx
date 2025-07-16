@@ -68,7 +68,7 @@ const STORAGE_KEY = 'cms_navigation'
 const PAGES_STORAGE_KEY = 'cms_pages'
 
 function loadNavigationFromStorage(): NavigationItem[] {
-  if (typeof window === 'undefined') return defaultNavigation
+  if (typeof window === 'undefined') return []
   
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -79,9 +79,8 @@ function loadNavigationFromStorage(): NavigationItem[] {
     console.error('Error loading navigation from localStorage:', error)
   }
   
-  // If no stored data, save default navigation and return it
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultNavigation))
-  return defaultNavigation
+  // Start with empty navigation instead of default items
+  return []
 }
 
 function saveNavigationToStorage(navigation: NavigationItem[]) {
@@ -106,49 +105,7 @@ function loadPagesFromStorage() {
   }
 }
 
-// Default navigation structure
-const defaultNavigation: NavigationItem[] = [
-  {
-    id: 'home',
-    label: 'Home',
-    type: 'internal',
-    href: '/',
-    order: 0,
-    isVisible: true
-  },
-  {
-    id: 'features',
-    label: 'Features',
-    type: 'external',
-    href: '#features',
-    order: 1,
-    isVisible: true
-  },
-  {
-    id: 'pricing',
-    label: 'Pricing',
-    type: 'external',
-    href: '#pricing',
-    order: 2,
-    isVisible: true
-  },
-  {
-    id: 'blog',
-    label: 'Blog',
-    type: 'external',
-    href: '#blog',
-    order: 3,
-    isVisible: true
-  },
-  {
-    id: 'about',
-    label: 'About',
-    type: 'external',
-    href: '#about',
-    order: 4,
-    isVisible: true
-  }
-]
+// Navigation now starts empty - no default items
 
 export default function NavigationManager() {
   const [navigation, setNavigation] = useState<NavigationItem[]>([])
@@ -279,13 +236,13 @@ export default function NavigationManager() {
             <Button 
               variant="outline" 
               onClick={() => {
-                if (confirm('Reset navigation to default? This will remove all custom navigation items.')) {
-                  setNavigation(defaultNavigation)
-                  saveNavigationToStorage(defaultNavigation)
+                if (confirm('Clear all navigation items? This action cannot be undone.')) {
+                  setNavigation([])
+                  saveNavigationToStorage([])
                 }
               }}
             >
-              Reset Navigation
+              Clear Navigation
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>

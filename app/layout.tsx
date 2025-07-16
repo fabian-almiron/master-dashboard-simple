@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import { ThemeProvider as CmsThemeProvider } from '@/lib/theme-context'
 
 export const metadata: Metadata = {
   title: 'StreamLine - Page Builder CMS',
@@ -24,13 +23,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <CmsThemeProvider>
+            {children}
+          </CmsThemeProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -34,89 +34,35 @@ import {
   FileText
 } from 'lucide-react'
 
-// Default pages to initialize with
-const defaultPages = [
-  {
-    id: '1',
-    title: 'Homepage',
-    slug: 'home',
-    status: 'published',
-    updatedAt: '2024-01-15T10:30:00Z',
-    createdAt: '2024-01-01T09:00:00Z',
-    description: 'Main landing page for the website'
-  },
-  {
-    id: '2',
-    title: 'About Us',
-    slug: 'about',
-    status: 'draft',
-    updatedAt: '2024-01-14T15:45:00Z',
-    createdAt: '2024-01-02T10:15:00Z',
-    description: 'Company information and team details'
-  },
-  {
-    id: '3',
-    title: 'Contact',
-    slug: 'contact',
-    status: 'published',
-    updatedAt: '2024-01-12T08:20:00Z',
-    createdAt: '2024-01-03T14:30:00Z',
-    description: 'Contact form and company information'
-  },
-  {
-    id: '4',
-    title: 'Services',
-    slug: 'services',
-    status: 'draft',
-    updatedAt: '2024-01-08T16:10:00Z',
-    createdAt: '2024-01-04T11:45:00Z',
-    description: 'List of services we provide'
-  }
-]
+// Pages now start empty - no default pages created
 
-// Local storage utilities
-const STORAGE_KEY = 'cms_pages'
-
-function loadPagesFromStorage() {
-  if (typeof window === 'undefined') return defaultPages
-  
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      return JSON.parse(stored)
-    }
-  } catch (error) {
-    console.error('Error loading pages from localStorage:', error)
-  }
-  
-  // If no stored data, save default pages and return them
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPages))
-  return defaultPages
-}
-
-function savePagesToStorage(pages: any[]) {
-  if (typeof window === 'undefined') return
-  
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pages))
-  } catch (error) {
-    console.error('Error saving pages to localStorage:', error)
-  }
-}
+// Database utilities
+import { loadPagesFromDatabase, deletePageFromDatabase, CMSPage } from '@/lib/cms-data'
 
 export default function PagesManagement() {
-  const [pages, setPages] = useState<any[]>([])
-  const [filteredPages, setFilteredPages] = useState<any[]>([])
+  const [pages, setPages] = useState<CMSPage[]>([])
+  const [filteredPages, setFilteredPages] = useState<CMSPage[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load pages from localStorage on mount
+  // Load pages from database on mount
   useEffect(() => {
-    const loadedPages = loadPagesFromStorage()
-    setPages(loadedPages)
-    setFilteredPages(loadedPages)
-    setIsLoaded(true)
+    const loadPages = async () => {
+      try {
+        const loadedPages = await loadPagesFromDatabase()
+        setPages(loadedPages)
+        setFilteredPages(loadedPages)
+      } catch (error) {
+        console.error('Error loading pages:', error)
+        setPages([])
+        setFilteredPages([])
+      } finally {
+        setIsLoaded(true)
+      }
+    }
+
+    loadPages()
   }, [])
 
   // Filter pages when search term or status filter changes
@@ -138,42 +84,39 @@ export default function PagesManagement() {
     setFilteredPages(filtered)
   }, [pages, searchTerm, statusFilter])
 
-  const handleDeletePage = (pageId: string) => {
+  const handleDeletePage = async (pageId: string) => {
     if (confirm('Are you sure you want to delete this page?')) {
-      const updatedPages = pages.filter(page => page.id !== pageId)
-      setPages(updatedPages)
-      savePagesToStorage(updatedPages)
+      try {
+        const success = await deletePageFromDatabase(pageId)
+        if (success) {
+          const updatedPages = pages.filter(page => page.id !== pageId)
+          setPages(updatedPages)
+          setFilteredPages(updatedPages.filter(page => {
+            const matchesSearch = !searchTerm || 
+              page.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              page.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              page.description?.toLowerCase().includes(searchTerm.toLowerCase())
+            const matchesStatus = statusFilter === 'all' || page.status === statusFilter
+            return matchesSearch && matchesStatus
+          }))
+        } else {
+          alert('Failed to delete page. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error deleting page:', error)
+        alert('Error deleting page. Please try again.')
+      }
     }
   }
 
-  const handleDuplicatePage = (page: any) => {
-    const newPage = {
-      ...page,
-      id: Date.now().toString(),
-      title: `${page.title} (Copy)`,
-      slug: `${page.slug}-copy`,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-    
-    const updatedPages = [...pages, newPage]
-    setPages(updatedPages)
-    savePagesToStorage(updatedPages)
+  const handleDuplicatePage = async (page: CMSPage) => {
+    // TODO: Implement page duplication with database
+    alert('Page duplication will be implemented in a future update.')
   }
 
-  const handleToggleStatus = (pageId: string) => {
-    const updatedPages = pages.map(page => 
-      page.id === pageId 
-        ? { 
-            ...page, 
-            status: page.status === 'published' ? 'draft' : 'published',
-            updatedAt: new Date().toISOString()
-          }
-        : page
-    )
-    setPages(updatedPages)
-    savePagesToStorage(updatedPages)
+  const handleToggleStatus = async (pageId: string) => {
+    // TODO: Implement status toggle with database
+    alert('Status toggle will be implemented in a future update.')
   }
 
   const formatDate = (dateString: string) => {
@@ -212,17 +155,6 @@ export default function PagesManagement() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                if (confirm('Are you sure you want to clear all pages? This will reset to default pages.')) {
-                  setPages(defaultPages)
-                  savePagesToStorage(defaultPages)
-                }
-              }}
-            >
-              Clear All
-            </Button>
             <Button asChild>
               <Link href="/admin/pages/new">
                 <Plus className="h-4 w-4 mr-2" />

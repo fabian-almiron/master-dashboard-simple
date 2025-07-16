@@ -9,11 +9,11 @@ import {
   FileText,
   Settings,
   Users,
-  BarChart3,
   Home,
   Zap,
   Menu,
-  Layout
+  Layout,
+  Palette
 } from 'lucide-react'
 
 const navigationItems = [
@@ -29,12 +29,7 @@ const navigationItems = [
     icon: FileText,
     description: 'Manage all pages'
   },
-  {
-    title: 'Navigation',
-    href: '/admin/navigation',
-    icon: Menu,
-    description: 'Manage navigation menus'
-  },
+
   {
     title: 'Templates',
     href: '/admin/templates',
@@ -42,10 +37,16 @@ const navigationItems = [
     description: 'Manage page templates'
   },
   {
-    title: 'Analytics',
-    href: '/admin/analytics',
-    icon: BarChart3,
-    description: 'Page performance'
+    title: 'Themes',
+    href: '/admin/themes',
+    icon: Palette,
+    description: 'Manage site themes'
+  },
+  {
+    title: 'Nav',
+    href: '/admin/navigation',
+    icon: Menu,
+    description: 'Manage navigation menus'
   },
   {
     title: 'Settings',

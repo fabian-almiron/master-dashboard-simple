@@ -3,12 +3,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Settings, Globe, Database, Shield, Palette } from 'lucide-react'
+import { Settings, Globe, Shield, Palette, Crown } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import DatabaseSettings from '@/components/cms/DatabaseSettings'
+import AdminGuard from '@/components/cms/AdminGuard'
 
 export default function SettingsPage() {
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-4 lg:p-8 mx-auto">
         <div className="flex items-center gap-2 mb-8">
           <Settings className="h-8 w-8" />
           <div>
@@ -18,6 +21,22 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+
+        {/* Admin Notice */}
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardContent className="flex items-center gap-3 pt-6">
+            <Crown className="h-5 w-5 text-amber-600" />
+            <div className="flex-1">
+              <p className="font-medium text-amber-900 dark:text-amber-100">Admin Settings</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Advanced configuration options for system administrators
+              </p>
+            </div>
+            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              Sudo Access
+            </Badge>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
           {/* Site Settings */}
@@ -45,40 +64,6 @@ export default function SettingsPage() {
                 <Input id="site-url" defaultValue="https://yoursite.com" />
               </div>
               <Button className="w-full">Save Site Settings</Button>
-            </CardContent>
-          </Card>
-
-          {/* Database Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Database
-              </CardTitle>
-              <CardDescription>
-                Supabase connection and data management
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Connection Status</Label>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Connected to Supabase</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Project ID</Label>
-                <Input value="your-supabase-project" disabled />
-              </div>
-              <div className="space-y-2">
-                <Label>Tables</Label>
-                <div className="text-sm text-muted-foreground">
-                  • pages (4 records)<br />
-                  • page_blocks (12 records)
-                </div>
-              </div>
-              <Button variant="outline" className="w-full">Test Connection</Button>
             </CardContent>
           </Card>
 
@@ -159,6 +144,11 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Database Settings - Admin Only */}
+        <AdminGuard>
+          <DatabaseSettings />
+        </AdminGuard>
 
         {/* Coming Soon Notice */}
         <Card className="mt-6 lg:mt-8">

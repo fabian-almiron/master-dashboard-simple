@@ -1,83 +1,39 @@
 import { ComponentType, ComponentInfo } from './cms-types'
-import Hero from '@/components/Hero'
-import Features from '@/components/Features'
-import Testimonials from '@/components/Testimonials'
-import Pricing from '@/components/Pricing'
-import Blog from '@/components/Blog'
-import CTA from '@/components/CTA'
 
-// Component registry mapping types to actual React components
-export const componentRegistry = {
-  Hero,
-  Features,
-  Testimonials,
-  Pricing,
-  Blog,
-  CTA,
-} as const
+// Legacy component registry - now we use theme-based registries
+// This is kept for backward compatibility and fallback
 
-// Component metadata for the CMS interface
-export const componentInfo: ComponentInfo[] = [
-  {
-    type: 'Hero',
-    name: 'Hero Section',
-    description: 'Main landing section with headline, CTA buttons, and hero image',
-    category: 'content',
-    icon: 'Zap',
-  },
-  {
-    type: 'Features',
-    name: 'Features',
-    description: 'Showcase key product features with icons and descriptions',
-    category: 'content',
-    icon: 'Star',
-  },
-  {
-    type: 'Testimonials',
-    name: 'Testimonials',
-    description: 'Customer reviews and social proof',
-    category: 'marketing',
-    icon: 'MessageSquare',
-  },
-  {
-    type: 'Pricing',
-    name: 'Pricing',
-    description: 'Pricing plans and subscription tiers',
-    category: 'marketing',
-    icon: 'DollarSign',
-  },
-  {
-    type: 'Blog',
-    name: 'Blog',
-    description: 'Latest blog posts and articles',
-    category: 'content',
-    icon: 'FileText',
-  },
-  {
-    type: 'CTA',
-    name: 'Call to Action',
-    description: 'Final conversion section with action buttons',
-    category: 'marketing',
-    icon: 'ArrowRight',
-  },
-]
+// Fallback components (in case theme fails to load)
+const FallbackComponent = ({ type }: { type: string }) => (
+  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+    <p className="text-gray-500">Component "{type}" not found</p>
+    <p className="text-sm text-gray-400">Theme may not be loaded</p>
+  </div>
+)
 
-// Helper function to get component by type
+// Legacy component registry (minimal fallback)
+export const componentRegistry = {} as const
+
+// Legacy component info - now handled by theme registries
+export const componentInfo: ComponentInfo[] = []
+
+// Helper functions - these now should use theme context
+// These are kept for backward compatibility
+
+// Helper function to get component by type (deprecated - use theme context)
 export function getComponent(type: ComponentType) {
-  return componentRegistry[type]
+  console.warn('getComponent is deprecated. Use theme context instead.')
+  return null
 }
 
-// Helper function to render a component
+// Helper function to render a component (deprecated - use theme context)  
 export function renderComponent(type: ComponentType, props: Record<string, any> = {}) {
-  const Component = getComponent(type)
-  if (!Component) {
-    console.warn(`Component type "${type}" not found in registry`)
-    return null
-  }
-  return <Component {...props} />
+  console.warn('renderComponent is deprecated. Use theme context instead.')
+  return <FallbackComponent type={type} />
 }
 
-// Helper function to get component info
+// Helper function to get component info (deprecated - use theme context)
 export function getComponentInfo(type: ComponentType): ComponentInfo | undefined {
-  return componentInfo.find(info => info.type === type)
+  console.warn('getComponentInfo is deprecated. Use theme context instead.')
+  return undefined
 } 

@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { PageBlock } from '@/lib/cms-types'
-import { renderComponent, getComponentInfo } from '@/lib/component-registry'
+import { useThemeComponents } from '@/lib/theme-context'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -44,6 +44,9 @@ export default function DraggableBlock({
   onEdit,
   isPreview = false 
 }: DraggableBlockProps) {
+  // Theme context for rendering components
+  const { renderComponent, getComponentInfo } = useThemeComponents()
+  
   const {
     attributes,
     listeners,

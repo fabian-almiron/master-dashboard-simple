@@ -19,13 +19,15 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { PageBlock, ComponentType, DraggedComponent } from '@/lib/cms-types'
-import { renderComponent } from '@/lib/component-registry'
+import { useThemeComponents } from '@/lib/theme-context'
 import ComponentPalette from './ComponentPalette'
 import DraggableBlock from './DraggableBlock'
+import TemplateSelector from './TemplateSelector'
+import PageRenderer from './PageRenderer'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Eye, Code, Save, Undo2, Redo2 } from 'lucide-react'
+import { Eye, Code, Save, Undo2, Redo2, Layout } from 'lucide-react'
 
 // Droppable area component for empty drop zone
 function DroppableArea({ children }: { children: React.ReactNode }) {
@@ -45,18 +47,34 @@ function DroppableArea({ children }: { children: React.ReactNode }) {
 
 interface PageBuilderProps {
   initialBlocks?: PageBlock[]
-  onSave?: (blocks: PageBlock[]) => void
+  onSave?: (blocks: PageBlock[], headerTemplateId?: string, footerTemplateId?: string, pageTemplateId?: string) => void
   pageName?: string
+  initialHeaderTemplateId?: string
+  initialFooterTemplateId?: string
+  initialPageTemplateId?: string
+  showTemplateSelector?: boolean
+  templateType?: 'header' | 'footer' | 'page' | 'post'
 }
 
 export default function PageBuilder({ 
   initialBlocks = [], 
   onSave,
-  pageName = 'Untitled Page'
+  pageName = 'Untitled Page',
+  initialHeaderTemplateId,
+  initialFooterTemplateId,
+  initialPageTemplateId,
+  showTemplateSelector = true,
+  templateType
 }: PageBuilderProps) {
   const [blocks, setBlocks] = useState<PageBlock[]>(initialBlocks)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [draggedComponent, setDraggedComponent] = useState<DraggedComponent | null>(null)
+  const [headerTemplateId, setHeaderTemplateId] = useState<string | undefined>(initialHeaderTemplateId)
+  const [footerTemplateId, setFooterTemplateId] = useState<string | undefined>(initialFooterTemplateId)
+  const [pageTemplateId, setPageTemplateId] = useState<string | undefined>(initialPageTemplateId)
+  
+  // Theme context for rendering components
+  const { renderComponent } = useThemeComponents()
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -169,9 +187,9 @@ export default function PageBuilder({
 
   const handleSave = useCallback(() => {
     if (onSave) {
-      onSave(blocks)
+      onSave(blocks, headerTemplateId, footerTemplateId, pageTemplateId)
     }
-  }, [blocks, onSave])
+  }, [blocks, headerTemplateId, footerTemplateId, pageTemplateId, onSave])
 
   return (
     <DndContext
@@ -229,6 +247,12 @@ export default function PageBuilder({
                   <Eye className="h-4 w-4" />
                   Preview
                 </TabsTrigger>
+                {showTemplateSelector && (
+                  <TabsTrigger value="templates" className="gap-2">
+                    <Layout className="h-4 w-4" />
+                    Templates
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="builder" className="flex-1 p-4 overflow-y-auto">
@@ -258,19 +282,31 @@ export default function PageBuilder({
 
               <TabsContent value="preview" className="flex-1 overflow-y-auto">
                 <div className="max-w-7xl mx-auto">
-                  {blocks
-                    .filter(block => block.isVisible)
-                    .map((block) => (
-                      <DraggableBlock
-                        key={block.id}
-                        block={block}
-                        onToggleVisibility={handleToggleVisibility}
-                        onDelete={handleDeleteBlock}
-                        isPreview={true}
-                      />
-                    ))}
+                  <PageRenderer 
+                    blocks={blocks}
+                    headerTemplateId={headerTemplateId}
+                    footerTemplateId={footerTemplateId}
+                    pageTemplateId={pageTemplateId}
+                    isTemplatePreview={!showTemplateSelector}
+                    templateType={!showTemplateSelector ? templateType : undefined}
+                  />
                 </div>
               </TabsContent>
+
+              {showTemplateSelector && (
+                <TabsContent value="templates" className="flex-1 overflow-y-auto p-4">
+                  <div className="max-w-3xl mx-auto">
+                    <TemplateSelector
+                      headerTemplateId={headerTemplateId}
+                      footerTemplateId={footerTemplateId}
+                      pageTemplateId={pageTemplateId}
+                      onHeaderTemplateChange={setHeaderTemplateId}
+                      onFooterTemplateChange={setFooterTemplateId}
+                      onPageTemplateChange={setPageTemplateId}
+                    />
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>

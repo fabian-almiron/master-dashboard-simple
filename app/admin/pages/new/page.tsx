@@ -12,33 +12,46 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, Save, Eye, Layout } from 'lucide-react'
 import { Template, TemplateType, PageBlock } from '@/lib/cms-types'
+import { useCurrentTheme } from '@/lib/theme-context'
+import { loadThemeTemplates } from '@/lib/theme-utils'
 
 export default function NewPagePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
+  const currentTheme = useCurrentTheme()
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     description: '',
     isPublished: false,
-    templateId: ''
+    templateId: 'none',
+    headerTemplateId: 'none',
+    footerTemplateId: 'none',
+    pageTemplateId: 'none'
   })
 
-  // Load templates
+  // Load theme templates and auto-assign defaults
   useEffect(() => {
-    const savedTemplates = localStorage.getItem('cms-templates')
-    if (savedTemplates) {
-      const templateList = JSON.parse(savedTemplates)
-      setTemplates(templateList)
-      
-      // Auto-select default page template if available
-      const defaultPageTemplate = templateList.find((t: Template) => t.type === 'page' && t.isDefault)
-      if (defaultPageTemplate) {
-        setFormData(prev => ({ ...prev, templateId: defaultPageTemplate.id }))
-      }
-    }
-  }, [])
+    if (!currentTheme) return
+    
+    // Load templates for current theme
+    const themeTemplates = loadThemeTemplates(currentTheme.id)
+    setTemplates(themeTemplates)
+    
+    // Auto-select default templates from current theme
+    const defaultPageTemplate = themeTemplates.find((t: Template) => t.type === 'page' && t.isDefault)
+    const defaultHeaderTemplate = themeTemplates.find((t: Template) => t.type === 'header' && t.isDefault)
+    const defaultFooterTemplate = themeTemplates.find((t: Template) => t.type === 'footer' && t.isDefault)
+    
+    setFormData(prev => ({
+      ...prev,
+      templateId: defaultPageTemplate?.id || 'none',
+      headerTemplateId: defaultHeaderTemplate?.id || 'none',
+      footerTemplateId: defaultFooterTemplate?.id || 'none',
+      pageTemplateId: defaultPageTemplate?.id || 'none'
+    }))
+  }, [currentTheme])
 
   // Auto-generate slug from title
   const handleTitleChange = (title: string) => {
@@ -60,7 +73,7 @@ export default function NewPagePage() {
     try {
       // Get template blocks if a template is selected
       let templateBlocks: PageBlock[] = []
-      if (formData.templateId) {
+      if (formData.templateId && formData.templateId !== 'none') {
         const selectedTemplate = templates.find(t => t.id === formData.templateId)
         if (selectedTemplate) {
           templateBlocks = selectedTemplate.blocks
@@ -75,15 +88,31 @@ export default function NewPagePage() {
         description: formData.description,
         status: formData.isPublished ? 'published' : 'draft',
         blocks: templateBlocks,
-        templateId: formData.templateId || null,
+        templateId: (formData.templateId && formData.templateId !== 'none') ? formData.templateId : null,
+        headerTemplateId: (formData.headerTemplateId && formData.headerTemplateId !== 'none') ? formData.headerTemplateId : undefined,
+        footerTemplateId: (formData.footerTemplateId && formData.footerTemplateId !== 'none') ? formData.footerTemplateId : undefined,
+        pageTemplateId: (formData.pageTemplateId && formData.pageTemplateId !== 'none') ? formData.pageTemplateId : undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
 
-      // Save to localStorage
-      const existingPages = JSON.parse(localStorage.getItem('cms_pages') || '[]')
-      const updatedPages = [newPage, ...existingPages]
-      localStorage.setItem('cms_pages', JSON.stringify(updatedPages))
+      // Save to database
+      const { savePageToDatabase } = await import('@/lib/cms-data')
+      const savedPage = await savePageToDatabase({
+        title: newPage.title,
+        slug: newPage.slug,
+        description: newPage.description,
+        status: newPage.status as 'draft' | 'published',
+        blocks: newPage.blocks,
+        templateId: newPage.templateId || undefined,
+        headerTemplateId: newPage.headerTemplateId || undefined,
+        footerTemplateId: newPage.footerTemplateId || undefined,
+        pageTemplateId: newPage.pageTemplateId || undefined
+      })
+      
+      if (!savedPage) {
+        throw new Error('Failed to save page to database')
+      }
       
       console.log('Page created successfully:', newPage)
       
@@ -186,7 +215,7 @@ export default function NewPagePage() {
                         <SelectValue placeholder="Choose a template or start blank" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No Template (Blank Page)</SelectItem>
+                        <SelectItem value="none">No Template (Blank Page)</SelectItem>
                         {templates
                           .filter(template => template.type === 'page')
                           .map(template => (
@@ -207,6 +236,96 @@ export default function NewPagePage() {
                       Templates provide pre-built layouts and components to get started faster
                     </p>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="page-template">Page Template</Label>
+                      <Select
+                        value={formData.pageTemplateId}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, pageTemplateId: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose page template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Page Template</SelectItem>
+                          {templates
+                            .filter(template => template.type === 'page')
+                            .map(template => (
+                              <SelectItem key={template.id} value={template.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{template.name}</span>
+                                  {template.isDefault && (
+                                    <span className="text-xs text-muted-foreground">(Default)</span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="header-template">Header Template</Label>
+                      <Select
+                        value={formData.headerTemplateId}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, headerTemplateId: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose header template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Header Template</SelectItem>
+                          {templates
+                            .filter(template => template.type === 'header')
+                            .map(template => (
+                              <SelectItem key={template.id} value={template.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{template.name}</span>
+                                  {template.isDefault && (
+                                    <span className="text-xs text-muted-foreground">(Default)</span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="footer-template">Footer Template</Label>
+                      <Select
+                        value={formData.footerTemplateId}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, footerTemplateId: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose footer template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Footer Template</SelectItem>
+                          {templates
+                            .filter(template => template.type === 'footer')
+                            .map(template => (
+                              <SelectItem key={template.id} value={template.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{template.name}</span>
+                                  {template.isDefault && (
+                                    <span className="text-xs text-muted-foreground">(Default)</span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Default header and footer templates are automatically assigned from your current theme ({currentTheme?.name}). 
+                    Page template defines the content structure, while header and footer templates wrap around everything globally.
+                  </p>
 
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="space-y-1">

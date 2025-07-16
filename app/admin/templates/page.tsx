@@ -24,6 +24,8 @@ import {
   Search
 } from 'lucide-react'
 import { Template, TemplateType } from '@/lib/cms-types'
+import { createStarterTemplatesForTheme } from '@/lib/theme-utils'
+import { useCurrentTheme } from '@/lib/theme-context'
 
 const templateTypeConfig = {
   header: {
@@ -56,6 +58,7 @@ export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([])
   const [activeTab, setActiveTab] = useState<TemplateType>('page')
   const [searchTerm, setSearchTerm] = useState('')
+  const currentTheme = useCurrentTheme()
 
   // Load templates from localStorage
   useEffect(() => {
@@ -63,51 +66,8 @@ export default function TemplatesPage() {
     if (savedTemplates) {
       setTemplates(JSON.parse(savedTemplates))
     } else {
-      // Initialize with some default templates
-      const defaultTemplates: Template[] = [
-        {
-          id: '1',
-          name: 'Default Header',
-          type: 'header',
-          description: 'Standard navigation header',
-          blocks: [],
-          isDefault: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '2', 
-          name: 'Default Footer',
-          type: 'footer',
-          description: 'Standard footer with links',
-          blocks: [],
-          isDefault: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '3',
-          name: 'Landing Page',
-          type: 'page',
-          description: 'Hero + Features + CTA layout',
-          blocks: [],
-          isDefault: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '4',
-          name: 'Blog Post',
-          type: 'post', 
-          description: 'Article layout with sidebar',
-          blocks: [],
-          isDefault: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
-      setTemplates(defaultTemplates)
-      localStorage.setItem('cms-templates', JSON.stringify(defaultTemplates))
+      // Start with empty templates array
+      setTemplates([])
     }
   }, [])
 
@@ -168,17 +128,57 @@ export default function TemplatesPage() {
     saveTemplates(newTemplates)
   }
 
+  // Create starter templates
+  const createStarterTemplates = () => {
+    if (!currentTheme) return
+    
+    if (confirm('This will create basic Header, Footer, and Page templates. Continue?')) {
+      const starterTemplates = createStarterTemplatesForTheme(currentTheme.id)
+      setTemplates(starterTemplates)
+    }
+  }
+
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-4 lg:p-8  mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-8">
-          <Layout className="h-8 w-8" />
-          <div>
-            <h1 className="text-3xl font-bold">Templates</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage page templates and layouts
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-2">
+            <Layout className="h-8 w-8" />
+            <div>
+              <h1 className="text-3xl font-bold">Templates</h1>
+              <p className="text-muted-foreground mt-1">
+                Manage page templates and layouts
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {templates.length === 0 ? (
+              <Button variant="outline" onClick={createStarterTemplates}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Starter Templates
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  if (confirm('Clear all templates? This action cannot be undone.')) {
+                    setTemplates([])
+                    if (currentTheme) {
+                      localStorage.removeItem(`cms-templates-${currentTheme.id}`)
+                    }
+                  }
+                }}
+              >
+                Clear All Templates
+              </Button>
+            )}
+            <Button asChild>
+              <Link href="/admin/templates/new">
+                <Plus className="h-4 w-4 mr-2" />
+                New Template
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -310,8 +310,10 @@ export default function TemplatesPage() {
                           <Button size="sm" variant="outline" onClick={() => duplicateTemplate(template)}>
                             <Copy className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/admin/templates/${template.id}/edit`}>
+                              <Edit className="h-4 w-4" />
+                            </Link>
                           </Button>
                           {!template.isDefault && (
                             <Button 
@@ -344,15 +346,43 @@ export default function TemplatesPage() {
           ))}
         </Tabs>
 
-        {/* Coming Soon Notice */}
+        {/* Template Builder Info */}
         <Card className="mt-8">
           <CardContent className="text-center py-8">
-            <Layout className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Template Builder Coming Soon</h3>
-            <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base">
-              Visual template builder with drag-and-drop components is in development. 
-              For now, templates are managed through the page builder.
-            </p>
+            <Layout className="h-12 w-12 text-primary mx-auto mb-4" />
+            {templates.length === 0 ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
+                <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base mb-4">
+                  Get started by creating basic starter templates, or build custom templates from scratch.
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={createStarterTemplates}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Starter Templates
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/admin/templates/new">
+                      Custom Template
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold mb-2">Template Builder Available</h3>
+                <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base">
+                  Create and edit templates with the visual drag-and-drop builder. 
+                  Use the DND Area component in header/footer templates to mark where page content should appear.
+                </p>
+                <Button asChild className="mt-4">
+                  <Link href="/admin/templates/new">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Custom Template
+                  </Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

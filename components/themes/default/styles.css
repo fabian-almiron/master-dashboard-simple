@@ -1,0 +1,82 @@
+/* Default Theme Styles */
+@layer base {
+  :root {
+    /* Default Theme Color Variables */
+    --default-background: 0 0% 100%;
+    --default-foreground: 222.2 84% 4.9%;
+    --default-card: 0 0% 100%;
+    --default-card-foreground: 222.2 84% 4.9%;
+    --default-popover: 0 0% 100%;
+    --default-popover-foreground: 222.2 84% 4.9%;
+    --default-primary: 221.2 83.2% 53.3%;
+    --default-primary-foreground: 210 40% 98%;
+    --default-secondary: 210 40% 96%;
+    --default-secondary-foreground: 222.2 84% 4.9%;
+    --default-muted: 210 40% 96%;
+    --default-muted-foreground: 215.4 16.3% 46.9%;
+    --default-accent: 210 40% 96%;
+    --default-accent-foreground: 222.2 84% 4.9%;
+    --default-destructive: 0 84.2% 60.2%;
+    --default-destructive-foreground: 210 40% 98%;
+    --default-border: 214.3 31.8% 91.4%;
+    --default-input: 214.3 31.8% 91.4%;
+    --default-ring: 221.2 83.2% 53.3%;
+    --default-radius: 0.5rem;
+  }
+
+  .dark {
+    /* Default Theme Dark Mode Variables */
+    --default-background: 222.2 84% 4.9%;
+    --default-foreground: 210 40% 98%;
+    --default-card: 222.2 84% 4.9%;
+    --default-card-foreground: 210 40% 98%;
+    --default-popover: 222.2 84% 4.9%;
+    --default-popover-foreground: 210 40% 98%;
+    --default-primary: 217.2 91.2% 59.8%;
+    --default-primary-foreground: 222.2 84% 4.9%;
+    --default-secondary: 217.2 32.6% 17.5%;
+    --default-secondary-foreground: 210 40% 98%;
+    --default-muted: 217.2 32.6% 17.5%;
+    --default-muted-foreground: 215 20.2% 65.1%;
+    --default-accent: 217.2 32.6% 17.5%;
+    --default-accent-foreground: 210 40% 98%;
+    --default-destructive: 0 62.8% 30.6%;
+    --default-destructive-foreground: 210 40% 98%;
+    --default-border: 217.2 32.6% 17.5%;
+    --default-input: 217.2 32.6% 17.5%;
+    --default-ring: 224.3 76.3% 94.1%;
+  }
+}
+
+/* Default Theme Custom Classes */
+.default-hero-gradient {
+  background: linear-gradient(135deg, hsl(var(--default-primary)) 0%, hsl(var(--default-accent)) 100%);
+}
+
+.default-card-hover {
+  transition: all 0.3s ease;
+}
+
+.default-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.default-text-gradient {
+  background: linear-gradient(135deg, hsl(var(--default-primary)), hsl(var(--default-accent)));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.default-button-primary {
+  background: linear-gradient(135deg, hsl(var(--default-primary)), hsl(var(--default-primary)) 100%);
+  color: hsl(var(--default-primary-foreground));
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.default-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+} 

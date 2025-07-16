@@ -81,7 +81,7 @@ export default function Header() {
       <div className="container px-5 mx-auto flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Zap className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">StreamLine</span>
+          <span className="text-xl font-bold">StreamLinessss</span>
         </Link>
         
         <nav className="hidden md:flex gap-6">

@@ -21,30 +21,8 @@ const PageBuilder = dynamic(() => import('@/components/cms/PageBuilder'), {
   )
 })
 
-// localStorage utilities
-const STORAGE_KEY = 'cms_pages'
-
-function loadPagesFromStorage() {
-  if (typeof window === 'undefined') return []
-  
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch (error) {
-    console.error('Error loading pages from localStorage:', error)
-    return []
-  }
-}
-
-function savePagesToStorage(pages: any[]) {
-  if (typeof window === 'undefined') return
-  
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pages))
-  } catch (error) {
-    console.error('Error saving pages to localStorage:', error)
-  }
-}
+// Database utilities
+import { loadPagesFromDatabase, updatePageInDatabase } from '@/lib/cms-data'
 
 export default function PageBuilderPage() {
   const searchParams = useSearchParams()
@@ -63,52 +41,68 @@ export default function PageBuilderPage() {
       return
     }
 
-    // Load the specific page from localStorage
-    const pages = loadPagesFromStorage()
-    const page = pages.find((p: any) => p.id === pageId)
-    
-    if (!page) {
-      console.error('Page not found:', pageId)
-      router.push('/admin/pages')
-      return
+    // Load the specific page from database
+    const loadPage = async () => {
+      try {
+        const pages = await loadPagesFromDatabase()
+        const page = pages.find((p) => p.id === pageId)
+        
+        if (!page) {
+          console.error('Page not found:', pageId)
+          router.push('/admin/pages')
+          return
+        }
+
+        setCurrentPage(page)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Error loading page:', error)
+        router.push('/admin/pages')
+      }
     }
 
-    setCurrentPage(page)
-    setIsLoading(false)
+    loadPage()
   }, [pageId, router])
 
-  const handleSave = async (blocks: PageBlock[]) => {
+  const handleSave = async (blocks: PageBlock[], headerTemplateId?: string, footerTemplateId?: string, pageTemplateId?: string) => {
     if (!currentPage) return
 
     setSaveStatus('saving')
     
     try {
-      // Load all pages
-      const pages = loadPagesFromStorage()
+      // Update page in database
+      const success = await updatePageInDatabase(currentPage.id, {
+        blocks: blocks,
+        headerTemplateId: headerTemplateId,
+        footerTemplateId: footerTemplateId,
+        pageTemplateId: pageTemplateId
+      })
       
-      // Update the current page with new blocks
-      const updatedPages = pages.map((page: any) => 
-        page.id === currentPage.id 
-          ? { 
-              ...page, 
-              blocks: blocks,
-              updatedAt: new Date().toISOString()
-            }
-          : page
-      )
-      
-      // Save back to localStorage
-      savePagesToStorage(updatedPages)
+      if (!success) {
+        throw new Error('Failed to save page to database')
+      }
       
       // Update current page state
-      setCurrentPage((prev: any) => ({ ...prev, blocks }))
+      setCurrentPage((prev: any) => ({ 
+        ...prev, 
+        blocks,
+        headerTemplateId,
+        footerTemplateId,
+        pageTemplateId
+      }))
       
       setSaveStatus('saved')
       
       // Reset status after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000)
       
-      console.log('Page saved successfully:', { pageId, blocksCount: blocks.length })
+      console.log('Page saved successfully:', { 
+        pageId, 
+        blocksCount: blocks.length,
+        headerTemplateId,
+        footerTemplateId,
+        pageTemplateId
+      })
     } catch (error) {
       console.error('Error saving page:', error)
       setSaveStatus('error')
@@ -187,6 +181,9 @@ export default function PageBuilderPage() {
           initialBlocks={initialBlocks}
           onSave={handleSave}
           pageName={currentPage.title}
+          initialHeaderTemplateId={currentPage.headerTemplateId}
+          initialFooterTemplateId={currentPage.footerTemplateId}
+          initialPageTemplateId={currentPage.pageTemplateId}
         />
       </div>
     </div>

@@ -13,6 +13,8 @@ export interface Page {
   description?: string
   blocks: PageBlock[]
   isPublished: boolean
+  headerTemplateId?: string
+  footerTemplateId?: string
   createdAt: string
   updatedAt: string
 }
@@ -24,12 +26,20 @@ export type ComponentType =
   | 'Pricing'
   | 'Blog'
   | 'CTA'
+  | 'Header'
+  | 'Footer'
+  | 'DNDArea'
+  | 'Button'
+  | 'Card'
+  | 'Badge'
+  | 'Separator'
+  | 'Progress'
 
 export interface ComponentInfo {
   type: ComponentType
   name: string
   description: string
-  category: 'content' | 'marketing' | 'layout'
+  category: 'content-blocks' | 'layout' | 'ui-primitives' | 'page-templates'
   icon: string
   previewImage?: string
 }

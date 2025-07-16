@@ -84,10 +84,10 @@ export default function DynamicPage({ params }: DynamicPageProps) {
   const blocks: PageBlock[] = page?.blocks || []
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       {/* Render Page with Templates */}
       {blocks.length === 0 ? (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
             <p className="text-muted-foreground">
@@ -99,7 +99,10 @@ export default function DynamicPage({ params }: DynamicPageProps) {
         <PageRenderer 
           blocks={blocks} 
           pageId={page.id}
-          className="w-full"
+          headerTemplateId={page.headerTemplateId}
+          footerTemplateId={page.footerTemplateId}
+          pageTemplateId={page.pageTemplateId}
+          className="flex-1"
         />
       )}
     </div>

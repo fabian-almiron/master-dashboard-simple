@@ -1,19 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Save, Layout } from 'lucide-react'
+import { ArrowLeft, Save, Layout, Edit } from 'lucide-react'
 import { Template, TemplateType, PageBlock } from '@/lib/cms-types'
 import PageBuilder from '@/components/cms/PageBuilder'
 
-export default function NewTemplatePage() {
+export default function EditTemplatePage() {
   const router = useRouter()
+  const params = useParams()
+  const templateId = params.id as string
+  
+  const [template, setTemplate] = useState<Template | null>(null)
   const [templateData, setTemplateData] = useState({
     name: '',
     type: 'page' as TemplateType,
@@ -21,6 +25,43 @@ export default function NewTemplatePage() {
     blocks: [] as PageBlock[]
   })
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // Load template data
+  useEffect(() => {
+    const loadTemplate = () => {
+      try {
+        const savedTemplates = localStorage.getItem('cms-templates')
+        if (savedTemplates) {
+          const templates: Template[] = JSON.parse(savedTemplates)
+          const foundTemplate = templates.find(t => t.id === templateId)
+          
+          if (foundTemplate) {
+            setTemplate(foundTemplate)
+            setTemplateData({
+              name: foundTemplate.name,
+              type: foundTemplate.type,
+              description: foundTemplate.description || '',
+              blocks: foundTemplate.blocks
+            })
+          } else {
+            alert('Template not found')
+            router.push('/admin/templates')
+          }
+        }
+      } catch (error) {
+        console.error('Error loading template:', error)
+        alert('Error loading template')
+        router.push('/admin/templates')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (templateId) {
+      loadTemplate()
+    }
+  }, [templateId, router])
 
   const handleBlocksUpdate = (newBlocks: PageBlock[]) => {
     setTemplateData(prev => ({
@@ -39,22 +80,23 @@ export default function NewTemplatePage() {
     
     try {
       // Get existing templates
-      const existingTemplates = JSON.parse(localStorage.getItem('cms-templates') || '[]')
+      const existingTemplates: Template[] = JSON.parse(localStorage.getItem('cms-templates') || '[]')
       
-      // Create new template
-      const newTemplate: Template = {
-        id: Date.now().toString(),
-        name: templateData.name.trim(),
-        type: templateData.type,
-        description: templateData.description.trim(),
-        blocks: templateData.blocks,
-        isDefault: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+      // Update the template
+      const updatedTemplates = existingTemplates.map(t => 
+        t.id === templateId 
+          ? {
+              ...t,
+              name: templateData.name.trim(),
+              type: templateData.type,
+              description: templateData.description.trim(),
+              blocks: templateData.blocks,
+              updatedAt: new Date().toISOString()
+            }
+          : t
+      )
 
       // Save to localStorage
-      const updatedTemplates = [...existingTemplates, newTemplate]
       localStorage.setItem('cms-templates', JSON.stringify(updatedTemplates))
 
       // Redirect back to templates page
@@ -67,9 +109,34 @@ export default function NewTemplatePage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Layout className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Loading template...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!template) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <p>Template not found</p>
+          <Button onClick={() => router.push('/admin/templates')} className="mt-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Templates
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-4 lg:p-8  mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button variant="outline" onClick={() => router.push('/admin/templates')}>
@@ -77,11 +144,11 @@ export default function NewTemplatePage() {
             Back to Templates
           </Button>
           <div className="flex items-center gap-2">
-            <Layout className="h-8 w-8" />
+            <Edit className="h-8 w-8" />
             <div>
-              <h1 className="text-3xl font-bold">Create Template</h1>
+              <h1 className="text-3xl font-bold">Edit Template</h1>
               <p className="text-muted-foreground mt-1">
-                Build a reusable template with drag-and-drop components
+                Modify your template with drag-and-drop components
               </p>
             </div>
           </div>
@@ -92,7 +159,7 @@ export default function NewTemplatePage() {
           <CardHeader>
             <CardTitle>Template Settings</CardTitle>
             <CardDescription>
-              Configure your template details before building the layout
+              Update your template details and configuration
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -142,15 +209,19 @@ export default function NewTemplatePage() {
           <CardHeader>
             <CardTitle>Template Builder</CardTitle>
             <CardDescription>
-              Drag and drop components to build your template layout
+              {templateData.type === 'header' && 'Build your header template. Add navigation, logos, and other header elements. Use the DND Area component to mark where page content should appear.'}
+              {templateData.type === 'footer' && 'Build your footer template. Add links, copyright, social media, and other footer elements. Use the DND Area component to mark where page content should appear.'}
+              {templateData.type === 'page' && 'Build your page template. Create the overall page structure and layout.'}
+              {templateData.type === 'post' && 'Build your post template. Design the layout for blog posts and articles.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <PageBuilder
-              pageName={templateData.name || 'New Template'}
+              pageName={templateData.name || 'Template'}
               initialBlocks={templateData.blocks}
               onSave={(blocks) => handleBlocksUpdate(blocks)}
               showTemplateSelector={false}
+              templateType={templateData.type}
             />
           </CardContent>
         </Card>

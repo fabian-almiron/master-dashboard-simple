@@ -1,8 +1,8 @@
 'use client'
 
 import { useDraggable } from '@dnd-kit/core'
-import { componentInfo } from '@/lib/component-registry'
 import { ComponentInfo, ComponentType } from '@/lib/cms-types'
+import { useThemeComponents } from '@/lib/theme-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Zap, 
@@ -29,7 +29,12 @@ interface DraggableComponentProps {
 }
 
 function DraggableComponent({ component }: DraggableComponentProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    isDragging,
+  } = useDraggable({
     id: `new-${component.type}`,
     data: {
       type: component.type,
@@ -39,73 +44,67 @@ function DraggableComponent({ component }: DraggableComponentProps) {
 
   const Icon = iconMap[component.icon as keyof typeof iconMap] || Grip
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.5 : 1,
-      }
-    : undefined
-
   return (
-    <Card
+    <div
       ref={setNodeRef}
-      style={style}
-      className={`cursor-grab hover:shadow-md transition-shadow select-none ${
-        isDragging ? 'rotate-2 shadow-lg opacity-50' : ''
-      }`}
       {...listeners}
       {...attributes}
+      className={`cursor-grab ${isDragging ? 'opacity-50' : ''}`}
     >
-      <CardHeader className="p-3">
-        <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-primary" />
-          <CardTitle className="text-sm">{component.name}</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
-        <CardDescription className="text-xs">
-          {component.description}
-        </CardDescription>
-        <div className="mt-2">
-          <span className="inline-block px-2 py-1 text-xs bg-muted rounded-md capitalize">
-            {component.category}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+      <Card className="border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-colors">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm">{component.name}</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+          <CardDescription className="text-xs">
+            {component.description}
+          </CardDescription>
+          <div className="mt-2">
+            <span className="inline-block px-2 py-1 text-xs bg-muted rounded-md capitalize">
+              {component.category}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
 export default function ComponentPalette() {
-  const contentComponents = componentInfo.filter(c => c.category === 'content')
-  const marketingComponents = componentInfo.filter(c => c.category === 'marketing')
-  const layoutComponents = componentInfo.filter(c => c.category === 'layout')
+  const { getComponentsByCategory, componentInfo } = useThemeComponents()
+  
+  const contentBlockComponents = getComponentsByCategory('content-blocks')
+  const layoutComponents = getComponentsByCategory('layout')
+  const uiPrimitiveComponents = getComponentsByCategory('ui-primitives')
+
+  if (!componentInfo.length) {
+    return (
+      <div className="w-80 bg-background border-r h-full overflow-y-auto">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold mb-4">Components</h2>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading theme components...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-80 bg-background border-r h-full overflow-y-auto">
       <div className="p-4">
         <h2 className="text-lg font-semibold mb-4">Components</h2>
         
-        {contentComponents.length > 0 && (
+        {contentBlockComponents.length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-              Content
+              Content Blocks
             </h3>
             <div className="space-y-3">
-              {contentComponents.map((component) => (
-                <DraggableComponent key={component.type} component={component} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {marketingComponents.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-              Marketing
-            </h3>
-            <div className="space-y-3">
-              {marketingComponents.map((component) => (
+              {contentBlockComponents.map((component) => (
                 <DraggableComponent key={component.type} component={component} />
               ))}
             </div>
@@ -119,6 +118,19 @@ export default function ComponentPalette() {
             </h3>
             <div className="space-y-3">
               {layoutComponents.map((component) => (
+                <DraggableComponent key={component.type} component={component} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {uiPrimitiveComponents.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+              UI Primitives
+            </h3>
+            <div className="space-y-3">
+              {uiPrimitiveComponents.map((component) => (
                 <DraggableComponent key={component.type} component={component} />
               ))}
             </div>
