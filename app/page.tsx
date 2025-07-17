@@ -15,11 +15,11 @@ function Homepage() {
   const [homePage, setHomePage] = useState<any>(null)
 
   useEffect(() => {
-    // Load pages from localStorage
-    if (typeof window !== 'undefined') {
+    // Load pages from database
+    const loadPages = async () => {
       try {
-        const stored = localStorage.getItem('cms_pages')
-        const loadedPages = stored ? JSON.parse(stored) : []
+        const { loadPagesFromDatabase } = await import('@/lib/cms-data')
+        const loadedPages = await loadPagesFromDatabase()
         setPages(loadedPages)
         
         // Look for a homepage (slug 'home' or '/')
@@ -28,10 +28,12 @@ function Homepage() {
         )
         setHomePage(home)
       } catch (error) {
-        console.error('Error loading pages:', error)
+        console.error('Error loading pages from database:', error)
         setPages([])
       }
     }
+
+    loadPages()
   }, [])
 
   if (!currentTheme) {

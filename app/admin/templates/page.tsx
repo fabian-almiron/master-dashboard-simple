@@ -60,21 +60,27 @@ export default function TemplatesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const currentTheme = useCurrentTheme()
 
-  // Load templates from localStorage
+  // Load templates from database
   useEffect(() => {
-    const savedTemplates = localStorage.getItem('cms-templates')
-    if (savedTemplates) {
-      setTemplates(JSON.parse(savedTemplates))
-    } else {
-      // Start with empty templates array
-      setTemplates([])
+    const loadTemplates = async () => {
+      try {
+        const { loadTemplatesFromDatabase } = await import('@/lib/cms-data')
+        const dbTemplates = await loadTemplatesFromDatabase()
+        setTemplates(dbTemplates)
+      } catch (error) {
+        console.error('Error loading templates:', error)
+        setTemplates([])
+      }
     }
+
+    loadTemplates()
   }, [])
 
-  // Save templates to localStorage
-  const saveTemplates = (newTemplates: Template[]) => {
+  // Save templates to database
+  const saveTemplates = async (newTemplates: Template[]) => {
     setTemplates(newTemplates)
-    localStorage.setItem('cms-templates', JSON.stringify(newTemplates))
+    // Note: Individual template operations should use saveTemplateToDatabase
+    // This function now mainly updates local state
   }
 
   // Filter templates by type and search
@@ -144,12 +150,12 @@ export default function TemplatesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2">
-            <Layout className="h-8 w-8" />
-            <div>
-              <h1 className="text-3xl font-bold">Templates</h1>
-              <p className="text-muted-foreground mt-1">
-                Manage page templates and layouts
-              </p>
+          <Layout className="h-8 w-8" />
+          <div>
+            <h1 className="text-3xl font-bold">Templates</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage page templates and layouts
+            </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -312,7 +318,7 @@ export default function TemplatesPage() {
                           </Button>
                           <Button size="sm" variant="outline" asChild>
                             <Link href={`/admin/templates/${template.id}/edit`}>
-                              <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                             </Link>
                           </Button>
                           {!template.isDefault && (
@@ -371,10 +377,10 @@ export default function TemplatesPage() {
             ) : (
               <>
                 <h3 className="text-lg font-semibold mb-2">Template Builder Available</h3>
-                <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base">
+            <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base">
                   Create and edit templates with the visual drag-and-drop builder. 
                   Use the DND Area component in header/footer templates to mark where page content should appear.
-                </p>
+            </p>
                 <Button asChild className="mt-4">
                   <Link href="/admin/templates/new">
                     <Plus className="h-4 w-4 mr-2" />

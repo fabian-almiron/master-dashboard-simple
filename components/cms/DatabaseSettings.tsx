@@ -92,9 +92,8 @@ export default function DatabaseSettings() {
       
       setSiteStats(sites)
       
-      // Show success message
+      // Connection test completed successfully
       console.log('✅ Connection test completed successfully')
-      alert(`Connection Test Results:\n✅ Basic Connection: ${regularTest.success ? 'SUCCESS' : 'FAILED'}\n🔐 Admin Access: ${adminTest.success ? 'SUCCESS' : 'NOT AVAILABLE'}\n📊 Total Sites: ${totalSites}`)
       
     } catch (error) {
       console.error('❌ Connection test failed:', error)
@@ -105,9 +104,6 @@ export default function DatabaseSettings() {
         projectUrl: '',
         error: errorMessage
       })
-      
-      // Show error message
-      alert(`Connection Test Failed:\n❌ Error: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }

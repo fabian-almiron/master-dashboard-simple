@@ -51,14 +51,14 @@ export default function PagesManagement() {
     const loadPages = async () => {
       try {
         const loadedPages = await loadPagesFromDatabase()
-        setPages(loadedPages)
-        setFilteredPages(loadedPages)
+    setPages(loadedPages)
+    setFilteredPages(loadedPages)
       } catch (error) {
         console.error('Error loading pages:', error)
         setPages([])
         setFilteredPages([])
       } finally {
-        setIsLoaded(true)
+    setIsLoaded(true)
       }
     }
 
@@ -89,8 +89,8 @@ export default function PagesManagement() {
       try {
         const success = await deletePageFromDatabase(pageId)
         if (success) {
-          const updatedPages = pages.filter(page => page.id !== pageId)
-          setPages(updatedPages)
+      const updatedPages = pages.filter(page => page.id !== pageId)
+      setPages(updatedPages)
           setFilteredPages(updatedPages.filter(page => {
             const matchesSearch = !searchTerm || 
               page.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,8 +107,8 @@ export default function PagesManagement() {
         alert('Error deleting page. Please try again.')
       }
     }
-  }
-
+    }
+    
   const handleDuplicatePage = async (page: CMSPage) => {
     // TODO: Implement page duplication with database
     alert('Page duplication will be implemented in a future update.')

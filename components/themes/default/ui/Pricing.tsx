@@ -1,6 +1,17 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Check } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Pricing',
+  name: 'Pricing',
+  description: 'Pricing plans and subscription tiers',
+  category: 'content-blocks',
+  icon: 'DollarSign',
+}
+
 
 export default function Pricing() {
   const plans = [

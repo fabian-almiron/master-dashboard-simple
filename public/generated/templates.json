@@ -1,0 +1,38 @@
+[
+  {
+    "id": "8272eaae-977c-4c44-b4d0-683301fac613",
+    "name": "Landing Page",
+    "type": "page",
+    "blocks": [],
+    "isBuiltIn": false,
+    "createdAt": "2025-07-17T00:08:46.059966+00:00",
+    "updatedAt": "2025-07-17T00:08:46.059966+00:00"
+  },
+  {
+    "id": "b30c07b8-cac2-4259-b6e6-d6946519b5c7",
+    "name": "Blank Page",
+    "type": "page",
+    "blocks": [],
+    "isBuiltIn": false,
+    "createdAt": "2025-07-17T00:08:45.971187+00:00",
+    "updatedAt": "2025-07-17T00:08:45.971187+00:00"
+  },
+  {
+    "id": "c2903bc0-4754-4116-9704-40dbd9bd3d70",
+    "name": "Basic Footer",
+    "type": "footer",
+    "blocks": [],
+    "isBuiltIn": false,
+    "createdAt": "2025-07-17T00:08:45.772986+00:00",
+    "updatedAt": "2025-07-17T00:08:45.772986+00:00"
+  },
+  {
+    "id": "22ea81bf-1174-48ae-9b0d-5c5171bb901e",
+    "name": "Basic Header",
+    "type": "header",
+    "blocks": [],
+    "isBuiltIn": false,
+    "createdAt": "2025-07-17T00:08:45.461866+00:00",
+    "updatedAt": "2025-07-17T00:08:45.461866+00:00"
+  }
+]

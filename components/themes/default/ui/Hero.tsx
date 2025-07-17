@@ -1,6 +1,17 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Hero',
+  name: 'Hero Section',
+  description: 'Main landing section with headline, CTA buttons, and hero image',
+  category: 'content-blocks',
+  icon: 'Zap',
+}
+
 
 export default function Hero() {
   return (

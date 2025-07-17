@@ -71,6 +71,22 @@ export async function createSite(siteData: {
     // Store site ID in localStorage
     localStorage.setItem('cms_site_id', site.id)
 
+    // Create starter templates for the new site
+    try {
+      console.log('Creating starter templates for new site...')
+      const { createStarterTemplatesInDatabase } = await import('./cms-data')
+      const templatesCreated = await createStarterTemplatesInDatabase()
+      
+      if (templatesCreated) {
+        console.log('✅ Starter templates created successfully for new site')
+      } else {
+        console.warn('⚠️ Failed to create starter templates for new site')
+      }
+    } catch (templateError) {
+      console.error('Error creating starter templates for new site:', templateError)
+      // Don't fail site creation if template creation fails
+    }
+
     return {
       id: site.id,
       name: site.name,

@@ -53,22 +53,22 @@ function DraggableComponent({ component }: DraggableComponentProps) {
     >
       <Card className="border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-colors">
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">{component.name}</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-3 pt-0">
-          <CardDescription className="text-xs">
-            {component.description}
-          </CardDescription>
-          <div className="mt-2">
-            <span className="inline-block px-2 py-1 text-xs bg-muted rounded-md capitalize">
-              {component.category}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary" />
+          <CardTitle className="text-sm">{component.name}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="p-3 pt-0">
+        <CardDescription className="text-xs">
+          {component.description}
+        </CardDescription>
+        <div className="mt-2">
+          <span className="inline-block px-2 py-1 text-xs bg-muted rounded-md capitalize">
+            {component.category}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
     </div>
   )
 }

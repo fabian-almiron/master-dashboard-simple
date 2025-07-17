@@ -497,7 +497,9 @@ export async function getSiteSetting(siteId: string, key: string) {
 export async function setSiteSetting(siteId: string, key: string, value: any) {
   const { data, error } = await supabase
     .from('site_settings')
-    .upsert([{ site_id: siteId, key, value }])
+    .upsert([{ site_id: siteId, key, value }], { 
+      onConflict: 'site_id,key'
+    })
     .select()
     .single()
 

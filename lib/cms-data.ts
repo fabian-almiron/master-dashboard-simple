@@ -2,7 +2,7 @@
 
 import { supabase } from './supabase'
 import { getCurrentSiteId } from './site-config'
-import { PageBlock } from './cms-types'
+import { PageBlock, ComponentType } from './cms-types'
 
 // =============================================
 // PAGES OPERATIONS
@@ -52,7 +52,7 @@ export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
       id: page.id,
       title: page.title,
       slug: page.slug,
-      description: page.description,
+      description: page.meta_description,
       status: page.status as 'draft' | 'published',
       blocks: blocks
         .filter(block => block.page_id === page.id)
@@ -63,7 +63,7 @@ export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
           props: block.props || {},
           isVisible: block.is_visible
         })),
-      templateId: page.template_id,
+      templateId: page.theme_id,
       headerTemplateId: page.header_template_id,
       footerTemplateId: page.footer_template_id,
       pageTemplateId: page.page_template_id,
@@ -89,12 +89,12 @@ export async function savePageToDatabase(page: Omit<CMSPage, 'id' | 'createdAt' 
         site_id: siteId,
         title: page.title,
         slug: page.slug,
-        description: page.description,
+        meta_description: page.description,
         status: page.status,
-        template_id: page.templateId,
-        header_template_id: page.headerTemplateId,
-        footer_template_id: page.footerTemplateId,
-        page_template_id: page.pageTemplateId
+        theme_id: 'default', // Set default theme
+        header_template_id: page.headerTemplateId || null,
+        footer_template_id: page.footerTemplateId || null,
+        page_template_id: page.pageTemplateId || null
       }])
       .select()
       .single()
@@ -119,20 +119,39 @@ export async function savePageToDatabase(page: Omit<CMSPage, 'id' | 'createdAt' 
       if (blocksError) throw blocksError
     }
 
-    return {
+    const result = {
       id: savedPage.id,
       title: savedPage.title,
       slug: savedPage.slug,
-      description: savedPage.description,
+      description: savedPage.meta_description,
       status: savedPage.status,
       blocks: page.blocks,
-      templateId: savedPage.template_id,
+      templateId: savedPage.theme_id,
       headerTemplateId: savedPage.header_template_id,
       footerTemplateId: savedPage.footer_template_id,
       pageTemplateId: savedPage.page_template_id,
       createdAt: savedPage.created_at,
       updatedAt: savedPage.updated_at
     }
+
+    // Regenerate static files in the background
+    try {
+      if (typeof window === 'undefined') {
+        // Server-side: Direct regeneration
+        const { generatePagesFile } = await import('./static-generator-server')
+        await generatePagesFile()
+      } else {
+        // Client-side: Call API endpoint
+        fetch('/api/generate-static', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(err => console.warn('Failed to regenerate static files:', err))
+      }
+    } catch (error) {
+      console.warn('Failed to regenerate static files:', error)
+    }
+
+    return result
 
   } catch (error) {
     console.error('Error saving page to database:', error)
@@ -151,9 +170,9 @@ export async function updatePageInDatabase(pageId: string, updates: Partial<CMSP
       .update({
         title: updates.title,
         slug: updates.slug,
-        description: updates.description,
+        meta_description: updates.description,
         status: updates.status,
-        template_id: updates.templateId,
+        theme_id: updates.templateId || 'default',
         header_template_id: updates.headerTemplateId,
         footer_template_id: updates.footerTemplateId,
         page_template_id: updates.pageTemplateId
@@ -189,6 +208,23 @@ export async function updatePageInDatabase(pageId: string, updates: Partial<CMSP
 
         if (blocksError) throw blocksError
       }
+    }
+
+    // Regenerate static files in the background
+    try {
+      if (typeof window === 'undefined') {
+        // Server-side: Direct regeneration
+        const { generatePagesFile } = await import('./static-generator-server')
+        await generatePagesFile()
+      } else {
+        // Client-side: Call API endpoint
+        fetch('/api/generate-static', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(err => console.warn('Failed to regenerate static files:', err))
+      }
+    } catch (error) {
+      console.warn('Failed to regenerate static files:', error)
     }
 
     return true
@@ -263,7 +299,7 @@ export async function loadTemplatesFromDatabase(): Promise<CMSTemplate[]> {
       id: template.id,
       name: template.name,
       type: template.type,
-      description: template.description,
+      description: '', // Templates table doesn't have description field
       blocks: blocks
         .filter(block => block.template_id === template.id)
         .map(block => ({
@@ -296,7 +332,7 @@ export async function saveTemplateToDatabase(template: Omit<CMSTemplate, 'id' | 
         site_id: siteId,
         name: template.name,
         type: template.type,
-        description: template.description,
+        theme_id: 'default',
         is_default: template.isDefault || false
       }])
       .select()
@@ -326,7 +362,7 @@ export async function saveTemplateToDatabase(template: Omit<CMSTemplate, 'id' | 
       id: savedTemplate.id,
       name: savedTemplate.name,
       type: savedTemplate.type,
-      description: savedTemplate.description,
+      description: template.description || '', // Keep original description from input
       blocks: template.blocks,
       isDefault: savedTemplate.is_default,
       createdAt: savedTemplate.created_at,
@@ -353,28 +389,82 @@ export interface CMSNavigationItem {
   isVisible: boolean
 }
 
+// =============================================
+// NAVIGATION CACHE SYSTEM
+// =============================================
+let navigationCache: CMSNavigationItem[] | null = null
+let navigationCacheTimestamp: number = 0
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 export async function loadNavigationFromDatabase(): Promise<CMSNavigationItem[]> {
   const siteId = getCurrentSiteId()
   if (!siteId) return []
 
+  // Check memory cache first
+  const now = Date.now()
+  if (navigationCache && (now - navigationCacheTimestamp) < CACHE_DURATION) {
+    console.log('📋 Navigation loaded from memory cache')
+    return navigationCache
+  }
+
+  // Check localStorage cache
+  if (typeof window !== 'undefined') {
+    try {
+      const cachedData = localStorage.getItem(`cms_navigation_cache_${siteId}`)
+      const cacheTime = localStorage.getItem(`cms_navigation_cache_time_${siteId}`)
+      
+      if (cachedData && cacheTime) {
+        const timeDiff = now - parseInt(cacheTime)
+        if (timeDiff < CACHE_DURATION) {
+          const parsed = JSON.parse(cachedData)
+          navigationCache = parsed
+          navigationCacheTimestamp = now
+          console.log('📋 Navigation loaded from localStorage cache')
+          return parsed
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load navigation from cache:', error)
+    }
+  }
+
   try {
+    console.log('📋 Loading navigation from database...')
     const { data, error } = await supabase
       .from('navigation_items')
       .select('*')
       .eq('site_id', siteId)
+      .eq('is_visible', true)
       .order('order_index')
 
     if (error) throw error
 
-    return data.map(item => ({
+    const navigation: CMSNavigationItem[] = (data || []).map(item => ({
       id: item.id,
       label: item.label,
-      type: item.type,
+      type: item.type as 'internal' | 'external',
       href: item.href,
       pageId: item.page_id,
       order: item.order_index,
       isVisible: item.is_visible
     }))
+
+    // Update caches
+    navigationCache = navigation
+    navigationCacheTimestamp = now
+
+    // Update localStorage cache
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`cms_navigation_cache_${siteId}`, JSON.stringify(navigation))
+        localStorage.setItem(`cms_navigation_cache_time_${siteId}`, now.toString())
+      } catch (error) {
+        console.warn('Failed to cache navigation:', error)
+      }
+    }
+
+    console.log('📋 Navigation loaded from database and cached')
+    return navigation
 
   } catch (error) {
     console.error('Error loading navigation from database:', error)
@@ -412,12 +502,45 @@ export async function saveNavigationToDatabase(navigation: CMSNavigationItem[]):
       if (error) throw error
     }
 
+    // Clear caches after successful save
+    clearNavigationCache(siteId)
+
+    // Regenerate static files in the background
+    try {
+      if (typeof window === 'undefined') {
+        // Server-side: Direct regeneration
+        const { generateNavigationFile } = await import('./static-generator-server')
+        await generateNavigationFile()
+      } else {
+        // Client-side: Call API endpoint
+        fetch('/api/generate-static', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(err => console.warn('Failed to regenerate static files:', err))
+      }
+    } catch (error) {
+      console.warn('Failed to regenerate static files:', error)
+    }
+
     return true
 
   } catch (error) {
     console.error('Error saving navigation to database:', error)
     return false
   }
+}
+
+// Clear navigation cache
+export function clearNavigationCache(siteId?: string) {
+  navigationCache = null
+  navigationCacheTimestamp = 0
+  
+  if (typeof window !== 'undefined' && siteId) {
+    localStorage.removeItem(`cms_navigation_cache_${siteId}`)
+    localStorage.removeItem(`cms_navigation_cache_time_${siteId}`)
+  }
+  
+  console.log('📋 Navigation cache cleared')
 }
 
 // =============================================
@@ -436,8 +559,8 @@ export async function migrateFromLocalStorage(): Promise<{ pages: number, templa
         const saved = await savePageToDatabase({
           title: page.title,
           slug: page.slug,
-          description: page.description,
-          status: page.status,
+          description: page.description || '',
+          status: page.status || 'draft',
           blocks: page.blocks || [],
           templateId: page.templateId,
           headerTemplateId: page.headerTemplateId,
@@ -485,4 +608,98 @@ export async function migrateFromLocalStorage(): Promise<{ pages: number, templa
   }
 
   return migratedCounts
+} 
+
+export async function createStarterTemplatesInDatabase(): Promise<boolean> {
+  const siteId = getCurrentSiteId()
+  if (!siteId) return false
+
+  try {
+    console.log('Creating starter templates in database...')
+
+    // Check if templates already exist (only for manual calls, not automatic site creation)
+    const existingTemplates = await loadTemplatesFromDatabase()
+    if (existingTemplates.length > 0) {
+      console.log('Templates already exist, skipping creation')
+      return true
+    }
+
+    // Create basic starter templates
+    const starterTemplates = [
+      {
+        name: 'Basic Header',
+        type: 'header' as const,
+        description: 'Simple header with navigation',
+        blocks: [
+          {
+            id: 'header-block',
+            type: 'Header' as ComponentType,
+            order: 0,
+            props: {},
+            isVisible: true
+          }
+        ],
+        isDefault: true
+      },
+      {
+        name: 'Basic Footer',
+        type: 'footer' as const,
+        description: 'Simple footer with links',
+        blocks: [
+          {
+            id: 'footer-block',
+            type: 'Footer' as ComponentType,
+            order: 0,
+            props: {},
+            isVisible: true
+          }
+        ],
+        isDefault: true
+      },
+      {
+        name: 'Blank Page',
+        type: 'page' as const,
+        description: 'Empty page template',
+        blocks: [],
+        isDefault: true
+      },
+      {
+        name: 'Landing Page',
+        type: 'page' as const,
+        description: 'Marketing landing page with Hero and Features',
+        blocks: [
+          {
+            id: 'hero-block',
+            type: 'Hero' as ComponentType,
+            order: 0,
+            props: {},
+            isVisible: true
+          },
+          {
+            id: 'features-block',
+            type: 'Features' as ComponentType,
+            order: 1,
+            props: {},
+            isVisible: true
+          }
+        ],
+        isDefault: false
+      }
+    ]
+
+    // Save each template to database
+    for (const template of starterTemplates) {
+      const saved = await saveTemplateToDatabase(template)
+      if (saved) {
+        console.log(`Created template: ${template.name}`)
+      }
+    }
+
+    console.log('✅ Starter templates created successfully!')
+    return true
+
+  } catch (error) {
+    console.error('Error creating starter templates:', error)
+    return false
+  }
 } 

@@ -24,7 +24,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <CmsThemeProvider>
-            {children}
+              {children}
           </CmsThemeProvider>
         </ThemeProvider>
       </body>

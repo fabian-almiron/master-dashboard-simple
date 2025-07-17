@@ -66,17 +66,22 @@ const createStarterTemplates = (themeId: string): Template[] => {
   ]
 }
 
-export const loadThemeTemplates = (themeId: string): Template[] => {
-  const storageKey = getThemeTemplateStorageKey(themeId)
-  const saved = localStorage.getItem(storageKey)
-  if (saved) {
-    return JSON.parse(saved)
+export const loadThemeTemplates = async (themeId: string): Promise<Template[]> => {
+  try {
+    // Load from database instead of localStorage
+    const { loadTemplatesFromDatabase } = await import('./cms-data')
+    const templates = await loadTemplatesFromDatabase()
+    
+    // Filter templates by theme_id if needed
+    // For now, return all templates as the database handles theme separation
+    return templates
+  } catch (error) {
+    console.error('Error loading templates from database:', error)
+    
+    // Fallback to creating starter templates if database fails
+    const starterTemplates = createStarterTemplates(themeId)
+    return starterTemplates
   }
-  
-  // Create and save starter templates if none exist
-  const starterTemplates = createStarterTemplates(themeId)
-  localStorage.setItem(storageKey, JSON.stringify(starterTemplates))
-  return starterTemplates
 }
 
 export const saveThemeTemplates = (themeId: string, templates: Template[]): void => {
@@ -84,13 +89,13 @@ export const saveThemeTemplates = (themeId: string, templates: Template[]): void
   localStorage.setItem(storageKey, JSON.stringify(templates))
 }
 
-export const getThemeTemplate = (themeId: string, templateId: string): Template | null => {
-  const templates = loadThemeTemplates(themeId)
+export const getThemeTemplate = async (themeId: string, templateId: string): Promise<Template | null> => {
+  const templates = await loadThemeTemplates(themeId)
   return templates.find(t => t.id === templateId) || null
 }
 
-export const getDefaultThemeTemplate = (themeId: string, type: 'header' | 'footer' | 'page'): Template | null => {
-  const templates = loadThemeTemplates(themeId)
+export const getDefaultThemeTemplate = async (themeId: string, type: 'header' | 'footer' | 'page'): Promise<Template | null> => {
+  const templates = await loadThemeTemplates(themeId)
   return templates.find(t => t.type === type && t.isDefault) || null
 }
 

@@ -19,8 +19,27 @@ export interface Theme {
   getComponentsByCategory: (category: string) => ComponentInfo[]
 }
 
-// Available themes
-const availableThemes = ['default', 'modern'] // Add more themes here
+import { discoverThemesClient } from './theme-registry'
+
+// Available themes - now dynamically discovered
+let availableThemes: string[] = ['default', 'modern'] // Initial fallback
+
+// Load themes dynamically
+async function loadAvailableThemes(): Promise<string[]> {
+  try {
+    const discoveredThemes = await discoverThemesClient()
+    availableThemes = discoveredThemes
+    return discoveredThemes
+  } catch (error) {
+    console.warn('Failed to discover themes, using fallback:', error)
+    return availableThemes
+  }
+}
+
+// Get available themes (for external access)
+export function getAvailableThemes(): string[] {
+  return [...availableThemes]
+}
 
 // Theme context
 interface ThemeContextType {
@@ -33,7 +52,6 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-// Theme provider component
 interface ThemeProviderProps {
   children: ReactNode
   defaultTheme?: string
@@ -43,19 +61,68 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: ThemeProvi
   const [currentTheme, setCurrentTheme] = useState<Theme | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dynamicThemes, setDynamicThemes] = useState<string[]>(availableThemes)
 
-  // Load theme from localStorage or use default
-  const getStoredTheme = () => {
+  // Load theme from database or use default
+  const getStoredTheme = async () => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('cms-current-theme') || defaultTheme
+      try {
+        // Try to get from database first
+        const { getCurrentSiteId } = await import('./site-config')
+        const { getSiteSetting } = await import('./supabase')
+        
+        const siteId = getCurrentSiteId()
+        if (siteId) {
+          const themeFromDb = await getSiteSetting(siteId, 'currentTheme')
+          if (themeFromDb && availableThemes.includes(themeFromDb)) {
+            return themeFromDb
+          }
+        }
+        
+        // Fall back to localStorage for migration purposes
+        const themeFromLocalStorage = localStorage.getItem('cms-current-theme')
+        if (themeFromLocalStorage && availableThemes.includes(themeFromLocalStorage)) {
+          // Migrate to database if we have a site ID
+          if (siteId) {
+            try {
+              const { setSiteSetting } = await import('./supabase')
+              await setSiteSetting(siteId, 'currentTheme', themeFromLocalStorage)
+              // Clear localStorage after successful migration
+              localStorage.removeItem('cms-current-theme')
+            } catch (err) {
+              console.warn('Failed to migrate theme setting to database:', err)
+            }
+          }
+          return themeFromLocalStorage
+        }
+      } catch (err) {
+        console.warn('Failed to load theme from database:', err)
+      }
     }
     return defaultTheme
   }
 
-  // Save theme to localStorage
-  const saveTheme = (themeId: string) => {
+  // Save theme to database
+  const saveTheme = async (themeId: string) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('cms-current-theme', themeId)
+      try {
+        const { getCurrentSiteId } = await import('./site-config')
+        const { setSiteSetting } = await import('./supabase')
+        
+        const siteId = getCurrentSiteId()
+        if (siteId) {
+          await setSiteSetting(siteId, 'currentTheme', themeId)
+          console.log(`Theme "${themeId}" saved to database`)
+        } else {
+          // Fallback to localStorage if no site ID
+          localStorage.setItem('cms-current-theme', themeId)
+          console.log(`Theme "${themeId}" saved to localStorage (no site configured)`)
+        }
+      } catch (err) {
+        console.error('Failed to save theme to database:', err)
+        // Fallback to localStorage
+        localStorage.setItem('cms-current-theme', themeId)
+      }
     }
   }
 
@@ -124,7 +191,7 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: ThemeProvi
 
   // Switch theme function
   const switchTheme = async (themeId: string) => {
-    if (!availableThemes.includes(themeId)) {
+    if (!dynamicThemes.includes(themeId)) {
       setError(`Theme "${themeId}" not found`)
       return
     }
@@ -132,14 +199,19 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: ThemeProvi
     const theme = await loadTheme(themeId)
     if (theme) {
       setCurrentTheme(theme)
-      saveTheme(themeId)
+      await saveTheme(themeId)
     }
   }
 
-  // Initialize theme on mount
+  // Initialize theme discovery and load theme on mount
   useEffect(() => {
     const initTheme = async () => {
-      const storedTheme = getStoredTheme()
+      // First discover available themes
+      const discoveredThemes = await loadAvailableThemes()
+      setDynamicThemes(discoveredThemes)
+      
+      // Then load the stored theme
+      const storedTheme = await getStoredTheme()
       await switchTheme(storedTheme)
     }
     
@@ -148,7 +220,7 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: ThemeProvi
 
   const value: ThemeContextType = {
     currentTheme,
-    availableThemes,
+    availableThemes: dynamicThemes,
     switchTheme,
     loading,
     error,

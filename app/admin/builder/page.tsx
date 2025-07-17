@@ -46,15 +46,15 @@ export default function PageBuilderPage() {
       try {
         const pages = await loadPagesFromDatabase()
         const page = pages.find((p) => p.id === pageId)
-        
-        if (!page) {
-          console.error('Page not found:', pageId)
-          router.push('/admin/pages')
-          return
-        }
+    
+    if (!page) {
+      console.error('Page not found:', pageId)
+      router.push('/admin/pages')
+      return
+    }
 
-        setCurrentPage(page)
-        setIsLoading(false)
+    setCurrentPage(page)
+    setIsLoading(false)
       } catch (error) {
         console.error('Error loading page:', error)
         router.push('/admin/pages')

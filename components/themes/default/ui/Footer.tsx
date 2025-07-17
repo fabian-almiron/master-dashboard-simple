@@ -1,5 +1,16 @@
 import Link from "next/link"
 import { Zap } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Footer',
+  name: 'Footer',
+  description: 'Site footer with links and information',
+  category: 'layout',
+  icon: 'Grip',
+}
+
 
 export default function Footer() {
   return (

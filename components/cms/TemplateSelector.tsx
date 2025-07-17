@@ -31,12 +31,22 @@ export default function TemplateSelector({
   const [templates, setTemplates] = useState<Template[]>([])
   const currentTheme = useCurrentTheme()
 
-  // Load theme-specific templates
+  // Load templates from database
   useEffect(() => {
     if (!currentTheme) return
     
-    const themeTemplates = loadThemeTemplates(currentTheme.id)
-    setTemplates(themeTemplates)
+    const loadTemplates = async () => {
+      try {
+        const { loadTemplatesFromDatabase } = await import('@/lib/cms-data')
+        const dbTemplates = await loadTemplatesFromDatabase()
+        setTemplates(dbTemplates)
+      } catch (error) {
+        console.error('Error loading templates:', error)
+        setTemplates([])
+      }
+    }
+
+    loadTemplates()
   }, [currentTheme])
 
   if (!currentTheme) {

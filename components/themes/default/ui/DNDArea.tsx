@@ -2,6 +2,17 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Layers, ArrowDown, RotateCcw, Palette } from 'lucide-react'
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'DNDArea',
+  name: 'Dynamic Content Area',
+  description: 'Placeholder for dynamic page content in templates',
+  category: 'layout',
+  icon: 'Grip',
+}
+
 
 export default function DNDArea() {
   return (

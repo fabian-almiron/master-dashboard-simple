@@ -4,21 +4,7 @@ import { useEffect, useState, use } from 'react'
 import { notFound } from 'next/navigation'
 import { PageBlock } from '@/lib/cms-types'
 import PageRenderer from '@/components/cms/PageRenderer'
-
-// localStorage utilities
-const STORAGE_KEY = 'cms_pages'
-
-function loadPagesFromStorage() {
-  if (typeof window === 'undefined') return []
-  
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch (error) {
-    console.error('Error loading pages from localStorage:', error)
-    return []
-  }
-}
+import { loadPagesFromDatabase } from '@/lib/cms-data'
 
 interface DynamicPageProps {
   params: Promise<{
@@ -35,8 +21,10 @@ export default function DynamicPage({ params }: DynamicPageProps) {
   const resolvedParams = use(params)
 
   useEffect(() => {
-    // Load page from localStorage
-    const pages = loadPagesFromStorage()
+    // Load page from database
+    const loadPage = async () => {
+      try {
+        const pages = await loadPagesFromDatabase()
     const foundPage = pages.find((p: any) => p.slug === resolvedParams.slug)
     
     if (!foundPage) {
@@ -54,6 +42,14 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
     setPage(foundPage)
     setIsLoading(false)
+      } catch (error) {
+        console.error('Error loading pages from database:', error)
+        setNotFoundFlag(true)
+        setIsLoading(false)
+      }
+    }
+
+    loadPage()
   }, [resolvedParams.slug])
 
   // Set document title when page loads

@@ -38,24 +38,19 @@ export default function NewTemplatePage() {
     setSaving(true)
     
     try {
-      // Get existing templates
-      const existingTemplates = JSON.parse(localStorage.getItem('cms-templates') || '[]')
-      
-      // Create new template
-      const newTemplate: Template = {
-        id: Date.now().toString(),
+      // Save to database
+      const { saveTemplateToDatabase } = await import('@/lib/cms-data')
+      const savedTemplate = await saveTemplateToDatabase({
         name: templateData.name.trim(),
         type: templateData.type,
         description: templateData.description.trim(),
         blocks: templateData.blocks,
-        isDefault: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+        isDefault: false
+      })
 
-      // Save to localStorage
-      const updatedTemplates = [...existingTemplates, newTemplate]
-      localStorage.setItem('cms-templates', JSON.stringify(updatedTemplates))
+      if (!savedTemplate) {
+        throw new Error('Failed to save template to database')
+      }
 
       // Redirect back to templates page
       router.push('/admin/templates')

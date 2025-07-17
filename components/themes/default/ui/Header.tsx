@@ -1,80 +1,75 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Zap } from "lucide-react"
+import Link from 'next/link'
+import { Zap } from 'lucide-react'
+import { useNavigation } from '@/hooks/use-navigation'
+import { loadPagesFromDatabase } from '@/lib/cms-data'
+import { ComponentInfo } from '@/lib/cms-types'
 
-// Navigation item type
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Header',
+  name: 'Header',
+  description: 'Site navigation and branding header',
+  category: 'layout',
+  icon: 'Grip',
+}
+
 interface NavigationItem {
   id: string
   label: string
-  type: 'internal' | 'external' | 'dropdown'
+  type: 'internal' | 'external'
   href?: string
   pageId?: string
   order: number
   isVisible: boolean
-  children?: NavigationItem[]
 }
 
-// localStorage utilities
-const STORAGE_KEY = 'cms_navigation'
-const PAGES_STORAGE_KEY = 'cms_pages'
-
-function loadNavigationFromStorage(): NavigationItem[] {
-  if (typeof window === 'undefined') return []
-  
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch (error) {
-    console.error('Error loading navigation from localStorage:', error)
-    return []
-  }
-}
-
-function loadPagesFromStorage() {
-  if (typeof window === 'undefined') return []
-  
-  try {
-    const stored = localStorage.getItem(PAGES_STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch (error) {
-    console.error('Error loading pages from localStorage:', error)
-    return []
-  }
+// Loading skeleton component
+function NavigationSkeleton() {
+  return (
+    <>
+      <div className="h-4 bg-muted rounded w-12 animate-pulse"></div>
+      <div className="h-4 bg-muted rounded w-16 animate-pulse"></div>
+      <div className="h-4 bg-muted rounded w-14 animate-pulse"></div>
+      <div className="h-4 bg-muted rounded w-10 animate-pulse"></div>
+    </>
+  )
 }
 
 export default function Header() {
-  const [navigation, setNavigation] = useState<NavigationItem[]>([])
+  const { navigation, isLoading } = useNavigation()
   const [pages, setPages] = useState<any[]>([])
-  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const loadedNavigation = loadNavigationFromStorage()
-    const loadedPages = loadPagesFromStorage()
-    setNavigation(loadedNavigation)
-    setPages(loadedPages)
-    setIsLoaded(true)
+    const loadData = async () => {
+      try {
+        const loadedPages = await loadPagesFromDatabase()
+        setPages(loadedPages)
+      } catch (error) {
+        console.error('Error loading pages:', error)
+      }
+    }
+
+    loadData()
   }, [])
 
   const getNavigationHref = (item: NavigationItem): string => {
     if (item.type === 'external') {
       return item.href || '#'
-    } else if (item.type === 'internal') {
-      if (item.pageId === 'home' || !item.pageId) {
-        return '/'
-      }
-      const page = pages.find(p => p.id === item.pageId)
-      return page ? `/${page.slug}` : '/'
     }
-    return '/'
+    
+    if (item.type === 'internal' && item.pageId) {
+      const page = pages.find(p => p.id === item.pageId)
+      return page ? `/${page.slug}` : '#'
+    }
+    
+    return item.href || '#'
   }
 
-  // Get visible navigation items sorted by order
-  const visibleNavigation = navigation
-    .filter(item => item.isVisible)
-    .sort((a, b) => a.order - b.order)
+  // Filter visible navigation items
+  const visibleNavigation = navigation.filter(item => item.isVisible)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -85,7 +80,9 @@ export default function Header() {
         </Link>
         
         <nav className="hidden md:flex gap-6">
-          {isLoaded ? (
+          {isLoading ? (
+            <NavigationSkeleton />
+          ) : (
             visibleNavigation.map((item) => (
               <Link 
                 key={item.id}
@@ -95,25 +92,6 @@ export default function Header() {
                 {item.label}
               </Link>
             ))
-          ) : (
-            // Fallback navigation while loading
-            <>
-              <Link href="/" className="text-sm font-medium hover:text-primary">
-                Home
-              </Link>
-              <Link href="#features" className="text-sm font-medium hover:text-primary">
-                Features
-              </Link>
-              <Link href="#pricing" className="text-sm font-medium hover:text-primary">
-                Pricing
-              </Link>
-              <Link href="#blog" className="text-sm font-medium hover:text-primary">
-                Blog
-              </Link>
-              <Link href="#about" className="text-sm font-medium hover:text-primary">
-                About
-              </Link>
-            </>
           )}
         </nav>
         
@@ -121,10 +99,6 @@ export default function Header() {
           <Link href="/admin" className="text-sm font-medium hover:underline underline-offset-4 hidden sm:block">
             Admin
           </Link>
-          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4 hidden sm:block">
-            Sign In
-          </Link>
-          <Button>Get Started</Button>
         </div>
       </div>
     </header>

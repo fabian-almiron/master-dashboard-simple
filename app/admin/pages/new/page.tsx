@@ -35,22 +35,32 @@ export default function NewPagePage() {
   useEffect(() => {
     if (!currentTheme) return
     
-    // Load templates for current theme
-    const themeTemplates = loadThemeTemplates(currentTheme.id)
-    setTemplates(themeTemplates)
+    const loadTemplates = async () => {
+      try {
+        // Load templates from database instead of using loadThemeTemplates
+        const { loadTemplatesFromDatabase } = await import('@/lib/cms-data')
+        const themeTemplates = await loadTemplatesFromDatabase()
+        setTemplates(themeTemplates)
+      
+        // Auto-select default templates from current theme
+        const defaultPageTemplate = themeTemplates.find((t: Template) => t.type === 'page' && t.isDefault)
+        const defaultHeaderTemplate = themeTemplates.find((t: Template) => t.type === 'header' && t.isDefault)
+        const defaultFooterTemplate = themeTemplates.find((t: Template) => t.type === 'footer' && t.isDefault)
+        
+        setFormData(prev => ({
+          ...prev,
+          templateId: defaultPageTemplate?.id || 'none',
+          headerTemplateId: defaultHeaderTemplate?.id || 'none',
+          footerTemplateId: defaultFooterTemplate?.id || 'none',
+          pageTemplateId: defaultPageTemplate?.id || 'none'
+        }))
+      } catch (error) {
+        console.error('Error loading templates:', error)
+        setTemplates([])
+      }
+    }
     
-    // Auto-select default templates from current theme
-    const defaultPageTemplate = themeTemplates.find((t: Template) => t.type === 'page' && t.isDefault)
-    const defaultHeaderTemplate = themeTemplates.find((t: Template) => t.type === 'header' && t.isDefault)
-    const defaultFooterTemplate = themeTemplates.find((t: Template) => t.type === 'footer' && t.isDefault)
-    
-    setFormData(prev => ({
-      ...prev,
-      templateId: defaultPageTemplate?.id || 'none',
-      headerTemplateId: defaultHeaderTemplate?.id || 'none',
-      footerTemplateId: defaultFooterTemplate?.id || 'none',
-      pageTemplateId: defaultPageTemplate?.id || 'none'
-    }))
+    loadTemplates()
   }, [currentTheme])
 
   // Auto-generate slug from title
@@ -80,47 +90,31 @@ export default function NewPagePage() {
         }
       }
 
-      // Create new page object
-      const newPage = {
-        id: Date.now().toString(),
+      // Save to database
+      const { savePageToDatabase } = await import('@/lib/cms-data')
+      const savedPage = await savePageToDatabase({
         title: formData.title,
         slug: formData.slug,
         description: formData.description,
         status: formData.isPublished ? 'published' : 'draft',
         blocks: templateBlocks,
-        templateId: (formData.templateId && formData.templateId !== 'none') ? formData.templateId : null,
+        templateId: (formData.templateId && formData.templateId !== 'none') ? formData.templateId : undefined,
         headerTemplateId: (formData.headerTemplateId && formData.headerTemplateId !== 'none') ? formData.headerTemplateId : undefined,
         footerTemplateId: (formData.footerTemplateId && formData.footerTemplateId !== 'none') ? formData.footerTemplateId : undefined,
-        pageTemplateId: (formData.pageTemplateId && formData.pageTemplateId !== 'none') ? formData.pageTemplateId : undefined,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-
-      // Save to database
-      const { savePageToDatabase } = await import('@/lib/cms-data')
-      const savedPage = await savePageToDatabase({
-        title: newPage.title,
-        slug: newPage.slug,
-        description: newPage.description,
-        status: newPage.status as 'draft' | 'published',
-        blocks: newPage.blocks,
-        templateId: newPage.templateId || undefined,
-        headerTemplateId: newPage.headerTemplateId || undefined,
-        footerTemplateId: newPage.footerTemplateId || undefined,
-        pageTemplateId: newPage.pageTemplateId || undefined
+        pageTemplateId: (formData.pageTemplateId && formData.pageTemplateId !== 'none') ? formData.pageTemplateId : undefined
       })
       
       if (!savedPage) {
         throw new Error('Failed to save page to database')
       }
       
-      console.log('Page created successfully:', newPage)
+      console.log('Page created successfully:', savedPage)
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 800))
       
-      // Redirect to page builder to start editing the new page
-      router.push(`/admin/builder?page=${newPage.id}`)
+      // Redirect to page builder using the ACTUAL database page ID
+      router.push(`/admin/builder?page=${savedPage.id}`)
     } catch (error) {
       console.error('Error creating page:', error)
       alert('Failed to create page. Please try again.')

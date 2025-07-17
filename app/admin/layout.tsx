@@ -50,12 +50,12 @@ export default function AdminLayout({
 
   return (
     <ThemeProvider defaultTheme="default">
-      <div className="h-screen overflow-hidden flex">
-        <AdminSidebar />
-        <div className="flex-1 overflow-hidden">
-          {children}
-        </div>
+    <div className="h-screen overflow-hidden flex">
+      <AdminSidebar />
+      <div className="flex-1 overflow-hidden">
+        {children}
       </div>
+    </div>
     </ThemeProvider>
   )
 } 

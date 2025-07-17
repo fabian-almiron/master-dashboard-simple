@@ -67,40 +67,63 @@ interface NavigationItem {
 const STORAGE_KEY = 'cms_navigation'
 const PAGES_STORAGE_KEY = 'cms_pages'
 
-function loadNavigationFromStorage(): NavigationItem[] {
-  if (typeof window === 'undefined') return []
-  
+async function loadNavigationFromDatabase() {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      return JSON.parse(stored)
+    const { loadNavigationFromDatabase: dbLoadNavigation } = await import('@/lib/cms-data')
+    const result = await dbLoadNavigation()
+    console.log('✅ Loaded navigation from database:', result)
+    return result
+  } catch (error) {
+    console.error('❌ Error loading navigation from database:', error)
+    return []
+  }
+}
+
+async function saveNavigationToDatabase(navigation: NavigationItem[]) {
+  try {
+    console.log('💾 Saving navigation to database:', navigation)
+    const { saveNavigationToDatabase: dbSaveNavigation, clearNavigationCache } = await import('@/lib/cms-data')
+    const { getCurrentSiteId } = await import('@/lib/site-config')
+    
+    const siteId = getCurrentSiteId()
+    
+    const mapped = navigation
+      .filter(item => item.type !== 'dropdown') // Filter out dropdown items as database doesn't support them
+      .map(item => ({
+        id: item.id,
+        label: item.label,
+        type: item.type as 'internal' | 'external',
+        href: item.href,
+        pageId: item.pageId,
+        order: item.order,
+        isVisible: item.isVisible
+      }))
+    
+    console.log('💾 Mapped navigation for database:', mapped)
+    const result = await dbSaveNavigation(mapped)
+    
+    // Clear cache after successful save so changes appear immediately
+    if (result) {
+      if (siteId) {
+        clearNavigationCache(siteId)
+        console.log('🗑️ Navigation cache cleared')
+      }
     }
+    
+    console.log('✅ Navigation save result:', result)
+    return result
   } catch (error) {
-    console.error('Error loading navigation from localStorage:', error)
-  }
-  
-  // Start with empty navigation instead of default items
-  return []
-}
-
-function saveNavigationToStorage(navigation: NavigationItem[]) {
-  if (typeof window === 'undefined') return
-  
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(navigation))
-  } catch (error) {
-    console.error('Error saving navigation to localStorage:', error)
+    console.error('❌ Error saving navigation to database:', error)
+    return false
   }
 }
 
-function loadPagesFromStorage() {
-  if (typeof window === 'undefined') return []
-  
+async function loadPagesFromDatabase() {
   try {
-    const stored = localStorage.getItem(PAGES_STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
+    const { loadPagesFromDatabase } = await import('@/lib/cms-data')
+    return await loadPagesFromDatabase()
   } catch (error) {
-    console.error('Error loading pages from localStorage:', error)
+    console.error('Error loading pages from database:', error)
     return []
   }
 }
@@ -123,14 +146,23 @@ export default function NavigationManager() {
 
   // Load navigation and pages on mount
   useEffect(() => {
-    const loadedNavigation = loadNavigationFromStorage()
-    const loadedPages = loadPagesFromStorage()
-    setNavigation(loadedNavigation)
-    setPages(loadedPages)
-    setIsLoaded(true)
+    const loadData = async () => {
+      try {
+        const loadedNavigation = await loadNavigationFromDatabase()
+        const loadedPages = await loadPagesFromDatabase()
+        setNavigation(loadedNavigation)
+        setPages(loadedPages)
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setIsLoaded(true)
+      }
+    }
+
+    loadData()
   }, [])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.label) return
 
     const newItem: NavigationItem = {
@@ -149,12 +181,12 @@ export default function NavigationManager() {
         item.id === editingItem.id ? newItem : item
       )
       setNavigation(updatedNavigation)
-      saveNavigationToStorage(updatedNavigation)
+      await saveNavigationToDatabase(updatedNavigation)
     } else {
       // Adding new item
       const updatedNavigation = [...navigation, newItem]
       setNavigation(updatedNavigation)
-      saveNavigationToStorage(updatedNavigation)
+      await saveNavigationToDatabase(updatedNavigation)
     }
 
     // Reset form
@@ -181,22 +213,22 @@ export default function NavigationManager() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = (itemId: string) => {
+  const handleDelete = async (itemId: string) => {
     if (confirm('Are you sure you want to delete this navigation item?')) {
       const updatedNavigation = navigation.filter(item => item.id !== itemId)
       setNavigation(updatedNavigation)
-      saveNavigationToStorage(updatedNavigation)
+      await saveNavigationToDatabase(updatedNavigation)
     }
   }
 
-  const handleToggleVisibility = (itemId: string) => {
+  const handleToggleVisibility = async (itemId: string) => {
     const updatedNavigation = navigation.map(item => 
       item.id === itemId 
         ? { ...item, isVisible: !item.isVisible }
         : item
     )
     setNavigation(updatedNavigation)
-    saveNavigationToStorage(updatedNavigation)
+    await saveNavigationToDatabase(updatedNavigation)
   }
 
   const getItemHref = (item: NavigationItem) => {
@@ -235,10 +267,10 @@ export default function NavigationManager() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              onClick={() => {
+              onClick={async () => {
                 if (confirm('Clear all navigation items? This action cannot be undone.')) {
                   setNavigation([])
-                  saveNavigationToStorage([])
+                  await saveNavigationToDatabase([])
                 }
               }}
             >

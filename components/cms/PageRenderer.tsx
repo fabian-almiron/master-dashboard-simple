@@ -32,36 +32,47 @@ export default function PageRenderer({
   const { renderComponent } = useThemeComponents()
   const currentTheme = useCurrentTheme()
 
-  // Load theme-specific templates
+  // Load templates from database
   useEffect(() => {
     if (!currentTheme) return
 
-    // Use specific template IDs if provided, otherwise use defaults
-    let headerTemplateToUse: Template | null = null
-    let footerTemplateToUse: Template | null = null
-    let pageTemplateToUse: Template | null = null
+    const loadTemplates = async () => {
+      try {
+        const { loadTemplatesFromDatabase } = await import('@/lib/cms-data')
+        const templates = await loadTemplatesFromDatabase()
 
-    if (headerTemplateId) {
-      headerTemplateToUse = getThemeTemplate(currentTheme.id, headerTemplateId)
-    } else {
-      headerTemplateToUse = getDefaultThemeTemplate(currentTheme.id, 'header')
+        // Find specific templates by ID or use defaults
+        let headerTemplateToUse: Template | null = null
+        let footerTemplateToUse: Template | null = null
+        let pageTemplateToUse: Template | null = null
+
+        if (headerTemplateId) {
+          headerTemplateToUse = templates.find(t => t.id === headerTemplateId) || null
+        } else {
+          headerTemplateToUse = templates.find(t => t.type === 'header' && t.isDefault) || null
+        }
+
+        if (footerTemplateId) {
+          footerTemplateToUse = templates.find(t => t.id === footerTemplateId) || null
+        } else {
+          footerTemplateToUse = templates.find(t => t.type === 'footer' && t.isDefault) || null
+        }
+
+        if (pageTemplateId) {
+          pageTemplateToUse = templates.find(t => t.id === pageTemplateId) || null
+        } else {
+          pageTemplateToUse = templates.find(t => t.type === 'page' && t.isDefault) || null
+        }
+    
+        setHeaderTemplate(headerTemplateToUse)
+        setFooterTemplate(footerTemplateToUse)
+        setPageTemplate(pageTemplateToUse)
+      } catch (error) {
+        console.error('Error loading templates:', error)
+      }
     }
 
-    if (footerTemplateId) {
-      footerTemplateToUse = getThemeTemplate(currentTheme.id, footerTemplateId)
-    } else {
-      footerTemplateToUse = getDefaultThemeTemplate(currentTheme.id, 'footer')
-    }
-
-    if (pageTemplateId) {
-      pageTemplateToUse = getThemeTemplate(currentTheme.id, pageTemplateId)
-    } else {
-      pageTemplateToUse = getDefaultThemeTemplate(currentTheme.id, 'page')
-    }
-
-    setHeaderTemplate(headerTemplateToUse)
-    setFooterTemplate(footerTemplateToUse)
-    setPageTemplate(pageTemplateToUse)
+    loadTemplates()
   }, [currentTheme, headerTemplateId, footerTemplateId, pageTemplateId])
 
   // Sort blocks by order and filter visible ones
@@ -131,8 +142,8 @@ export default function PageRenderer({
       
       // Regular template block
       return (
-        <div key={`template-${template.id}-${block.id}`}>
-          {renderComponent(block.type, block.props)}
+      <div key={`template-${template.id}-${block.id}`}>
+        {renderComponent(block.type, block.props)}
         </div>
       )
     })
@@ -170,9 +181,9 @@ export default function PageRenderer({
         ) : (
           // No page template or no DND area, render page content directly
           visibleBlocks.map((block) => (
-            <div key={block.id}>
-              {renderComponent(block.type, block.props)}
-            </div>
+          <div key={block.id}>
+            {renderComponent(block.type, block.props)}
+          </div>
           ))
         )}
       </main>

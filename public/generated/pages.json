@@ -1,0 +1,30 @@
+[
+  {
+    "id": "bc552495-8f23-449e-b332-2d7124da6de1",
+    "title": "About",
+    "slug": "about",
+    "description": "",
+    "status": "draft",
+    "blocks": [],
+    "templateId": "default",
+    "headerTemplateId": "22ea81bf-1174-48ae-9b0d-5c5171bb901e",
+    "footerTemplateId": "c2903bc0-4754-4116-9704-40dbd9bd3d70",
+    "pageTemplateId": "b30c07b8-cac2-4259-b6e6-d6946519b5c7",
+    "createdAt": "2025-07-17T00:18:20.275589+00:00",
+    "updatedAt": "2025-07-17T00:18:20.275589+00:00"
+  },
+  {
+    "id": "594cc9d6-cb81-4b4a-8f4c-ab5598a495d4",
+    "title": "Home Page",
+    "slug": "home-page",
+    "description": "",
+    "status": "published",
+    "blocks": [],
+    "templateId": "default",
+    "headerTemplateId": "22ea81bf-1174-48ae-9b0d-5c5171bb901e",
+    "footerTemplateId": "c2903bc0-4754-4116-9704-40dbd9bd3d70",
+    "pageTemplateId": "b30c07b8-cac2-4259-b6e6-d6946519b5c7",
+    "createdAt": "2025-07-17T00:09:05.732564+00:00",
+    "updatedAt": "2025-07-17T00:10:41.605008+00:00"
+  }
+]

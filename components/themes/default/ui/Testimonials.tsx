@@ -1,5 +1,16 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Star } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Testimonials',
+  name: 'Testimonials',
+  description: 'Customer reviews and social proof',
+  category: 'content-blocks',
+  icon: 'MessageSquare',
+}
+
 
 export default function Testimonials() {
   const testimonials = [

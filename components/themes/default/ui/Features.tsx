@@ -1,5 +1,16 @@
 import Image from "next/image"
 import { LineChart, MessageSquare, Shield } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Features',
+  name: 'Features',
+  description: 'Showcase key product features with icons and descriptions',
+  category: 'content-blocks',
+  icon: 'Star',
+}
+
 
 export default function Features() {
   return (

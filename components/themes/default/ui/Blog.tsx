@@ -3,6 +3,17 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, User } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'Blog',
+  name: 'Blog',
+  description: 'Blog posts grid with featured articles',
+  category: 'content-blocks',
+  icon: 'FileText',
+}
+
 
 export default function Blog() {
   const blogPosts = [

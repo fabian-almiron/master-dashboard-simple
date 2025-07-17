@@ -1,5 +1,16 @@
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from "lucide-react"
+import { ComponentInfo } from '@/lib/cms-types'
+
+// Component metadata - exported for automatic registration
+export const metadata: ComponentInfo = {
+  type: 'CTA',
+  name: 'Call to Action',
+  description: 'Compelling call-to-action section with button',
+  category: 'content-blocks',
+  icon: 'ArrowRight',
+}
+
 
 export default function CTA() {
   return (

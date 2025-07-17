@@ -289,7 +289,7 @@ export default function PageBuilder({
                     pageTemplateId={pageTemplateId}
                     isTemplatePreview={!showTemplateSelector}
                     templateType={!showTemplateSelector ? templateType : undefined}
-                  />
+                      />
                 </div>
               </TabsContent>
 
