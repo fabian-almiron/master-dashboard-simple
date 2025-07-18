@@ -14,18 +14,37 @@ export async function ensureDefaultSite(): Promise<string> {
     let siteId = getCurrentSiteId()
     if (siteId) {
       console.log('✅ Using configured site ID:', siteId)
-      return siteId
+      
+      // Verify this site exists in the database
+      try {
+        const { getSiteById } = await import('./supabase')
+        const site = await getSiteById(siteId)
+        if (site) {
+          console.log('✅ Site verified in database:', site.name)
+          return siteId
+        } else {
+          console.warn('⚠️ Configured site ID not found in database, will auto-configure')
+        }
+      } catch (error) {
+        console.warn('⚠️ Error verifying site, will auto-configure:', error)
+      }
     }
 
     // Try to auto-configure from existing sites
+    console.log('🔍 Auto-configuring site ID from database...')
     siteId = await autoConfigureSiteId()
     if (siteId) {
       console.log('✅ Auto-configured site ID:', siteId)
+      console.log('')
+      console.log('🚨 IMPORTANT: Set this environment variable in Vercel:')
+      console.log(`   CMS_SITE_ID=${siteId}`)
+      console.log('   Go to: Vercel Dashboard → Project Settings → Environment Variables')
+      console.log('')
       return siteId
     }
 
     // If no sites exist, create a default one
-    console.log('🏗️  Creating default site for new deployment...')
+    console.log('🏗️  No sites found. Creating default site for new deployment...')
     
     // Get the deployment URL or use a default
     const defaultDomain = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000'
@@ -45,9 +64,12 @@ export async function ensureDefaultSite(): Promise<string> {
     })
 
     console.log('✅ Created default site:', defaultSite.id)
-    
-    // Set as environment variable for this deployment
-    process.env.DEFAULT_SITE_ID = defaultSite.id
+    console.log('')
+    console.log('🚨 IMPORTANT: Set this environment variable in Vercel:')
+    console.log(`   CMS_SITE_ID=${defaultSite.id}`)
+    console.log('   Go to: Vercel Dashboard → Project Settings → Environment Variables')
+    console.log('   Then redeploy your project for changes to take effect.')
+    console.log('')
     
     return defaultSite.id
   } catch (error) {

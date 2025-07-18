@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import DatabaseSettings from '@/components/cms/DatabaseSettings'
 import StaticFileManager from '@/components/cms/StaticFileManager'
+import SiteConfigDiagnostics from '@/components/cms/SiteConfigDiagnostics'
 import AdminGuard from '@/components/cms/AdminGuard'
 import { getCurrentSiteId } from '@/lib/site-config'
 import { getSiteSettings, setSiteSetting } from '@/lib/supabase'
@@ -264,6 +265,11 @@ export default function SettingsPage() {
             </Badge>
           </CardContent>
         </Card>
+
+        {/* Site Configuration Diagnostics */}
+        <AdminGuard>
+          <SiteConfigDiagnostics />
+        </AdminGuard>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
           {/* Site Settings */}

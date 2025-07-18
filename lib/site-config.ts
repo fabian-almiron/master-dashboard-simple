@@ -108,6 +108,16 @@ export function setCurrentSite(siteId: string) {
 
 // Get current site ID (synchronous)
 export function getCurrentSiteId(): string | null {
-  if (typeof window === 'undefined') return null
+  // Server-side: check environment variables
+  if (typeof window === 'undefined') {
+    return process.env.CMS_SITE_ID || process.env.DEFAULT_SITE_ID || null
+  }
+  
+  // Client-side: check environment variables first, then localStorage
+  const envSiteId = process.env.NEXT_PUBLIC_CMS_SITE_ID
+  if (envSiteId) {
+    return envSiteId
+  }
+  
   return localStorage.getItem('cms_site_id')
 } 
