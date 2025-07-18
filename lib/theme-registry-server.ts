@@ -69,16 +69,28 @@ export function validateTheme(themeName: string): boolean {
       'tailwind.config.ts'
     ]
     
+    // Check optional files
+    const optionalFiles = [
+      'main.js'
+    ]
+    
     const requiredDirs = [
       'ui',
       'page-templates'
     ]
     
-    // Check files
+    // Check required files
     for (const file of requiredFiles) {
       if (!fs.existsSync(path.join(themePath, file))) {
         console.warn(`⚠️ Theme "${themeName}" missing required file: ${file}`)
         return false
+      }
+    }
+    
+    // Check optional files (log but don't fail)
+    for (const file of optionalFiles) {
+      if (fs.existsSync(path.join(themePath, file))) {
+        console.log(`✅ Theme "${themeName}" has optional file: ${file}`)
       }
     }
     
@@ -96,4 +108,54 @@ export function validateTheme(themeName: string): boolean {
     console.error(`Error validating theme "${themeName}":`, error)
     return false
   }
+}
+
+// Copy theme assets to public directory
+export function copyThemeAssets(themeName: string): boolean {
+  try {
+    const sourcePath = path.join(process.cwd(), 'components', 'themes', themeName)
+    const targetPath = path.join(process.cwd(), 'public', 'themes', themeName)
+    
+    // Ensure target directory exists
+    if (!fs.existsSync(targetPath)) {
+      fs.mkdirSync(targetPath, { recursive: true })
+    }
+    
+    // Files to copy to public directory
+    const assetFiles = ['styles.css', 'main.js']
+    
+    let copiedCount = 0
+    for (const file of assetFiles) {
+      const sourceFile = path.join(sourcePath, file)
+      const targetFile = path.join(targetPath, file)
+      
+      if (fs.existsSync(sourceFile)) {
+        fs.copyFileSync(sourceFile, targetFile)
+        console.log(`📁 Copied ${file} for theme "${themeName}"`)
+        copiedCount++
+      }
+    }
+    
+    console.log(`✅ Copied ${copiedCount} asset files for theme "${themeName}"`)
+    return true
+    
+  } catch (error) {
+    console.error(`Error copying assets for theme "${themeName}":`, error)
+    return false
+  }
+}
+
+// Copy all theme assets
+export function copyAllThemeAssets(): boolean {
+  const themes = discoverThemes()
+  let successCount = 0
+  
+  for (const theme of themes) {
+    if (copyThemeAssets(theme)) {
+      successCount++
+    }
+  }
+  
+  console.log(`🎨 Successfully copied assets for ${successCount}/${themes.length} themes`)
+  return successCount === themes.length
 } 

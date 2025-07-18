@@ -3,6 +3,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { ComponentType, ComponentInfo } from './cms-types'
 
+// Extend Window interface for theme cleanup
+declare global {
+  interface Window {
+    currentThemeCleanup?: () => void;
+    [key: string]: any; // For theme namespaces like DefaultTheme, ModernTheme, etc.
+  }
+}
+
 // Theme interface
 export interface Theme {
   id: string
@@ -126,27 +134,57 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: ThemeProvi
     }
   }
 
-  // Load theme styles dynamically
-  const loadThemeStyles = async (themeId: string) => {
+  // Load theme styles and scripts dynamically
+  const loadThemeAssets = async (themeId: string) => {
     try {
       // Remove existing theme styles
       const existingStyles = document.querySelectorAll('[data-theme-styles]')
       existingStyles.forEach(style => style.remove())
 
+      // Remove existing theme scripts
+      const existingScripts = document.querySelectorAll('[data-theme-script]')
+      existingScripts.forEach(script => script.remove())
+
+      // Cleanup previous theme JavaScript
+      if (window.currentThemeCleanup) {
+        window.currentThemeCleanup()
+        window.currentThemeCleanup = undefined
+      }
+
       // Load theme styles from static file
-      const response = await fetch(`/themes/${themeId}/styles.css`)
-      if (response.ok) {
-        const css = await response.text()
+      const stylesResponse = await fetch(`/themes/${themeId}/styles.css`)
+      if (stylesResponse.ok) {
+        const css = await stylesResponse.text()
         const styleElement = document.createElement('style')
         styleElement.setAttribute('data-theme-styles', themeId)
         styleElement.textContent = css
         document.head.appendChild(styleElement)
         console.log(`Loaded styles for theme: ${themeId}`)
       } else {
-        console.warn(`Failed to load styles for theme "${themeId}": ${response.status}`)
+        console.warn(`Failed to load styles for theme "${themeId}": ${stylesResponse.status}`)
+      }
+
+      // Load theme JavaScript from static file
+      const scriptResponse = await fetch(`/themes/${themeId}/main.js`)
+      if (scriptResponse.ok) {
+        const js = await scriptResponse.text()
+        const scriptElement = document.createElement('script')
+        scriptElement.setAttribute('data-theme-script', themeId)
+        scriptElement.textContent = js
+        document.head.appendChild(scriptElement)
+        console.log(`Loaded JavaScript for theme: ${themeId}`)
+        
+        // Store cleanup function if theme provides one
+        const themeNamespaceKey = `${themeId.charAt(0).toUpperCase() + themeId.slice(1)}Theme`
+        const themeNamespace = window[themeNamespaceKey]
+        if (themeNamespace && typeof themeNamespace.cleanup === 'function') {
+          window.currentThemeCleanup = themeNamespace.cleanup.bind(themeNamespace)
+        }
+      } else {
+        console.warn(`No JavaScript file found for theme "${themeId}" (this is optional)`)
       }
     } catch (err) {
-      console.warn(`Failed to load styles for theme "${themeId}":`, err)
+      console.warn(`Failed to load assets for theme "${themeId}":`, err)
     }
   }
 
@@ -156,9 +194,9 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: ThemeProvi
       setLoading(true)
       setError(null)
 
-      // Load theme styles
+      // Load theme assets (styles and scripts)
       if (typeof window !== 'undefined') {
-        await loadThemeStyles(themeId)
+        await loadThemeAssets(themeId)
       }
 
       // Dynamic import of theme registry
