@@ -60,11 +60,25 @@ export default function StaticFileManager() {
         setLastRegenerated(new Date().toLocaleString())
         await checkStaticFiles()
       } else {
-        alert(`Failed to regenerate static files: ${result.message}`)
+        // Handle specific error cases
+        if (result.needsSiteSetup) {
+          alert('Site setup required. Please complete your site configuration first.\n\nGo to the Admin Dashboard and set up your site.')
+        } else if (response.status === 422) {
+          alert(`Setup needed: ${result.message}`)
+        } else {
+          // For new deployments, partial failures are normal
+          if (result.message?.includes('new installation')) {
+            setLastRegenerated(new Date().toLocaleString())
+            await checkStaticFiles()
+            console.log('ℹ️ Partial generation success (normal for new deployments):', result.message)
+          } else {
+            alert(`Failed to regenerate static files: ${result.message}`)
+          }
+        }
       }
     } catch (error) {
       console.error('Error regenerating static files:', error)
-      alert('Error regenerating static files. Please try again.')
+      alert('Error regenerating static files. Please try again.\n\nIf this is a new deployment, try completing the site setup first.')
     } finally {
       setIsRegenerating(false)
     }

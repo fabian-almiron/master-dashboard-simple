@@ -12,7 +12,10 @@
     "lint": "next lint",
     "generate-static": "node scripts/generate-initial-static.js",
     "postbuild": "echo 'Build completed successfully!'",
-    "vercel-build": "npm run build:themes && npm run generate-static && next build"
+    "vercel-build": "npm run build:themes && npm run generate-static && next build",
+    "deploy": "node scripts/deploy-vercel.js",
+    "deploy:vercel": "vercel --prod",
+    "env:setup": "echo 'Add these environment variables to your Vercel project:' && echo 'NEXT_PUBLIC_SUPABASE_URL' && echo 'NEXT_PUBLIC_SUPABASE_ANON_KEY' && echo 'SUPABASE_SERVICE_ROLE_KEY'"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
