@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Database, Upload, Plus, CheckCircle, AlertCircle } from 'lucide-react'
+import { Database, Upload, Plus, CheckCircle, AlertCircle, ExternalLink, Copy } from 'lucide-react'
 import { getCurrentSite, createSite, SiteConfig } from '@/lib/site-config'
 import { migrateFromLocalStorage } from '@/lib/cms-data'
+import { isSupabaseConfigured } from '@/lib/supabase'
 
 interface SiteSetupProps {
   onSiteConfigured: (site: SiteConfig) => void
@@ -23,6 +24,8 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
   const [isMigrating, setIsMigrating] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [migrationResults, setMigrationResults] = useState<{ pages: number, templates: number, navigation: number } | null>(null)
+  const [dbConfigured, setDbConfigured] = useState(false)
+  const [showEnvSetup, setShowEnvSetup] = useState(false)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -34,15 +37,22 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
   const [hasLocalStorageData, setHasLocalStorageData] = useState(false)
 
   useEffect(() => {
-    const checkExistingSite = async () => {
+    const checkConfiguration = async () => {
       try {
-        const site = await getCurrentSite()
-        if (site) {
-          setCurrentSite(site)
-          onSiteConfigured(site)
+        // First check if Supabase is configured
+        const configured = isSupabaseConfigured()
+        setDbConfigured(configured)
+
+        if (configured) {
+          // Only check for existing site if database is configured
+          const site = await getCurrentSite()
+          if (site) {
+            setCurrentSite(site)
+            onSiteConfigured(site)
+          }
         }
       } catch (error) {
-        console.error('Error checking current site:', error)
+        console.error('Error checking configuration:', error)
       } finally {
         setIsLoading(false)
       }
@@ -56,9 +66,13 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
       setHasLocalStorageData(hasPages || hasTemplates || hasNavigation)
     }
 
-    checkExistingSite()
+    checkConfiguration()
     checkLocalStorage()
   }, [onSiteConfigured])
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
 
   const handleCreateSite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,7 +93,7 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
       }
     } catch (error) {
       console.error('Error creating site:', error)
-      alert('Error creating site. Please try again.')
+      alert('Error creating site. Please check your database connection and try again.')
     } finally {
       setIsCreating(false)
     }
@@ -112,8 +126,121 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Database className="h-8 w-8 animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Checking site configuration...</p>
+          <p className="text-muted-foreground">Checking configuration...</p>
         </div>
+      </div>
+    )
+  }
+
+  // Show database setup instructions if not configured
+  if (!dbConfigured) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Database Setup Required
+            </CardTitle>
+            <CardDescription>
+              Configure your Supabase database to start using the CMS
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            {!showEnvSetup ? (
+              <div className="space-y-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Your database connection is not configured. Follow these steps to set up Supabase.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-3">
+                  <h4 className="font-medium">Setup Steps:</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                    <li>Create a Supabase project at <a href="https://supabase.com" target="_blank" className="text-blue-600 hover:underline inline-flex items-center gap-1">supabase.com <ExternalLink className="h-3 w-3" /></a></li>
+                    <li>Run the database schema (see documentation)</li>
+                    <li>Add environment variables to your deployment</li>
+                    <li>Restart your application</li>
+                  </ol>
+                </div>
+
+                <Button 
+                  onClick={() => setShowEnvSetup(true)} 
+                  className="w-full"
+                >
+                  Show Environment Variables Setup
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Required Environment Variables</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add these to your Vercel deployment in <strong>Project Settings → Environment Variables</strong>:
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs font-medium">NEXT_PUBLIC_SUPABASE_URL</Label>
+                      <Button variant="ghost" size="sm" onClick={() => copyToClipboard('NEXT_PUBLIC_SUPABASE_URL')}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <code className="text-xs text-muted-foreground">https://[project-ref].supabase.co</code>
+                  </div>
+
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs font-medium">NEXT_PUBLIC_SUPABASE_ANON_KEY</Label>
+                      <Button variant="ghost" size="sm" onClick={() => copyToClipboard('NEXT_PUBLIC_SUPABASE_ANON_KEY')}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <code className="text-xs text-muted-foreground">eyJhbGciOiJIUzI1NiIs...</code>
+                  </div>
+
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs font-medium">SUPABASE_SERVICE_ROLE_KEY</Label>
+                      <Button variant="ghost" size="sm" onClick={() => copyToClipboard('SUPABASE_SERVICE_ROLE_KEY')}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <code className="text-xs text-muted-foreground">eyJhbGciOiJIUzI1NiIs...</code>
+                  </div>
+                </div>
+
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Important:</strong> After adding environment variables, you must redeploy your application for changes to take effect.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowEnvSetup(false)}
+                    className="flex-1"
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.reload()}
+                    className="flex-1"
+                  >
+                    Check Configuration
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -191,10 +318,10 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
-            Database Setup Required
+            Create Your Site
           </CardTitle>
           <CardDescription>
-            Create your first site to start using the database
+            Set up your first site to start using the CMS
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -211,7 +338,7 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
           {!showCreateForm ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                To continue using the CMS with database storage, you need to create a site.
+                Your database is configured! Create your first site to start building.
               </p>
               <Button 
                 onClick={() => setShowCreateForm(true)} 
