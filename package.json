@@ -1,14 +1,18 @@
 {
-  "name": "my-v0-project",
+  "name": "page-builder-cms",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "build:themes": "node scripts/build-themes.js",
     "dev": "next dev",
-    "lint": "next lint",
+    "build": "npm run build:themes && npm run generate-static && next build",
+    "build:themes": "node scripts/build-themes.js",
+    "build:safe": "npm run build:themes && (npm run generate-static || echo 'Static generation skipped') && next build",
+    "build:production": "npm run build:themes && npm run generate-static && next build",
     "start": "next start",
-    "generate-static": "node scripts/generate-initial-static.js"
+    "lint": "next lint",
+    "generate-static": "node scripts/generate-initial-static.js",
+    "postbuild": "echo 'Build completed successfully!'",
+    "vercel-build": "npm run build:themes && npm run generate-static && next build"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

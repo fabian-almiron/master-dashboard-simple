@@ -1,16 +1,1 @@
-[
-  {
-    "id": "b1969ad7-d5cf-4e98-a672-69698158afce",
-    "title": "Test",
-    "slug": "test",
-    "description": "",
-    "status": "published",
-    "blocks": [],
-    "templateId": "default",
-    "headerTemplateId": "80cd2997-0afa-463e-a7c6-51aa90f103b7",
-    "footerTemplateId": "724813d7-d22a-4248-b1b7-aaf1c1bd25ea",
-    "pageTemplateId": "df7798fc-9fc7-4444-9b0f-7e576e020977",
-    "createdAt": "2025-07-18T19:24:48.335703+00:00",
-    "updatedAt": "2025-07-18T19:24:55.243615+00:00"
-  }
-]
+[]
