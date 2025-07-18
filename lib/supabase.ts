@@ -1,16 +1,29 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Initialize Supabase clients
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Check if environment variables are available
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+// Helper function to check if Supabase is configured
+export function isSupabaseConfigured(): boolean {
+  return !!(supabaseUrl && supabaseAnonKey)
+}
+
+// Create fallback client for build time when env vars are missing
+function createFallbackClient() {
+  // Create a minimal client that throws helpful errors when used
+  return createClient('https://fallback.supabase.co', 'fallback-key')
+}
+
 // Public client (respects RLS)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : createFallbackClient()
 
 // Admin client (bypasses RLS - use carefully!)
 // Only available server-side since service key is not exposed to client
-export const supabaseAdmin = supabaseServiceKey 
+export const supabaseAdmin = supabaseServiceKey && supabaseUrl
   ? createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -111,6 +124,10 @@ export interface SiteSetting {
 // SITE MANAGEMENT FUNCTIONS
 // =============================================
 export async function createSite(siteData: Omit<Site, 'id' | 'created_at' | 'updated_at'>) {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase is not configured. Please check your environment variables.')
+  }
+  
   const { data, error } = await supabase
     .from('sites')
     .insert([siteData])
