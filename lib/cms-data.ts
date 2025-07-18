@@ -77,6 +77,57 @@ export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
   }
 }
 
+export async function loadPageFromDatabase(pageId: string): Promise<CMSPage | null> {
+  const siteId = getCurrentSiteId()
+  if (!siteId) return null
+
+  try {
+    // Get the specific page
+    const { data: page, error: pageError } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('id', pageId)
+      .eq('site_id', siteId)
+      .single()
+
+    if (pageError) throw pageError
+
+    // Get blocks for this page
+    const { data: blocks, error: blocksError } = await supabase
+      .from('page_blocks')
+      .select('*')
+      .eq('page_id', pageId)
+      .order('order_index')
+
+    if (blocksError) throw blocksError
+
+    return {
+      id: page.id,
+      title: page.title,
+      slug: page.slug,
+      description: page.meta_description,
+      status: page.status as 'draft' | 'published',
+      blocks: blocks.map(block => ({
+        id: block.id,
+        type: block.component_type,
+        order: block.order_index,
+        props: block.props || {},
+        isVisible: block.is_visible
+      })),
+      templateId: page.theme_id,
+      headerTemplateId: page.header_template_id,
+      footerTemplateId: page.footer_template_id,
+      pageTemplateId: page.page_template_id,
+      createdAt: page.created_at,
+      updatedAt: page.updated_at
+    }
+
+  } catch (error) {
+    console.error('Error loading page from database:', error)
+    return null
+  }
+}
+
 export async function savePageToDatabase(page: Omit<CMSPage, 'id' | 'createdAt' | 'updatedAt'>): Promise<CMSPage | null> {
   const siteId = getCurrentSiteId()
   if (!siteId) return null
@@ -159,9 +210,9 @@ export async function savePageToDatabase(page: Omit<CMSPage, 'id' | 'createdAt' 
   }
 }
 
-export async function updatePageInDatabase(pageId: string, updates: Partial<CMSPage>): Promise<boolean> {
+export async function updatePageInDatabase(pageId: string, updates: Partial<CMSPage>): Promise<CMSPage | null> {
   const siteId = getCurrentSiteId()
-  if (!siteId) return false
+  if (!siteId) return null
 
   try {
     // Update page
@@ -227,11 +278,12 @@ export async function updatePageInDatabase(pageId: string, updates: Partial<CMSP
       console.warn('Failed to regenerate static files:', error)
     }
 
-    return true
+    // Return the updated page data
+    return await loadPageFromDatabase(pageId)
 
   } catch (error) {
     console.error('Error updating page in database:', error)
-    return false
+    return null
   }
 }
 

@@ -27,7 +27,7 @@ import PageRenderer from './PageRenderer'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Eye, Code, Save, Undo2, Redo2, Layout } from 'lucide-react'
+import { Eye, Code, Save, Undo2, Redo2, Layout, Loader2 } from 'lucide-react'
 
 // Droppable area component for empty drop zone
 function DroppableArea({ children }: { children: React.ReactNode }) {
@@ -47,7 +47,7 @@ function DroppableArea({ children }: { children: React.ReactNode }) {
 
 interface PageBuilderProps {
   initialBlocks?: PageBlock[]
-  onSave?: (blocks: PageBlock[], headerTemplateId?: string, footerTemplateId?: string, pageTemplateId?: string) => void
+  onSave?: (blocks: PageBlock[], headerTemplateId?: string, footerTemplateId?: string, pageTemplateId?: string) => Promise<void>
   pageName?: string
   initialHeaderTemplateId?: string
   initialFooterTemplateId?: string
@@ -72,6 +72,7 @@ export default function PageBuilder({
   const [headerTemplateId, setHeaderTemplateId] = useState<string | undefined>(initialHeaderTemplateId)
   const [footerTemplateId, setFooterTemplateId] = useState<string | undefined>(initialFooterTemplateId)
   const [pageTemplateId, setPageTemplateId] = useState<string | undefined>(initialPageTemplateId)
+  const [saving, setSaving] = useState(false)
   
   // Theme context for rendering components
   const { renderComponent } = useThemeComponents()
@@ -185,11 +186,18 @@ export default function PageBuilder({
     setBlocks(prev => prev.filter(block => block.id !== blockId))
   }, [])
 
-  const handleSave = useCallback(() => {
-    if (onSave) {
-      onSave(blocks, headerTemplateId, footerTemplateId, pageTemplateId)
+  const handleSave = useCallback(async () => {
+    if (onSave && !saving) {
+      setSaving(true)
+      try {
+        await onSave(blocks, headerTemplateId, footerTemplateId, pageTemplateId)
+      } catch (error) {
+        console.error('Error saving:', error)
+      } finally {
+        setSaving(false)
+      }
     }
-  }, [blocks, headerTemplateId, footerTemplateId, pageTemplateId, onSave])
+  }, [blocks, headerTemplateId, footerTemplateId, pageTemplateId, onSave, saving])
 
   return (
     <DndContext
@@ -227,9 +235,13 @@ export default function PageBuilder({
                   <Redo2 className="h-4 w-4 mr-1" />
                   Redo
                 </Button>
-                <Button onClick={handleSave} size="sm">
-                  <Save className="h-4 w-4 mr-1" />
-                  Save
+                <Button onClick={handleSave} size="sm" disabled={saving}>
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-1" />
+                  )}
+                  {saving ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>
