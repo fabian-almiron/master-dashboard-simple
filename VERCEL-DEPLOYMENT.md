@@ -52,8 +52,8 @@ Quick verification checklist:
 
 | Issue | Solution |
 |-------|----------|
-| Build fails | Run `npm run build` locally first |
-| Database errors | Check Supabase connection & RLS policies |
+| Build fails with dependency errors | Fixed - using `--legacy-peer-deps` |
+| Database errors during build | Fixed - API routes handle missing env vars gracefully |
 | Admin not loading | Verify environment variables are set |
 | API errors | Check function timeout settings in vercel.json |
 
@@ -64,6 +64,8 @@ Quick verification checklist:
 3. **Monitoring**: Check deployment logs regularly
 
 **Total Time**: ~10 minutes from start to live website!
+
+**🎉 Build Issues Resolved**: All dependency conflicts and build-time API errors have been fixed!
 
 ---
 
