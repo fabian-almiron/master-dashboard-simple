@@ -486,7 +486,6 @@ export async function loadNavigationFromDatabase(): Promise<CMSNavigationItem[]>
       .from('navigation_items')
       .select('*')
       .eq('site_id', siteId)
-      .eq('is_visible', true)
       .order('order_index')
 
     if (error) throw error
@@ -526,14 +525,26 @@ export async function loadNavigationFromDatabase(): Promise<CMSNavigationItem[]>
 
 export async function saveNavigationToDatabase(navigation: CMSNavigationItem[]): Promise<boolean> {
   const siteId = getCurrentSiteId()
-  if (!siteId) return false
+  if (!siteId) {
+    console.error('❌ No site ID available for navigation save')
+    return false
+  }
 
   try {
+    console.log('💾 Saving navigation to database:', navigation.length, 'items')
+    
     // Delete existing navigation items
-    await supabase
+    const { error: deleteError } = await supabase
       .from('navigation_items')
       .delete()
       .eq('site_id', siteId)
+
+    if (deleteError) {
+      console.error('❌ Error deleting existing navigation:', deleteError)
+      throw deleteError
+    }
+
+    console.log('🗑️ Deleted existing navigation items')
 
     // Insert new navigation items
     if (navigation.length > 0) {
@@ -547,49 +558,73 @@ export async function saveNavigationToDatabase(navigation: CMSNavigationItem[]):
         is_visible: item.isVisible
       }))
 
+      console.log('📝 Inserting navigation items:', itemsToInsert)
+
       const { error } = await supabase
         .from('navigation_items')
         .insert(itemsToInsert)
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error inserting navigation items:', error)
+        throw error
+      }
+
+      console.log('✅ Navigation items inserted successfully')
     }
 
     // Clear caches after successful save
     clearNavigationCache(siteId)
 
     // Regenerate static files in the background
+    console.log('🔄 Regenerating static navigation files...')
     try {
       if (typeof window === 'undefined') {
         // Server-side: Direct regeneration
         const { generateNavigationFile } = await import('./static-generator-server')
-        await generateNavigationFile()
+        const success = await generateNavigationFile()
+        console.log('📄 Static navigation file generation:', success ? 'SUCCESS' : 'FAILED')
       } else {
         // Client-side: Call API endpoint
-        fetch('/api/generate-static', { 
+        console.log('🌐 Calling static generation API...')
+        const response = await fetch('/api/generate-static', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
-        }).catch(err => console.warn('Failed to regenerate static files:', err))
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          console.log('✅ Static files regenerated:', result)
+        } else {
+          console.warn('⚠️ Static file regeneration API returned error:', response.status)
+        }
       }
     } catch (error) {
-      console.warn('Failed to regenerate static files:', error)
+      console.warn('⚠️ Failed to regenerate static files (navigation still saved):', error)
     }
 
+    console.log('✅ Navigation saved to database successfully')
     return true
 
   } catch (error) {
-    console.error('Error saving navigation to database:', error)
+    console.error('❌ Error saving navigation to database:', error)
     return false
   }
 }
 
 // Clear navigation cache
 export function clearNavigationCache(siteId?: string) {
+  console.log('🗑️ Clearing navigation cache...')
   navigationCache = null
   navigationCacheTimestamp = 0
   
   if (typeof window !== 'undefined' && siteId) {
-    localStorage.removeItem(`cms_navigation_cache_${siteId}`)
-    localStorage.removeItem(`cms_navigation_cache_time_${siteId}`)
+    try {
+      localStorage.removeItem(`cms_navigation_cache_${siteId}`)
+      localStorage.removeItem(`cms_navigation_cache_time_${siteId}`)
+      console.log('✅ Navigation cache cleared successfully')
+    } catch (error) {
+      console.warn('⚠️ Failed to clear navigation localStorage cache:', error)
+    }
   }
   
   console.log('📋 Navigation cache cleared')

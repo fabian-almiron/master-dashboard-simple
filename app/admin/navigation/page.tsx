@@ -175,18 +175,45 @@ export default function NavigationManager() {
       isVisible: formData.isVisible
     }
 
+    let updatedNavigation: NavigationItem[]
+
     // If editing, update existing item
     if (editingItem) {
-      const updatedNavigation = navigation.map(item => 
+      updatedNavigation = navigation.map(item => 
         item.id === editingItem.id ? newItem : item
       )
-      setNavigation(updatedNavigation)
-      await saveNavigationToDatabase(updatedNavigation)
     } else {
       // Adding new item
-      const updatedNavigation = [...navigation, newItem]
-      setNavigation(updatedNavigation)
-      await saveNavigationToDatabase(updatedNavigation)
+      updatedNavigation = [...navigation, newItem]
+    }
+
+    // Update local state immediately for better UX
+    setNavigation(updatedNavigation)
+
+    // Save to database
+    console.log('🔄 Saving navigation to database...')
+    const success = await saveNavigationToDatabase(updatedNavigation)
+    
+    if (success) {
+      console.log('✅ Navigation saved successfully!')
+      
+      // Force a refresh of the navigation cache
+      try {
+        // Clear the navigation cache so the frontend picks up changes
+        const { clearNavigationCache } = await import('@/lib/cms-data')
+        const { getCurrentSiteId } = await import('@/lib/site-config')
+        const siteId = getCurrentSiteId()
+        if (siteId) {
+          clearNavigationCache(siteId)
+          console.log('🗑️ Frontend navigation cache cleared')
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to clear frontend cache:', error)
+      }
+    } else {
+      console.error('❌ Failed to save navigation')
+      alert('Failed to save navigation. Please try again.')
+      return
     }
 
     // Reset form
@@ -217,7 +244,28 @@ export default function NavigationManager() {
     if (confirm('Are you sure you want to delete this navigation item?')) {
       const updatedNavigation = navigation.filter(item => item.id !== itemId)
       setNavigation(updatedNavigation)
-      await saveNavigationToDatabase(updatedNavigation)
+      
+      console.log('🗑️ Deleting navigation item...')
+      const success = await saveNavigationToDatabase(updatedNavigation)
+      
+      if (success) {
+        console.log('✅ Navigation item deleted successfully!')
+        
+        // Clear frontend cache
+        try {
+          const { clearNavigationCache } = await import('@/lib/cms-data')
+          const { getCurrentSiteId } = await import('@/lib/site-config')
+          const siteId = getCurrentSiteId()
+          if (siteId) {
+            clearNavigationCache(siteId)
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to clear frontend cache:', error)
+        }
+      } else {
+        console.error('❌ Failed to delete navigation item')
+        alert('Failed to delete navigation item. Please try again.')
+      }
     }
   }
 
@@ -228,7 +276,28 @@ export default function NavigationManager() {
         : item
     )
     setNavigation(updatedNavigation)
-    await saveNavigationToDatabase(updatedNavigation)
+    
+    console.log('👁️ Toggling navigation item visibility...')
+    const success = await saveNavigationToDatabase(updatedNavigation)
+    
+    if (success) {
+      console.log('✅ Navigation visibility updated successfully!')
+      
+      // Clear frontend cache
+      try {
+        const { clearNavigationCache } = await import('@/lib/cms-data')
+        const { getCurrentSiteId } = await import('@/lib/site-config')
+        const siteId = getCurrentSiteId()
+        if (siteId) {
+          clearNavigationCache(siteId)
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to clear frontend cache:', error)
+      }
+    } else {
+      console.error('❌ Failed to update navigation visibility')
+      alert('Failed to update navigation visibility. Please try again.')
+    }
   }
 
   const getItemHref = (item: NavigationItem) => {
@@ -265,6 +334,40 @@ export default function NavigationManager() {
           </div>
           
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={async () => {
+                console.log('🔄 Manually refreshing navigation cache...')
+                try {
+                  const { clearNavigationCache } = await import('@/lib/cms-data')
+                  const { getCurrentSiteId } = await import('@/lib/site-config')
+                  const siteId = getCurrentSiteId()
+                  if (siteId) {
+                    clearNavigationCache(siteId)
+                    console.log('✅ Navigation cache cleared successfully')
+                    
+                    // Also trigger static file regeneration
+                    const response = await fetch('/api/generate-static', { 
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' }
+                    })
+                    
+                    if (response.ok) {
+                      console.log('✅ Static files regenerated')
+                      alert('Navigation cache refreshed! Changes should now be visible on the frontend.')
+                    } else {
+                      console.warn('⚠️ Static file regeneration failed')
+                      alert('Navigation cache cleared, but static file regeneration failed.')
+                    }
+                  }
+                } catch (error) {
+                  console.error('❌ Failed to refresh cache:', error)
+                  alert('Failed to refresh navigation cache.')
+                }
+              }}
+            >
+              Refresh Cache
+            </Button>
             <Button 
               variant="outline" 
               onClick={async () => {
