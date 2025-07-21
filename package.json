@@ -14,7 +14,11 @@
     "postbuild": "echo 'Build completed successfully!'",
     "vercel-build": "npm run build:themes && npm run generate-static && next build",
     "deploy": "node scripts/deploy-vercel.js",
+    "deploy:auto": "node scripts/deploy-vercel-auto.js",
     "deploy:vercel": "vercel --prod",
+    "deploy:preview": "vercel",
+    "env:auto": "node scripts/auto-setup.js",
+    "setup": "npm run env:auto && npm run deploy:vercel",
     "env:setup": "echo 'Add these environment variables to your Vercel project:' && echo 'NEXT_PUBLIC_SUPABASE_URL' && echo 'NEXT_PUBLIC_SUPABASE_ANON_KEY' && echo 'SUPABASE_SERVICE_ROLE_KEY'"
   },
   "dependencies": {

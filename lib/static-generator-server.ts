@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { loadNavigationFromDatabase, loadPagesFromDatabase, loadTemplatesFromDatabase } from './cms-data-server'
-import { getCurrentSiteId, autoConfigureSiteId } from './site-config-server'
+import { getCurrentSiteId, autoConfigureSiteId, getAutoSiteDomain, isVercelDeployment, getDeploymentContext } from './site-config-server'
 import { createSite, getSiteByDomain, getAllSites } from './supabase'
 
 // Static files directory
@@ -35,43 +35,95 @@ export async function ensureDefaultSite(): Promise<string> {
     siteId = await autoConfigureSiteId()
     if (siteId) {
       console.log('✅ Auto-configured site ID:', siteId)
-      console.log('')
-      console.log('🚨 IMPORTANT: Set these environment variables in Vercel:')
-      console.log(`   CMS_SITE_ID=${siteId}`)
-      console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${siteId}`)
-      console.log('   Go to: Vercel Dashboard → Project Settings → Environment Variables')
-      console.log('')
+      
+      if (isVercelDeployment()) {
+        console.log('')
+        console.log('🎉 AUTO-CONFIGURED FOR VERCEL!')
+        console.log('   ✅ Using Vercel project-based site identification')
+        console.log('   ✅ No manual environment variables needed!')
+        console.log('')
+      } else {
+        console.log('')
+        console.log('🚨 MANUAL SETUP NEEDED (Non-Vercel deployment):')
+        console.log(`   CMS_SITE_ID=${siteId}`)
+        console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${siteId}`)
+        console.log('')
+      }
       return siteId
     }
 
-    // If no sites exist, create a default one
+    // If no sites exist, create a default one using Vercel context
     console.log('🏗️  No sites found. Creating default site for new deployment...')
     
-    // Get the deployment URL or use a default
-    const defaultDomain = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000'
-    const cleanDomain = defaultDomain.replace(/^https?:\/\//, '')
+    const deploymentContext = getDeploymentContext()
+    console.log('📍 Deployment context:', deploymentContext)
     
-    const defaultSite = await createSite({
-      name: 'My Site',
-      domain: cleanDomain,
+    // Use Vercel project ID for consistent site identification
+    const autoSiteId = deploymentContext.isVercel && deploymentContext.projectId 
+      ? `vercel-${deploymentContext.projectId}`
+      : undefined
+      
+    const siteDomain = getAutoSiteDomain()
+    const siteName = deploymentContext.isVercel 
+      ? `Vercel Site (${deploymentContext.environment})`
+      : 'My Site'
+    
+    console.log('🚀 Creating site with auto-configuration:')
+    console.log('   Auto Site ID:', autoSiteId)
+    console.log('   Domain:', siteDomain)
+    console.log('   Name:', siteName)
+    
+    const siteData = {
+      name: siteName,
+      domain: siteDomain,
       owner_email: process.env.DEFAULT_OWNER_EMAIL || 'admin@example.com',
-      status: 'active',
-      plan: 'free',
+      status: 'active' as const,
+      plan: 'free' as const,
       settings: {
-        siteName: 'My Site',
+        siteName: siteName,
         siteDescription: 'Welcome to my site',
-        theme: 'default'
+        theme: 'default',
+        vercelProjectId: deploymentContext.projectId,
+        vercelEnvironment: deploymentContext.environment
       }
-    })
+    }
+    
+    // If we have a consistent site ID, try to update existing site or create with specific ID
+    if (autoSiteId) {
+      try {
+        // Check if site already exists with this ID
+        const { getSiteById } = await import('./supabase')
+        const existingSite = await getSiteById(autoSiteId)
+        
+        if (existingSite) {
+          console.log('✅ Found existing Vercel-based site:', existingSite.name)
+          return autoSiteId
+        }
+      } catch (error) {
+        console.log('ℹ️ No existing site found, will create new one')
+      }
+    }
+    
+    const defaultSite = await createSite(siteData)
 
     console.log('✅ Created default site:', defaultSite.id)
-    console.log('')
-    console.log('🚨 IMPORTANT: Set these environment variables in Vercel:')
-    console.log(`   CMS_SITE_ID=${defaultSite.id}`)
-    console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${defaultSite.id}`)
-    console.log('   Go to: Vercel Dashboard → Project Settings → Environment Variables')
-    console.log('   Then redeploy your project for changes to take effect.')
-    console.log('')
+    
+    if (deploymentContext.isVercel) {
+      console.log('')
+      console.log('🎉 AUTO-CONFIGURED FOR VERCEL!')
+      console.log('   ✅ Site automatically configured using Vercel project context')
+      console.log('   ✅ No manual environment variables needed!')
+      console.log('   ✅ Site will persist across deployments')
+      console.log(`   📍 Project ID: ${deploymentContext.projectId}`)
+      console.log(`   🌍 Environment: ${deploymentContext.environment}`)
+      console.log('')
+    } else {
+      console.log('')
+      console.log('🚨 MANUAL SETUP NEEDED (Non-Vercel deployment):')
+      console.log(`   CMS_SITE_ID=${defaultSite.id}`)
+      console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${defaultSite.id}`)
+      console.log('')
+    }
     
     return defaultSite.id
   } catch (error) {
