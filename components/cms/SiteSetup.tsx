@@ -87,6 +87,20 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
 
       if (site) {
         setCurrentSite(site)
+        
+        // Show environment variable setup alert
+        const envVarMessage = `🎉 Site created successfully!\n\n` +
+          `To make this site persistent across deployments, add these environment variables in Vercel:\n\n` +
+          `CMS_SITE_ID=${site.id}\n` +
+          `NEXT_PUBLIC_CMS_SITE_ID=${site.id}\n\n` +
+          `Steps:\n` +
+          `1. Go to Vercel Dashboard → Project Settings → Environment Variables\n` +
+          `2. Add both variables above\n` +
+          `3. Redeploy your project\n\n` +
+          `The site ID has been copied to your console for easy reference.`
+        
+        alert(envVarMessage)
+        
         onSiteConfigured(site)
       } else {
         alert('Failed to create site. Please try again.')

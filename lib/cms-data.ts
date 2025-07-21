@@ -619,8 +619,8 @@ export function clearNavigationCache(siteId?: string) {
   
   if (typeof window !== 'undefined' && siteId) {
     try {
-      localStorage.removeItem(`cms_navigation_cache_${siteId}`)
-      localStorage.removeItem(`cms_navigation_cache_time_${siteId}`)
+    localStorage.removeItem(`cms_navigation_cache_${siteId}`)
+    localStorage.removeItem(`cms_navigation_cache_time_${siteId}`)
       console.log('✅ Navigation cache cleared successfully')
     } catch (error) {
       console.warn('⚠️ Failed to clear navigation localStorage cache:', error)

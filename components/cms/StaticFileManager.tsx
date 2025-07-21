@@ -72,7 +72,7 @@ export default function StaticFileManager() {
             await checkStaticFiles()
             console.log('ℹ️ Partial generation success (normal for new deployments):', result.message)
           } else {
-            alert(`Failed to regenerate static files: ${result.message}`)
+        alert(`Failed to regenerate static files: ${result.message}`)
           }
         }
       }

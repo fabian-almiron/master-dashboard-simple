@@ -71,6 +71,21 @@ export async function createSite(siteData: {
     // Store site ID in localStorage
     localStorage.setItem('cms_site_id', site.id)
 
+    // Show environment variable setup instructions
+    console.log('')
+    console.log('🎉 Site created successfully!')
+    console.log('🚨 IMPORTANT: To make this site persistent across deployments,')
+    console.log('   set these environment variables in Vercel:')
+    console.log('')
+    console.log(`   CMS_SITE_ID=${site.id}`)
+    console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${site.id}`)
+    console.log('')
+    console.log('   Steps:')
+    console.log('   1. Go to Vercel Dashboard → Project Settings → Environment Variables')
+    console.log('   2. Add both variables above')
+    console.log('   3. Redeploy your project')
+    console.log('')
+
     // Create starter templates for the new site
     try {
       console.log('Creating starter templates for new site...')

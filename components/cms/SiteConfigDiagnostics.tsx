@@ -210,22 +210,36 @@ export default function SiteConfigDiagnostics() {
             <AlertDescription>
               <div className="space-y-3">
                 <div>
-                  <strong>Action Required:</strong> Set the environment variable in Vercel to fix site persistence issues.
+                  <strong>Action Required:</strong> Set both environment variables in Vercel to fix site persistence issues.
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="text-sm font-medium">Environment Variable:</div>
-                  <div className="flex items-center gap-2">
-                    <code className="bg-muted px-2 py-1 rounded text-sm flex-1">
-                      {diagnostics.envVarName}={diagnostics.currentSiteId}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(`${diagnostics.envVarName}=${diagnostics.currentSiteId}`)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                  <div className="text-sm font-medium">Environment Variables (Both Required):</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <code className="bg-muted px-2 py-1 rounded text-sm flex-1">
+                        CMS_SITE_ID={diagnostics.currentSiteId}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(`CMS_SITE_ID=${diagnostics.currentSiteId}`)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-muted px-2 py-1 rounded text-sm flex-1">
+                        NEXT_PUBLIC_CMS_SITE_ID={diagnostics.currentSiteId}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(`NEXT_PUBLIC_CMS_SITE_ID=${diagnostics.currentSiteId}`)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -235,7 +249,7 @@ export default function SiteConfigDiagnostics() {
                     <li>Go to your Vercel Dashboard</li>
                     <li>Select your project</li>
                     <li>Go to Settings → Environment Variables</li>
-                    <li>Add the environment variable above</li>
+                    <li>Add both environment variables above</li>
                     <li>Redeploy your project</li>
                   </ol>
                 </div>

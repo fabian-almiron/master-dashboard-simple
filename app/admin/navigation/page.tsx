@@ -188,7 +188,7 @@ export default function NavigationManager() {
     }
 
     // Update local state immediately for better UX
-    setNavigation(updatedNavigation)
+      setNavigation(updatedNavigation)
 
     // Save to database
     console.log('🔄 Saving navigation to database...')

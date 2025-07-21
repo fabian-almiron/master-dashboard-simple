@@ -36,8 +36,9 @@ export async function ensureDefaultSite(): Promise<string> {
     if (siteId) {
       console.log('✅ Auto-configured site ID:', siteId)
       console.log('')
-      console.log('🚨 IMPORTANT: Set this environment variable in Vercel:')
+      console.log('🚨 IMPORTANT: Set these environment variables in Vercel:')
       console.log(`   CMS_SITE_ID=${siteId}`)
+      console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${siteId}`)
       console.log('   Go to: Vercel Dashboard → Project Settings → Environment Variables')
       console.log('')
       return siteId
@@ -65,8 +66,9 @@ export async function ensureDefaultSite(): Promise<string> {
 
     console.log('✅ Created default site:', defaultSite.id)
     console.log('')
-    console.log('🚨 IMPORTANT: Set this environment variable in Vercel:')
+    console.log('🚨 IMPORTANT: Set these environment variables in Vercel:')
     console.log(`   CMS_SITE_ID=${defaultSite.id}`)
+    console.log(`   NEXT_PUBLIC_CMS_SITE_ID=${defaultSite.id}`)
     console.log('   Go to: Vercel Dashboard → Project Settings → Environment Variables')
     console.log('   Then redeploy your project for changes to take effect.')
     console.log('')
@@ -111,7 +113,7 @@ export async function generateNavigationFile() {
       return true
     } catch (fallbackError) {
       console.error('❌ Failed to create fallback navigation file:', fallbackError)
-      return false
+    return false
     }
   }
 }
@@ -140,7 +142,7 @@ export async function generatePagesFile() {
       return true
     } catch (fallbackError) {
       console.error('❌ Failed to create fallback pages file:', fallbackError)
-      return false
+    return false
     }
   }
 }
@@ -169,7 +171,7 @@ export async function generateTemplatesFile() {
       return true
     } catch (fallbackError) {
       console.error('❌ Failed to create fallback templates file:', fallbackError)
-      return false
+    return false
     }
   }
 }
@@ -236,7 +238,7 @@ export async function generateSiteSettingsFile() {
       return true
     } catch (fallbackError) {
       console.error('❌ Failed to create fallback settings file:', fallbackError)
-      return false
+    return false
     }
   }
 }
