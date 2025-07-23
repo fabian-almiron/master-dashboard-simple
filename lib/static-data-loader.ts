@@ -1,17 +1,30 @@
-import fs from 'fs/promises'
-import path from 'path'
-
 // Serverless environment detection
 const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+const isServer = typeof window === 'undefined'
 
-// Helper function to safely read static files
+// Helper function to safely read static files (server-side only)
 async function readStaticFile(filename: string): Promise<any> {
+  if (!isServer) {
+    // Browser environment - use fetch instead
+    try {
+      const response = await fetch(`/generated/${filename}`)
+      if (!response.ok) throw new Error('File not found')
+      return await response.json()
+    } catch (error) {
+      console.log(`📄 Static file ${filename} not found via fetch, will use database fallback`)
+      return null
+    }
+  }
+  
+  // Server environment - use fs
   try {
+    const fs = await import('fs/promises')
+    const path = await import('path')
     const filePath = path.join(process.cwd(), 'public', 'generated', filename)
     const content = await fs.readFile(filePath, 'utf-8')
     return JSON.parse(content)
   } catch (error) {
-    console.log(`📄 Static file ${filename} not found or invalid, will use database fallback`)
+    console.log(`📄 Static file ${filename} not found on server, will use database fallback`)
     return null
   }
 }
@@ -23,7 +36,7 @@ async function loadWithFallback<T>(
   defaultValue: T
 ): Promise<T> {
   // In serverless environments, always use database
-  if (isServerless) {
+  if (isServerless && isServer) {
     console.log(`🌐 Serverless environment detected, loading ${staticFilename} from database`)
     try {
       return await databaseLoader()
@@ -40,14 +53,20 @@ async function loadWithFallback<T>(
     return staticData
   }
   
-  // Fallback to database
-  console.log(`🔄 Loading ${staticFilename} from database (static file unavailable)`)
-  try {
-    return await databaseLoader()
-  } catch (error) {
-    console.error(`❌ Database fallback failed for ${staticFilename}:`, error)
-    return defaultValue
+  // Fallback to database (server-side only)
+  if (isServer) {
+    console.log(`🔄 Loading ${staticFilename} from database (static file unavailable)`)
+    try {
+      return await databaseLoader()
+    } catch (error) {
+      console.error(`❌ Database fallback failed for ${staticFilename}:`, error)
+      return defaultValue
+    }
   }
+  
+  // Browser fallback
+  console.log(`⚠️ Using default value for ${staticFilename} (browser environment, no database access)`)
+  return defaultValue
 }
 
 export async function loadStaticPages() {
