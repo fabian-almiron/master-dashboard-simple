@@ -27,10 +27,45 @@ export async function POST(request: NextRequest) {
     
     // Dynamically import to avoid loading Supabase during build
     const { generateAllStaticFiles, ensureDefaultSite } = await import('@/lib/static-generator-server')
+    const { getCurrentSiteId, autoConfigureSiteId } = await import('@/lib/site-config-server')
+    
+    // Get domain for site detection
+    const domain = request.headers.get('host') || 'unknown'
+    console.log('🌐 Request domain:', domain)
+    
+    // PRIORITY 1: Try domain-based lookup first (most reliable for multi-site)
+    let siteId: string | null = null
+    try {
+      const { getSiteByDomain } = await import('@/lib/supabase')
+      const site = await getSiteByDomain(domain)
+      if (site) {
+        siteId = site.id
+        console.log('✅ Found site by domain:', site.name, '→', site.id)
+      } else {
+        console.log('🔍 No site found for domain:', domain)
+      }
+    } catch (error) {
+      console.log('⚠️ Domain lookup failed:', error)
+    }
+    
+    // PRIORITY 2: Fallback to environment detection only if domain lookup failed
+    if (!siteId) {
+      siteId = getCurrentSiteId()
+      console.log('🔄 Fallback to getCurrentSiteId():', siteId)
+      
+      if (!siteId) {
+        siteId = await autoConfigureSiteId()
+        console.log('🔄 Fallback to autoConfigureSiteId():', siteId)
+      }
+    }
     
     // First ensure we have a default site configured
     try {
-      await ensureDefaultSite()
+      if (!siteId) {
+        await ensureDefaultSite()
+      } else {
+        console.log('✅ Using detected site ID:', siteId)
+      }
     } catch (siteError) {
       console.error('❌ Error ensuring default site:', siteError)
       return NextResponse.json({ 
@@ -41,7 +76,7 @@ export async function POST(request: NextRequest) {
       }, { status: 422 })
     }
     
-    const success = await generateAllStaticFiles()
+    const success = await generateAllStaticFiles(siteId)
     
     // Check if we're in a serverless environment
     const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
