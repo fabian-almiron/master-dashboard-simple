@@ -36,27 +36,28 @@ export async function POST(request: NextRequest) {
     const { generateAllStaticFiles, ensureDefaultSite } = await import('@/lib/static-generator-server')
     const { getCurrentSiteId, autoConfigureSiteId } = await import('@/lib/site-config-server')
     
-    // DEBUG: Check current site detection
-    let siteId = getCurrentSiteId()
-    console.log('🔍 DEBUG: getCurrentSiteId() returned:', siteId)
+    // DEBUG: Check current site detection - but prioritize domain lookup
+    let siteId: string | null = null
     
-    if (!siteId) {
-      console.log('🔍 DEBUG: No site ID found, trying domain-based lookup...')
-      
-      // Try domain-based lookup directly since VERCEL_URL might not be available in API context
-      try {
-        console.log('🔍 DEBUG: Looking up site by domain:', domain)
-        const { getSiteByDomain } = await import('@/lib/supabase')
-        const site = await getSiteByDomain(domain)
-        if (site) {
-          console.log('🔍 DEBUG: Found site by direct domain lookup:', site.name, '→', site.id)
-          siteId = site.id
-        } else {
-          console.log('🔍 DEBUG: No site found for domain:', domain)
-        }
-      } catch (error) {
-        console.log('🔍 DEBUG: Direct domain lookup failed:', error)
+    // Always try domain-based lookup first (most reliable for Vercel deployments)
+    console.log('🔍 DEBUG: Trying domain-based lookup first for:', domain)
+    try {
+      const { getSiteByDomain } = await import('@/lib/supabase')
+      const site = await getSiteByDomain(domain)
+      if (site) {
+        console.log('🔍 DEBUG: ✅ Found site by domain lookup:', site.name, '→', site.id)
+        siteId = site.id
+      } else {
+        console.log('🔍 DEBUG: ❌ No site found for domain:', domain)
       }
+    } catch (error) {
+      console.log('🔍 DEBUG: ❌ Domain lookup failed:', error)
+    }
+    
+    // Fallback to environment-based detection if domain lookup failed
+    if (!siteId) {
+      siteId = getCurrentSiteId()
+      console.log('🔍 DEBUG: Fallback getCurrentSiteId() returned:', siteId)
       
       if (!siteId) {
         console.log('🔍 DEBUG: Trying auto-configure fallback...')
