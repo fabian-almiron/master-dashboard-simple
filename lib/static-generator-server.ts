@@ -299,22 +299,28 @@ export async function generateSiteSettingsFile() {
 }
 
 // Generate all static files
-export async function generateAllStaticFiles() {
+export async function generateAllStaticFiles(forceSiteId?: string | null) {
   console.log('🚀 Generating all static files...')
   
-  // In serverless environments, skip file generation since data is served directly from database
+  // For multi-site hosting, generate static files even in serverless for performance
+  // Use build-time + on-demand regeneration approach
   if (isServerless) {
-    console.log('🌐 Serverless environment detected - data will be served directly from database')
-    console.log('✅ Skipping static file generation (using database-first approach)')
-    return true
+    console.log('🌐 Serverless environment detected - generating static files for CDN performance')
+    console.log('📊 Multi-site hosting: Using static-first approach with database fallback')
   }
   
-  // Ensure we have a site configured first
-  try {
-    await ensureDefaultSite()
-  } catch (error) {
-    console.error('❌ Could not ensure default site:', error)
-    return false
+  // Use provided site ID or ensure we have a site configured
+  let siteId = forceSiteId
+  if (!siteId) {
+    try {
+      siteId = await ensureDefaultSite()
+      console.log('🔍 DEBUG: Site ensured for static generation:', siteId)
+    } catch (error) {
+      console.error('❌ Could not ensure default site:', error)
+      return false
+    }
+  } else {
+    console.log('🔍 DEBUG: Using provided site ID for static generation:', siteId)
   }
   
   const results = await Promise.allSettled([

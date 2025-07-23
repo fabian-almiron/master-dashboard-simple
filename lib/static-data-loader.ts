@@ -35,16 +35,8 @@ async function loadWithFallback<T>(
   databaseLoader: () => Promise<T>,
   defaultValue: T
 ): Promise<T> {
-  // In serverless environments, always use database
-  if (isServerless && isServer) {
-    console.log(`🌐 Serverless environment detected, loading ${staticFilename} from database`)
-    try {
-      return await databaseLoader()
-    } catch (error) {
-      console.error(`❌ Database fallback failed for ${staticFilename}:`, error)
-      return defaultValue
-    }
-  }
+  // Multi-site hosting: Always try static files first for performance
+  // This enables CDN caching and reduces database load for 50+ sites
   
   // Try static file first
   const staticData = await readStaticFile(staticFilename)

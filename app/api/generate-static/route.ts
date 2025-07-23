@@ -48,14 +48,21 @@ export async function POST(request: NextRequest) {
     
     if (success) {
       const message = isServerless 
-        ? 'Static file generation skipped - data served directly from database (serverless mode)'
+        ? 'Static files generated successfully for CDN caching (serverless multi-site mode)'
         : 'Static files regenerated successfully'
         
       return NextResponse.json({ 
         success: true, 
         message,
         serverless: isServerless,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        cacheStrategy: 'static-first-with-database-fallback'
+      }, {
+        headers: {
+          // Cache the API response for 5 minutes to prevent excessive regeneration
+          'Cache-Control': 'public, s-maxage=300, max-age=60',
+          'CDN-Cache-Control': 'max-age=300'
+        }
       })
     } else {
       const message = isServerless
