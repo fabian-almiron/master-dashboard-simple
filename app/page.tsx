@@ -15,9 +15,20 @@ function Homepage() {
   const [homePage, setHomePage] = useState<any>(null)
 
   useEffect(() => {
-    // Load pages from database
+    // Load pages from database with proper site detection
     const loadPages = async () => {
       try {
+        // Wait for site detection to complete
+        const { getCurrentSite } = await import('@/lib/site-config')
+        const site = await getCurrentSite()
+        
+        if (!site) {
+          console.log('⚠️ No site detected, pages will not load')
+          setPages([])
+          return
+        }
+
+        console.log('✅ Site detected for homepage, loading pages for:', site.domain)
         const { loadPagesFromDatabase } = await import('@/lib/cms-data')
         const loadedPages = await loadPagesFromDatabase()
         setPages(loadedPages)
@@ -26,6 +37,13 @@ function Homepage() {
         const home = loadedPages.find((page: any) => 
           page.slug === 'home' || page.slug === '/' || page.slug === ''
         )
+        
+        if (home) {
+          console.log('✅ Homepage found:', home.title)
+        } else {
+          console.log('ℹ️ No homepage found, showing default content')
+        }
+        
         setHomePage(home)
       } catch (error) {
         console.error('Error loading pages from database:', error)

@@ -31,14 +31,28 @@ export function useNavigation(): UseNavigationReturn {
     setIsError(false)
 
     try {
+      // Wait for site detection to complete before loading navigation
+      const { getCurrentSite } = await import('@/lib/site-config')
+      const site = await getCurrentSite()
+      
+      if (!site) {
+        console.log('⚠️ No site detected, navigation will not load')
+        setNavigation([])
+        if (showLoading) setIsLoading(false)
+        return
+      }
+
+      console.log('✅ Site detected for navigation, loading for:', site.domain)
+      
       // Try static files first (faster), fallback to database
       const data = await loadStaticNavigation()
+      console.log('📋 Navigation loaded:', data.length, 'items')
       setNavigation(data)
     } catch (error) {
       console.error('Error loading navigation:', error)
       setIsError(true)
     } finally {
-      setIsLoading(false)
+      if (showLoading) setIsLoading(false)
     }
   }
 

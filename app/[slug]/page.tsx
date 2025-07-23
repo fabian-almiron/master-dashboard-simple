@@ -21,29 +21,44 @@ export default function DynamicPage({ params }: DynamicPageProps) {
   const resolvedParams = use(params)
 
   useEffect(() => {
-    // Load page from database
+    // Load page from database with proper site detection
     const loadPage = async () => {
       try {
+        // Wait for site detection to complete
+        const { getCurrentSite } = await import('@/lib/site-config')
+        const site = await getCurrentSite()
+        
+        if (!site) {
+          console.log('⚠️ No site detected, page will not load')
+          setNotFoundFlag(true)
+          setIsLoading(false)
+          return
+        }
+
+        console.log('✅ Site detected, loading pages for:', site.domain)
         const pages = await loadPagesFromDatabase()
-    const foundPage = pages.find((p: any) => p.slug === resolvedParams.slug)
-    
-    if (!foundPage) {
-      setNotFoundFlag(true)
-      setIsLoading(false)
-      return
-    }
+        const foundPage = pages.find((p: any) => p.slug === resolvedParams.slug)
+        
+        if (!foundPage) {
+          console.log('❌ Page not found:', resolvedParams.slug)
+          setNotFoundFlag(true)
+          setIsLoading(false)
+          return
+        }
 
-    // Check if page is published
-    if (foundPage.status !== 'published') {
-      setNotFoundFlag(true)
-      setIsLoading(false)
-      return
-    }
+        // Check if page is published
+        if (foundPage.status !== 'published') {
+          console.log('❌ Page not published:', resolvedParams.slug)
+          setNotFoundFlag(true)
+          setIsLoading(false)
+          return
+        }
 
-    setPage(foundPage)
-    setIsLoading(false)
+        console.log('✅ Page loaded:', foundPage.title)
+        setPage(foundPage)
+        setIsLoading(false)
       } catch (error) {
-        console.error('Error loading pages from database:', error)
+        console.error('Error loading page from database:', error)
         setNotFoundFlag(true)
         setIsLoading(false)
       }

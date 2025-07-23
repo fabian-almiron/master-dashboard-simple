@@ -45,10 +45,21 @@ export default function Header() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Wait for site detection to complete
+        const { getCurrentSite } = await import('@/lib/site-config')
+        const site = await getCurrentSite()
+        
+        if (!site) {
+          console.log('⚠️ No site detected for header, pages will not load')
+          setPages([])
+          return
+        }
+
+        console.log('✅ Site detected for header, loading pages for navigation')
         const loadedPages = await loadPagesFromDatabase()
         setPages(loadedPages)
       } catch (error) {
-        console.error('Error loading pages:', error)
+        console.error('Error loading pages in header:', error)
       }
     }
 
