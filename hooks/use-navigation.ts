@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { loadNavigationFromDatabase, clearNavigationCache } from '@/lib/cms-data'
-import { loadStaticNavigation } from '@/lib/static-data-loader'
 import { getCurrentSiteId } from '@/lib/site-config'
 
 export interface NavigationItem {
@@ -44,9 +43,9 @@ export function useNavigation(): UseNavigationReturn {
 
       console.log('✅ Site detected for navigation, loading for:', site.domain)
       
-      // Try static files first (faster), fallback to database
-      const data = await loadStaticNavigation()
-      console.log('📋 Navigation loaded:', data.length, 'items')
+      // Client-side always uses database calls (faster than static files + no fs issues)
+      const data = await loadNavigationFromDatabase()
+      console.log('📋 Navigation loaded from database:', data.length, 'items')
       setNavigation(data)
     } catch (error) {
       console.error('Error loading navigation:', error)
