@@ -66,8 +66,17 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
       setHasLocalStorageData(hasPages || hasTemplates || hasNavigation)
     }
 
+    // Auto-populate domain with current host
+    const autoPopulateDomain = () => {
+      if (typeof window !== 'undefined') {
+        const currentDomain = window.location.host
+        setFormData(prev => ({ ...prev, domain: currentDomain }))
+      }
+    }
+
     checkConfiguration()
     checkLocalStorage()
+    autoPopulateDomain()
   }, [onSiteConfigured])
 
   const copyToClipboard = (text: string) => {
@@ -385,7 +394,11 @@ export default function SiteSetup({ onSiteConfigured }: SiteSetupProps) {
                   value={formData.domain}
                   onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
                   required
+                  readOnly
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-detected from current URL for domain-based site detection
+                </p>
               </div>
               
               <div>

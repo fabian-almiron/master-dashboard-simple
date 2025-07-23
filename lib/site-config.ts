@@ -39,6 +39,44 @@ export async function getCurrentSite(): Promise<SiteConfig | null> {
       }
     }
 
+    // If no localStorage site, try domain-based detection for Vercel deployments
+    const currentDomain = window.location.hostname
+    
+    // For Vercel deployments, also check for the full Vercel URL
+    const possibleDomains = [
+      currentDomain,
+      window.location.host, // includes port if present
+      `${currentDomain}:${window.location.port}` // explicit port
+    ].filter(Boolean)
+
+    // Try to find site by domain
+    for (const domain of possibleDomains) {
+      try {
+        const { data: site, error } = await supabase
+          .from('sites')
+          .select('id, name, domain, status')
+          .eq('domain', domain)
+          .eq('status', 'active')
+          .single()
+
+        if (!error && site) {
+          // Found site by domain, store in localStorage for future use
+          localStorage.setItem('cms_site_id', site.id)
+          console.log('✅ Found site by domain:', domain, '→', site.id)
+          
+          return {
+            id: site.id,
+            name: site.name,
+            domain: site.domain,
+            isActive: site.status === 'active'
+          }
+        }
+      } catch (domainError) {
+        // Continue trying other domains
+        console.log('Domain not found:', domain)
+      }
+    }
+
     // No valid site found, return null (will trigger site setup)
     return null
   } catch (error) {
