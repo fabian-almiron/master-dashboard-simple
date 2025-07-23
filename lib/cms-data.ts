@@ -185,8 +185,22 @@ export async function savePageToDatabase(page: Omit<CMSPage, 'id' | 'createdAt' 
       updatedAt: savedPage.updated_at
     }
 
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('page creation', { pages: true })
+    // Regenerate static files in the background
+    try {
+      if (typeof window === 'undefined') {
+        // Server-side: Direct regeneration
+        const { generatePagesFile } = await import('./static-generator-server')
+        await generatePagesFile()
+      } else {
+        // Client-side: Call API endpoint
+        fetch('/api/generate-static', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(err => console.warn('Failed to regenerate static files:', err))
+      }
+    } catch (error) {
+      console.warn('Failed to regenerate static files:', error)
+    }
 
     return result
 
@@ -247,8 +261,22 @@ export async function updatePageInDatabase(pageId: string, updates: Partial<CMSP
       }
     }
 
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('page update', { pages: true })
+    // Regenerate static files in the background
+    try {
+      if (typeof window === 'undefined') {
+        // Server-side: Direct regeneration
+        const { generatePagesFile } = await import('./static-generator-server')
+        await generatePagesFile()
+      } else {
+        // Client-side: Call API endpoint
+        fetch('/api/generate-static', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(err => console.warn('Failed to regenerate static files:', err))
+      }
+    } catch (error) {
+      console.warn('Failed to regenerate static files:', error)
+    }
 
     // Return the updated page data
     return await loadPageFromDatabase(pageId)
@@ -264,28 +292,15 @@ export async function deletePageFromDatabase(pageId: string): Promise<boolean> {
   if (!siteId) return false
 
   try {
-    // Delete page blocks first (due to foreign key constraints)
-    const { error: blocksError } = await supabase
-      .from('page_blocks')
-      .delete()
-      .eq('page_id', pageId)
-      .eq('site_id', siteId)
-
-    if (blocksError) throw blocksError
-
-    // Delete the page
-    const { error: pageError } = await supabase
+    const { error } = await supabase
       .from('pages')
       .delete()
       .eq('id', pageId)
       .eq('site_id', siteId)
 
-    if (pageError) throw pageError
-
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('page deletion', { pages: true })
-
+    if (error) throw error
     return true
+
   } catch (error) {
     console.error('Error deleting page from database:', error)
     return false
@@ -395,7 +410,7 @@ export async function saveTemplateToDatabase(template: Omit<CMSTemplate, 'id' | 
       if (blocksError) throw blocksError
     }
 
-    const result = {
+    return {
       id: savedTemplate.id,
       name: savedTemplate.name,
       type: savedTemplate.type,
@@ -406,107 +421,9 @@ export async function saveTemplateToDatabase(template: Omit<CMSTemplate, 'id' | 
       updatedAt: savedTemplate.updated_at
     }
 
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('template creation', { templates: true })
-
-    return result
-
   } catch (error) {
     console.error('Error saving template to database:', error)
     return null
-  }
-}
-
-export async function updateTemplateInDatabase(templateId: string, updates: Partial<CMSTemplate>): Promise<CMSTemplate | null> {
-  const siteId = getCurrentSiteId()
-  if (!siteId) return null
-
-  try {
-    // Update template
-    const { error: templateError } = await supabase
-      .from('templates')
-      .update({
-        name: updates.name,
-        type: updates.type,
-        theme_id: 'default',
-        is_default: updates.isDefault
-      })
-      .eq('id', templateId)
-      .eq('site_id', siteId)
-
-    if (templateError) throw templateError
-
-    // Update blocks if provided
-    if (updates.blocks) {
-      // Delete existing blocks
-      await supabase
-        .from('template_blocks')
-        .delete()
-        .eq('template_id', templateId)
-        .eq('site_id', siteId)
-
-      // Insert new blocks
-      if (updates.blocks.length > 0) {
-        const blocksToInsert = updates.blocks.map((block, index) => ({
-          site_id: siteId,
-          template_id: templateId,
-          component_type: block.type,
-          order_index: index,
-          props: block.props,
-          is_visible: block.isVisible
-        }))
-
-        const { error: blocksError } = await supabase
-          .from('template_blocks')
-          .insert(blocksToInsert)
-
-        if (blocksError) throw blocksError
-      }
-    }
-
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('template update', { templates: true })
-
-    // Return the updated template data
-    const updatedTemplates = await loadTemplatesFromDatabase()
-    return updatedTemplates.find(t => t.id === templateId) || null
-
-  } catch (error) {
-    console.error('Error updating template in database:', error)
-    return null
-  }
-}
-
-export async function deleteTemplateFromDatabase(templateId: string): Promise<boolean> {
-  const siteId = getCurrentSiteId()
-  if (!siteId) return false
-
-  try {
-    // Delete template blocks first
-    const { error: blocksError } = await supabase
-      .from('template_blocks')
-      .delete()
-      .eq('template_id', templateId)
-      .eq('site_id', siteId)
-
-    if (blocksError) throw blocksError
-
-    // Delete the template
-    const { error: templateError } = await supabase
-      .from('templates')
-      .delete()
-      .eq('id', templateId)
-      .eq('site_id', siteId)
-
-    if (templateError) throw templateError
-
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('template deletion', { templates: true })
-
-    return true
-  } catch (error) {
-    console.error('Error deleting template from database:', error)
-    return false
   }
 }
 
@@ -658,8 +575,32 @@ export async function saveNavigationToDatabase(navigation: CMSNavigationItem[]):
     // Clear caches after successful save
     clearNavigationCache(siteId)
 
-    // Regenerate static files automatically
-    await autoRegenerateStaticFiles('navigation update', { navigation: true })
+    // Regenerate static files in the background
+    console.log('🔄 Regenerating static navigation files...')
+    try {
+      if (typeof window === 'undefined') {
+        // Server-side: Direct regeneration
+        const { generateNavigationFile } = await import('./static-generator-server')
+        const success = await generateNavigationFile()
+        console.log('📄 Static navigation file generation:', success ? 'SUCCESS' : 'FAILED')
+      } else {
+        // Client-side: Call API endpoint
+        console.log('🌐 Calling static generation API...')
+        const response = await fetch('/api/generate-static', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          console.log('✅ Static files regenerated:', result)
+        } else {
+          console.warn('⚠️ Static file regeneration API returned error:', response.status)
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to regenerate static files (navigation still saved):', error)
+    }
 
     console.log('✅ Navigation saved to database successfully')
     return true
@@ -847,57 +788,5 @@ export async function createStarterTemplatesInDatabase(): Promise<boolean> {
   } catch (error) {
     console.error('Error creating starter templates:', error)
     return false
-  }
-} 
-
-// =============================================
-// AUTO-REGENERATION HELPER
-// =============================================
-
-/**
- * Automatically regenerate static files after content changes
- * @param triggerType - What type of content changed (for logging)
- * @param selective - Whether to regenerate only specific files (performance optimization)
- */
-async function autoRegenerateStaticFiles(triggerType: string, selective?: { pages?: boolean, navigation?: boolean, templates?: boolean, settings?: boolean }) {
-  console.log(`🔄 Auto-regenerating static files after ${triggerType}...`)
-  
-  try {
-    if (typeof window === 'undefined') {
-      // Server-side: Selective or full regeneration
-      if (selective) {
-        const { generatePagesFile, generateNavigationFile, generateTemplatesFile, generateSiteSettingsFile } = await import('./static-generator-server')
-        
-        const promises = []
-        if (selective.pages) promises.push(generatePagesFile())
-        if (selective.navigation) promises.push(generateNavigationFile())
-        if (selective.templates) promises.push(generateTemplatesFile())
-        if (selective.settings) promises.push(generateSiteSettingsFile())
-        
-        await Promise.allSettled(promises)
-        console.log(`✅ Selectively regenerated static files for: ${Object.keys(selective).filter(k => selective[k as keyof typeof selective]).join(', ')}`)
-      } else {
-        // Full regeneration - safer for complex interdependencies
-        const { generateAllStaticFiles } = await import('./static-generator-server')
-        await generateAllStaticFiles()
-        console.log(`✅ Full static file regeneration completed`)
-      }
-    } else {
-      // Client-side: Always use API for full regeneration
-      console.log('🌐 Calling static generation API...')
-      const response = await fetch('/api/generate-static', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ Static files regenerated via API:', result.message)
-      } else {
-        console.warn('⚠️ Static file regeneration API returned error:', response.status)
-      }
-    }
-  } catch (error) {
-    console.warn(`⚠️ Failed to regenerate static files after ${triggerType}:`, error)
   }
 } 

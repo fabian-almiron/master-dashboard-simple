@@ -57,49 +57,22 @@ export function getAutoSiteDomain(): string {
 // Auto-configure site from existing sites in database
 export async function autoConfigureSiteId(): Promise<string | null> {
   try {
-    console.log('🔍 Auto-configuring site from database...')
+    console.log('🔍 Auto-configuring site from Vercel deployment...')
     
-    // Try domain-based detection first (consistent with client-side)
-    if (process.env.VERCEL_URL) {
-      const vercelDomain = process.env.VERCEL_URL.replace(/^https?:\/\//, '')
-      console.log('🔍 Trying domain-based lookup for:', vercelDomain)
-      
-      try {
-        const { getSiteByDomain } = await import('./supabase')
-        const site = await getSiteByDomain(vercelDomain)
-        if (site) {
-          console.log('✅ Found site by domain:', site.name, '→', site.id)
-          return site.id
-        }
-      } catch (error) {
-        console.log('⚠️ Domain-based lookup failed:', error)
-      }
-    }
-    
-    // Fallback: For Vercel deployments, use project ID as identifier (but look for existing site with this pattern)
+    // For Vercel deployments, use project ID as consistent identifier
     if (process.env.VERCEL && process.env.VERCEL_PROJECT_ID) {
       const autoSiteId = `vercel-${process.env.VERCEL_PROJECT_ID}`
-      console.log('🔍 Trying Vercel project-based ID:', autoSiteId)
-      
-      try {
-        const { getSiteById } = await import('./supabase')
-        const site = await getSiteById(autoSiteId)
-        if (site) {
-          console.log('✅ Found site by Vercel project ID:', site.name)
-          return autoSiteId
-        }
-      } catch (error) {
-        console.log('⚠️ Vercel project ID lookup failed:', error)
-      }
+      console.log('✅ Using Vercel project-based site ID:', autoSiteId)
+      return autoSiteId
     }
 
-    // Final fallback: Try to find existing sites and use the first one
+    // Fallback: Try to find existing sites and use the first one
     const { getAllSites } = await import('./supabase')
     const sites = await getAllSites()
     
     if (sites && sites.length > 0) {
       const firstSite = sites[0]
-      console.log('✅ Using first available site:', firstSite.id, '(', firstSite.name, ')')
+      console.log('✅ Found existing site, using:', firstSite.id)
       return firstSite.id
     }
 

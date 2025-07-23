@@ -4,13 +4,11 @@ import { loadNavigationFromDatabase, loadPagesFromDatabase, loadTemplatesFromDat
 import { getCurrentSiteId, autoConfigureSiteId, getAutoSiteDomain, isVercelDeployment, getDeploymentContext } from './site-config-server'
 import { createSite, getSiteByDomain, getAllSites } from './supabase'
 
-// Static files directory - use /tmp in serverless environments
+// Serverless environment detection
 const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
-const STATIC_DIR = isServerless 
-  ? path.join('/tmp', 'generated')
-  : path.join(process.cwd(), 'public', 'generated')
 
-console.log('🔍 DEBUG: Static files directory:', STATIC_DIR, 'isServerless:', isServerless)
+// Static files directory
+const STATIC_DIR = path.join(process.cwd(), 'public', 'generated')
 
 // Ensure a default site exists for new deployments
 export async function ensureDefaultSite(): Promise<string> {
@@ -147,143 +145,161 @@ async function ensureStaticDir() {
 }
 
 // Generate navigation JSON file
-async function generateNavigationFile(siteId: string): Promise<boolean> {
+export async function generateNavigationFile() {
   try {
-    console.log('🔍 DEBUG: generateNavigationFile starting with siteId:', siteId)
+    console.log('📄 Generating static navigation file...')
     
-    const navigation = await loadNavigationFromDatabase(siteId)
-    console.log('🔍 DEBUG: loadNavigationFromDatabase returned:', {
-      length: navigation?.length || 0,
-      items: navigation?.slice(0, 2) || [] // Show first 2 items for debugging
-    })
+    await ensureStaticDir()
+    const navigation = await loadNavigationFromDatabase()
     
     const filePath = path.join(STATIC_DIR, 'navigation.json')
-    console.log('🔍 DEBUG: Writing navigation to:', filePath)
-    
-    await fs.mkdir(STATIC_DIR, { recursive: true })
     await fs.writeFile(filePath, JSON.stringify(navigation || [], null, 2))
     
-    console.log('🔍 DEBUG: Navigation file written successfully')
-    console.log(`✅ Generated navigation.json (${navigation?.length || 0} items)`)
+    console.log('✅ Static navigation file generated:', filePath, `(${navigation?.length || 0} items)`)
     return true
   } catch (error) {
-    console.error('🔍 DEBUG: generateNavigationFile error details:', {
-      siteId,
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined
-    })
-    console.error('❌ Failed to generate navigation.json:', error)
+    console.error('❌ Error generating navigation file:', error)
+    // Create empty navigation file as fallback
+    try {
+      await ensureStaticDir()
+      const filePath = path.join(STATIC_DIR, 'navigation.json')
+      await fs.writeFile(filePath, JSON.stringify([], null, 2))
+      console.log('⚠️  Created empty navigation file as fallback')
+      return true
+    } catch (fallbackError) {
+      console.error('❌ Failed to create fallback navigation file:', fallbackError)
     return false
+    }
   }
 }
 
-// Generate pages file
-async function generatePagesFile(siteId: string): Promise<boolean> {
+// Generate pages JSON file
+export async function generatePagesFile() {
   try {
-    console.log('🔍 DEBUG: generatePagesFile starting with siteId:', siteId)
+    console.log('📄 Generating static pages file...')
     
-    const pages = await loadPagesFromDatabase(siteId)
-    console.log('🔍 DEBUG: loadPagesFromDatabase returned:', {
-      length: pages?.length || 0,
-      items: pages?.slice(0, 2).map(p => ({ id: p.id, title: p.title, slug: p.slug })) || [] // Show first 2 pages for debugging
-    })
+    await ensureStaticDir()
+    const pages = await loadPagesFromDatabase()
     
     const filePath = path.join(STATIC_DIR, 'pages.json')
-    console.log('🔍 DEBUG: Writing pages to:', filePath)
-    
-    await fs.mkdir(STATIC_DIR, { recursive: true })
     await fs.writeFile(filePath, JSON.stringify(pages || [], null, 2))
     
-    console.log('🔍 DEBUG: Pages file written successfully')
-    console.log(`✅ Generated pages.json (${pages?.length || 0} pages)`)
+    console.log('✅ Static pages file generated:', filePath, `(${pages?.length || 0} pages)`)
     return true
   } catch (error) {
-    console.error('🔍 DEBUG: generatePagesFile error details:', {
-      siteId,
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined
-    })
-    console.error('❌ Failed to generate pages.json:', error)
+    console.error('❌ Error generating pages file:', error)
+    // Create empty pages file as fallback
+    try {
+      await ensureStaticDir()
+      const filePath = path.join(STATIC_DIR, 'pages.json')
+      await fs.writeFile(filePath, JSON.stringify([], null, 2))
+      console.log('⚠️  Created empty pages file as fallback')
+      return true
+    } catch (fallbackError) {
+      console.error('❌ Failed to create fallback pages file:', fallbackError)
     return false
+    }
   }
 }
 
-// Generate templates file
-async function generateTemplatesFile(siteId: string): Promise<boolean> {
+// Generate templates JSON file
+export async function generateTemplatesFile() {
   try {
-    console.log('🔍 DEBUG: generateTemplatesFile starting with siteId:', siteId)
+    console.log('📄 Generating static templates file...')
     
+    await ensureStaticDir()
     const templates = await loadTemplatesFromDatabase()
-    console.log('🔍 DEBUG: loadTemplatesFromDatabase returned:', {
-      length: templates?.length || 0,
-      items: templates?.slice(0, 2).map(t => ({ id: t.id, name: t.name })) || [] // Show first 2 templates for debugging
-    })
     
     const filePath = path.join(STATIC_DIR, 'templates.json')
-    console.log('🔍 DEBUG: Writing templates to:', filePath)
-    
-    await fs.mkdir(STATIC_DIR, { recursive: true })
     await fs.writeFile(filePath, JSON.stringify(templates || [], null, 2))
     
-    console.log('🔍 DEBUG: Templates file written successfully')
-    console.log(`✅ Generated templates.json (${templates?.length || 0} templates)`)
+    console.log('✅ Static templates file generated:', filePath, `(${templates?.length || 0} templates)`)
     return true
   } catch (error) {
-    console.error('🔍 DEBUG: generateTemplatesFile error details:', {
-      siteId,
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined
-    })
-    console.error('❌ Failed to generate templates.json:', error)
+    console.error('❌ Error generating templates file:', error)
+    // Create empty templates file as fallback
+    try {
+      await ensureStaticDir()
+      const filePath = path.join(STATIC_DIR, 'templates.json')
+      await fs.writeFile(filePath, JSON.stringify([], null, 2))
+      console.log('⚠️  Created empty templates file as fallback')
+      return true
+    } catch (fallbackError) {
+      console.error('❌ Failed to create fallback templates file:', fallbackError)
     return false
+    }
   }
 }
 
 // Generate site settings JSON file
-async function generateSiteSettingsFile(siteId: string): Promise<boolean> {
+export async function generateSiteSettingsFile() {
   try {
-    console.log('🔍 DEBUG: generateSiteSettingsFile starting with siteId:', siteId)
+    console.log('📄 Generating static site settings file...')
     
-    // Get current site settings
-    const { getSiteById } = await import('./supabase')
-    const site = await getSiteById(siteId)
-    console.log('🔍 DEBUG: getSiteById returned:', site ? {
-      id: site.id,
-      name: site.name,
-      settings: site.settings,
-      domain: site.domain
-    } : 'null')
+    let siteId = getCurrentSiteId()
+    if (!siteId) {
+      siteId = await autoConfigureSiteId()
+      if (!siteId) {
+        // Create default settings for new sites
+        await ensureStaticDir()
+        const defaultSettings = {
+          siteName: 'My Site',
+          siteDescription: 'Welcome to my site',
+          theme: 'default'
+        }
+        const filePath = path.join(STATIC_DIR, 'settings.json')
+        await fs.writeFile(filePath, JSON.stringify(defaultSettings, null, 2))
+        console.log('⚠️  Created default settings file (no site configured)')
+        return true
+      }
+    }
     
-    const settings = {
-      theme: site?.settings?.theme || 'default',
-      siteName: site?.name || 'My Site',
-      siteDescription: site?.settings?.description || '',
-      domain: site?.domain || ''
+    await ensureStaticDir()
+    
+    // Load settings from database
+    const { getSiteSettings } = await import('./supabase')
+    const settings = await getSiteSettings(siteId)
+    
+    // Convert to key-value object
+    const settingsObj = Object.fromEntries(
+      (settings || []).map(setting => [setting.key, setting.value])
+    )
+    
+    // Add default settings if empty
+    if (Object.keys(settingsObj).length === 0) {
+      settingsObj.siteName = 'My Site'
+      settingsObj.siteDescription = 'Welcome to my site'
+      settingsObj.theme = 'default'
     }
     
     const filePath = path.join(STATIC_DIR, 'settings.json')
-    console.log('🔍 DEBUG: Writing settings to:', filePath)
-    console.log('🔍 DEBUG: Settings data:', settings)
+    await fs.writeFile(filePath, JSON.stringify(settingsObj, null, 2))
     
-    await fs.mkdir(STATIC_DIR, { recursive: true })
-    await fs.writeFile(filePath, JSON.stringify(settings, null, 2))
-    
-    console.log('🔍 DEBUG: Settings file written successfully')
-    console.log(`✅ Generated settings.json (theme: ${settings.theme})`)
+    console.log('✅ Static settings file generated:', filePath, `(${Object.keys(settingsObj).length} settings)`)
     return true
   } catch (error) {
-    console.error('🔍 DEBUG: generateSiteSettingsFile error details:', {
-      siteId,
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined
-    })
-    console.error('❌ Failed to generate settings.json:', error)
+    console.error('❌ Error generating settings file:', error)
+    // Create default settings file as fallback
+    try {
+      await ensureStaticDir()
+      const defaultSettings = {
+        siteName: 'My Site',
+        siteDescription: 'Welcome to my site',
+        theme: 'default'
+      }
+      const filePath = path.join(STATIC_DIR, 'settings.json')
+      await fs.writeFile(filePath, JSON.stringify(defaultSettings, null, 2))
+      console.log('⚠️  Created default settings file as fallback')
+      return true
+    } catch (fallbackError) {
+      console.error('❌ Failed to create fallback settings file:', fallbackError)
     return false
+    }
   }
 }
 
 // Generate all static files
-export async function generateAllStaticFiles(forceSiteId?: string | null) {
+export async function generateAllStaticFiles() {
   console.log('🚀 Generating all static files...')
   
   // In serverless environments, skip file generation since data is served directly from database
@@ -293,53 +309,27 @@ export async function generateAllStaticFiles(forceSiteId?: string | null) {
     return true
   }
   
-  // Use provided site ID or ensure we have a site configured
-  let siteId = forceSiteId
-  if (!siteId) {
-    try {
-      siteId = await ensureDefaultSite()
-      console.log('🔍 DEBUG: Site ensured for static generation:', siteId)
-    } catch (error) {
-      console.error('❌ Could not ensure default site:', error)
-      return false
-    }
-  } else {
-    console.log('🔍 DEBUG: Using provided site ID for static generation:', siteId)
+  // Ensure we have a site configured first
+  try {
+    await ensureDefaultSite()
+  } catch (error) {
+    console.error('❌ Could not ensure default site:', error)
+    return false
   }
   
-  console.log('🔍 DEBUG: Starting individual file generation...')
-  
   const results = await Promise.allSettled([
-    generateNavigationFile(siteId),
-    generatePagesFile(siteId),
-    generateTemplatesFile(siteId),
-    generateSiteSettingsFile(siteId)
+    generateNavigationFile(),
+    generatePagesFile(),
+    generateTemplatesFile(),
+    generateSiteSettingsFile()
   ])
-  
-  // DEBUG: Log each result
-  results.forEach((result, index) => {
-    const fileNames = ['navigation', 'pages', 'templates', 'settings']
-    if (result.status === 'fulfilled') {
-      console.log(`🔍 DEBUG: ${fileNames[index]}.json generation:`, result.value ? 'SUCCESS' : 'FAILED')
-    } else {
-      console.log(`🔍 DEBUG: ${fileNames[index]}.json generation: REJECTED -`, result.reason)
-    }
-  })
   
   const successful = results.filter(r => r.status === 'fulfilled' && r.value === true).length
   const total = results.length
   
   console.log(`📊 Generated ${successful}/${total} static files`)
-  console.log('🔍 DEBUG: Individual results:', results.map((r, i) => ({ 
-    file: ['navigation', 'pages', 'templates', 'settings'][i],
-    status: r.status,
-    value: r.status === 'fulfilled' ? r.value : r.reason
-  })))
   
   // For new installations, it's normal to have some failures due to empty data
   // Consider it successful if at least half the files generated
-  const isSuccessful = successful >= Math.ceil(total / 2)
-  console.log('🔍 DEBUG: Overall success determination:', isSuccessful, `(${successful}/${total} >= ${Math.ceil(total / 2)})`)
-  
-  return isSuccessful
+  return successful >= Math.ceil(total / 2)
 } 
