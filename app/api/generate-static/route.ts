@@ -25,34 +25,78 @@ export async function POST(request: NextRequest) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     // }
     
+    // DEBUG: Add detailed logging for site detection
+    console.log('🔍 DEBUG: Starting site detection...')
+    
+    // Get domain from request headers for debugging
+    const domain = request.headers.get('host') || 'unknown'
+    console.log('🌐 Request domain:', domain)
+    
     // Dynamically import to avoid loading Supabase during build
     const { generateAllStaticFiles, ensureDefaultSite } = await import('@/lib/static-generator-server')
+    const { getCurrentSiteId, autoConfigureSiteId } = await import('@/lib/site-config-server')
+    
+    // DEBUG: Check current site detection
+    let siteId = getCurrentSiteId()
+    console.log('🔍 DEBUG: getCurrentSiteId() returned:', siteId)
+    
+    if (!siteId) {
+      console.log('🔍 DEBUG: No site ID found, trying auto-configure...')
+      siteId = await autoConfigureSiteId()
+      console.log('🔍 DEBUG: autoConfigureSiteId() returned:', siteId)
+    }
+    
+    // DEBUG: Check if site exists in database
+    if (siteId) {
+      try {
+        const { getSiteById } = await import('@/lib/supabase')
+        const site = await getSiteById(siteId)
+        console.log('🔍 DEBUG: Site found in database:', site ? `${site.name} (${site.domain})` : 'NOT FOUND')
+      } catch (error) {
+        console.log('🔍 DEBUG: Error checking site in database:', error)
+      }
+    }
     
     // First ensure we have a default site configured
     try {
-      await ensureDefaultSite()
+      const ensuredSiteId = await ensureDefaultSite()
+      console.log('🔍 DEBUG: ensureDefaultSite() returned:', ensuredSiteId)
     } catch (siteError) {
       console.error('❌ Error ensuring default site:', siteError)
       return NextResponse.json({ 
         success: false, 
         message: 'Failed to configure default site. Please set up your site first.',
         error: siteError instanceof Error ? siteError.message : 'Site configuration error',
-        needsSiteSetup: true
+        needsSiteSetup: true,
+        debug: {
+          detectedSiteId: siteId,
+          requestDomain: domain
+        }
       }, { status: 422 })
     }
     
+    console.log('🔍 DEBUG: Calling generateAllStaticFiles...')
     const success = await generateAllStaticFiles()
+    console.log('🔍 DEBUG: generateAllStaticFiles returned:', success)
     
     if (success) {
       return NextResponse.json({ 
         success: true, 
         message: 'Static files regenerated successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        debug: {
+          detectedSiteId: siteId,
+          requestDomain: domain
+        }
       })
     } else {
       return NextResponse.json({ 
         success: false, 
-        message: 'Some static files failed to generate. This may be normal for a new installation.' 
+        message: 'Some static files failed to generate. This may be normal for a new installation.',
+        debug: {
+          detectedSiteId: siteId,
+          requestDomain: domain
+        }
       }, { status: 200 }) // Changed to 200 since partial failure is acceptable
     }
     

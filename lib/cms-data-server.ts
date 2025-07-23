@@ -44,18 +44,27 @@ export interface CMSTemplate {
 
 export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
   let siteId = getCurrentSiteId()
+  console.log('🔍 DEBUG: loadPagesFromDatabase - initial siteId:', siteId)
+  
   if (!siteId) {
+    console.log('🔍 DEBUG: No initial siteId, trying autoConfigureSiteId...')
     siteId = await autoConfigureSiteId()
-    if (!siteId) return []
+    console.log('🔍 DEBUG: autoConfigureSiteId returned:', siteId)
+    if (!siteId) {
+      console.log('🔍 DEBUG: Still no siteId, returning empty array')
+      return []
+    }
   }
 
   try {
+    console.log('🔍 DEBUG: Querying pages for siteId:', siteId)
     const { data: pages, error } = await supabase
       .from('pages')
       .select('*')
       .eq('site_id', siteId)
       .order('updated_at', { ascending: false })
 
+    console.log('🔍 DEBUG: Pages query result - error:', error, 'data count:', pages?.length || 0)
     if (error) throw error
 
     return pages.map(page => ({
@@ -80,12 +89,20 @@ export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
 
 export async function loadNavigationFromDatabase(): Promise<NavigationItem[]> {
   let siteId = getCurrentSiteId()
+  console.log('🔍 DEBUG: loadNavigationFromDatabase - initial siteId:', siteId)
+  
   if (!siteId) {
+    console.log('🔍 DEBUG: No initial siteId, trying autoConfigureSiteId...')
     siteId = await autoConfigureSiteId()
-    if (!siteId) return []
+    console.log('🔍 DEBUG: autoConfigureSiteId returned:', siteId)
+    if (!siteId) {
+      console.log('🔍 DEBUG: Still no siteId for navigation, returning empty array')
+      return []
+    }
   }
 
   try {
+    console.log('🔍 DEBUG: Querying navigation for siteId:', siteId)
     const { data: navigation, error } = await supabase
       .from('navigation_items')
       .select('*')
@@ -93,6 +110,7 @@ export async function loadNavigationFromDatabase(): Promise<NavigationItem[]> {
       .eq('is_visible', true)
       .order('order_index', { ascending: true })
 
+    console.log('🔍 DEBUG: Navigation query result - error:', error, 'data count:', navigation?.length || 0)
     if (error) throw error
 
     return navigation.map(item => ({

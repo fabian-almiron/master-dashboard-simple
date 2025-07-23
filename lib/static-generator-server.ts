@@ -145,9 +145,11 @@ async function ensureStaticDir() {
 export async function generateNavigationFile() {
   try {
     console.log('📄 Generating static navigation file...')
+    console.log('🔍 DEBUG: About to load navigation from database...')
     
     await ensureStaticDir()
     const navigation = await loadNavigationFromDatabase()
+    console.log('🔍 DEBUG: Navigation loaded:', navigation?.length || 0, 'items', navigation)
     
     const filePath = path.join(STATIC_DIR, 'navigation.json')
     await fs.writeFile(filePath, JSON.stringify(navigation || [], null, 2))
@@ -174,9 +176,14 @@ export async function generateNavigationFile() {
 export async function generatePagesFile() {
   try {
     console.log('📄 Generating static pages file...')
+    console.log('🔍 DEBUG: About to load pages from database...')
     
     await ensureStaticDir()
     const pages = await loadPagesFromDatabase()
+    console.log('🔍 DEBUG: Pages loaded:', pages?.length || 0, 'pages')
+    if (pages && pages.length > 0) {
+      console.log('🔍 DEBUG: First page:', pages[0])
+    }
     
     const filePath = path.join(STATIC_DIR, 'pages.json')
     await fs.writeFile(filePath, JSON.stringify(pages || [], null, 2))
@@ -301,11 +308,14 @@ export async function generateAllStaticFiles() {
   
   // Ensure we have a site configured first
   try {
-    await ensureDefaultSite()
+    const siteId = await ensureDefaultSite()
+    console.log('🔍 DEBUG: Site ensured for static generation:', siteId)
   } catch (error) {
     console.error('❌ Could not ensure default site:', error)
     return false
   }
+  
+  console.log('🔍 DEBUG: Starting individual file generation...')
   
   const results = await Promise.allSettled([
     generateNavigationFile(),
@@ -314,12 +324,30 @@ export async function generateAllStaticFiles() {
     generateSiteSettingsFile()
   ])
   
+  // DEBUG: Log each result
+  results.forEach((result, index) => {
+    const fileNames = ['navigation', 'pages', 'templates', 'settings']
+    if (result.status === 'fulfilled') {
+      console.log(`🔍 DEBUG: ${fileNames[index]}.json generation:`, result.value ? 'SUCCESS' : 'FAILED')
+    } else {
+      console.log(`🔍 DEBUG: ${fileNames[index]}.json generation: REJECTED -`, result.reason)
+    }
+  })
+  
   const successful = results.filter(r => r.status === 'fulfilled' && r.value === true).length
   const total = results.length
   
   console.log(`📊 Generated ${successful}/${total} static files`)
+  console.log('🔍 DEBUG: Individual results:', results.map((r, i) => ({ 
+    file: ['navigation', 'pages', 'templates', 'settings'][i],
+    status: r.status,
+    value: r.status === 'fulfilled' ? r.value : r.reason
+  })))
   
   // For new installations, it's normal to have some failures due to empty data
   // Consider it successful if at least half the files generated
-  return successful >= Math.ceil(total / 2)
+  const isSuccessful = successful >= Math.ceil(total / 2)
+  console.log('🔍 DEBUG: Overall success determination:', isSuccessful, `(${successful}/${total} >= ${Math.ceil(total / 2)})`)
+  
+  return isSuccessful
 } 
