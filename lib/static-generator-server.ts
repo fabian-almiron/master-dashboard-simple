@@ -142,13 +142,13 @@ async function ensureStaticDir() {
 }
 
 // Generate navigation JSON file
-export async function generateNavigationFile() {
+export async function generateNavigationFile(forceSiteId?: string | null) {
   try {
     console.log('📄 Generating static navigation file...')
     console.log('🔍 DEBUG: About to load navigation from database...')
     
     await ensureStaticDir()
-    const navigation = await loadNavigationFromDatabase()
+    const navigation = await loadNavigationFromDatabase(forceSiteId)
     console.log('🔍 DEBUG: Navigation loaded:', navigation?.length || 0, 'items', navigation)
     
     const filePath = path.join(STATIC_DIR, 'navigation.json')
@@ -173,13 +173,13 @@ export async function generateNavigationFile() {
 }
 
 // Generate pages JSON file
-export async function generatePagesFile() {
+export async function generatePagesFile(forceSiteId?: string | null) {
   try {
     console.log('📄 Generating static pages file...')
     console.log('🔍 DEBUG: About to load pages from database...')
     
     await ensureStaticDir()
-    const pages = await loadPagesFromDatabase()
+    const pages = await loadPagesFromDatabase(forceSiteId)
     console.log('🔍 DEBUG: Pages loaded:', pages?.length || 0, 'pages')
     if (pages && pages.length > 0) {
       console.log('🔍 DEBUG: First page:', pages[0])
@@ -207,7 +207,7 @@ export async function generatePagesFile() {
 }
 
 // Generate templates JSON file
-export async function generateTemplatesFile() {
+export async function generateTemplatesFile(forceSiteId?: string | null) {
   try {
     console.log('📄 Generating static templates file...')
     
@@ -236,7 +236,7 @@ export async function generateTemplatesFile() {
 }
 
 // Generate site settings JSON file
-export async function generateSiteSettingsFile() {
+export async function generateSiteSettingsFile(forceSiteId?: string | null) {
   try {
     console.log('📄 Generating static site settings file...')
     
@@ -303,25 +303,30 @@ export async function generateSiteSettingsFile() {
 }
 
 // Generate all static files
-export async function generateAllStaticFiles() {
+export async function generateAllStaticFiles(forceSiteId?: string | null) {
   console.log('🚀 Generating all static files...')
   
-  // Ensure we have a site configured first
-  try {
-    const siteId = await ensureDefaultSite()
-    console.log('🔍 DEBUG: Site ensured for static generation:', siteId)
-  } catch (error) {
-    console.error('❌ Could not ensure default site:', error)
-    return false
+  // Use provided site ID or ensure we have a site configured
+  let siteId = forceSiteId
+  if (!siteId) {
+    try {
+      siteId = await ensureDefaultSite()
+      console.log('🔍 DEBUG: Site ensured for static generation:', siteId)
+    } catch (error) {
+      console.error('❌ Could not ensure default site:', error)
+      return false
+    }
+  } else {
+    console.log('🔍 DEBUG: Using provided site ID for static generation:', siteId)
   }
   
   console.log('🔍 DEBUG: Starting individual file generation...')
   
   const results = await Promise.allSettled([
-    generateNavigationFile(),
-    generatePagesFile(),
-    generateTemplatesFile(),
-    generateSiteSettingsFile()
+    generateNavigationFile(siteId),
+    generatePagesFile(siteId),
+    generateTemplatesFile(siteId),
+    generateSiteSettingsFile(siteId)
   ])
   
   // DEBUG: Log each result

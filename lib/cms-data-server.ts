@@ -42,9 +42,9 @@ export interface CMSTemplate {
   updatedAt: string
 }
 
-export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
-  let siteId = getCurrentSiteId()
-  console.log('🔍 DEBUG: loadPagesFromDatabase - initial siteId:', siteId)
+export async function loadPagesFromDatabase(forceSiteId?: string | null): Promise<CMSPage[]> {
+  let siteId = forceSiteId || getCurrentSiteId()
+  console.log('🔍 DEBUG: loadPagesFromDatabase - forceSiteId:', forceSiteId, 'final siteId:', siteId)
   
   if (!siteId) {
     console.log('🔍 DEBUG: No initial siteId, trying autoConfigureSiteId...')
@@ -87,9 +87,9 @@ export async function loadPagesFromDatabase(): Promise<CMSPage[]> {
   }
 }
 
-export async function loadNavigationFromDatabase(): Promise<NavigationItem[]> {
-  let siteId = getCurrentSiteId()
-  console.log('🔍 DEBUG: loadNavigationFromDatabase - initial siteId:', siteId)
+export async function loadNavigationFromDatabase(forceSiteId?: string | null): Promise<NavigationItem[]> {
+  let siteId = forceSiteId || getCurrentSiteId()
+  console.log('🔍 DEBUG: loadNavigationFromDatabase - forceSiteId:', forceSiteId, 'final siteId:', siteId)
   
   if (!siteId) {
     console.log('🔍 DEBUG: No initial siteId, trying autoConfigureSiteId...')

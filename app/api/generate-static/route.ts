@@ -41,9 +41,28 @@ export async function POST(request: NextRequest) {
     console.log('🔍 DEBUG: getCurrentSiteId() returned:', siteId)
     
     if (!siteId) {
-      console.log('🔍 DEBUG: No site ID found, trying auto-configure...')
-      siteId = await autoConfigureSiteId()
-      console.log('🔍 DEBUG: autoConfigureSiteId() returned:', siteId)
+      console.log('🔍 DEBUG: No site ID found, trying domain-based lookup...')
+      
+      // Try domain-based lookup directly since VERCEL_URL might not be available in API context
+      try {
+        console.log('🔍 DEBUG: Looking up site by domain:', domain)
+        const { getSiteByDomain } = await import('@/lib/supabase')
+        const site = await getSiteByDomain(domain)
+        if (site) {
+          console.log('🔍 DEBUG: Found site by direct domain lookup:', site.name, '→', site.id)
+          siteId = site.id
+        } else {
+          console.log('🔍 DEBUG: No site found for domain:', domain)
+        }
+      } catch (error) {
+        console.log('🔍 DEBUG: Direct domain lookup failed:', error)
+      }
+      
+      if (!siteId) {
+        console.log('🔍 DEBUG: Trying auto-configure fallback...')
+        siteId = await autoConfigureSiteId()
+        console.log('🔍 DEBUG: autoConfigureSiteId() returned:', siteId)
+      }
     }
     
     // DEBUG: Check if site exists in database
@@ -75,8 +94,8 @@ export async function POST(request: NextRequest) {
       }, { status: 422 })
     }
     
-    console.log('🔍 DEBUG: Calling generateAllStaticFiles...')
-    const success = await generateAllStaticFiles()
+    console.log('🔍 DEBUG: Calling generateAllStaticFiles with siteId:', siteId)
+    const success = await generateAllStaticFiles(siteId)
     console.log('🔍 DEBUG: generateAllStaticFiles returned:', success)
     
     if (success) {
