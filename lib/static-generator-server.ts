@@ -145,12 +145,12 @@ async function ensureStaticDir() {
 }
 
 // Generate navigation JSON file
-export async function generateNavigationFile() {
+export async function generateNavigationFile(forceSiteId?: string | null) {
   try {
-    console.log('📄 Generating static navigation file...')
+    console.log('📄 Generating static navigation file with siteId:', forceSiteId)
     
     await ensureStaticDir()
-    const navigation = await loadNavigationFromDatabase()
+    const navigation = await loadNavigationFromDatabase(forceSiteId)
     
     const filePath = path.join(STATIC_DIR, 'navigation.json')
     await fs.writeFile(filePath, JSON.stringify(navigation || [], null, 2))
@@ -174,12 +174,12 @@ export async function generateNavigationFile() {
 }
 
 // Generate pages JSON file
-export async function generatePagesFile() {
+export async function generatePagesFile(forceSiteId?: string | null) {
   try {
-    console.log('📄 Generating static pages file...')
+    console.log('📄 Generating static pages file with siteId:', forceSiteId)
     
     await ensureStaticDir()
-    const pages = await loadPagesFromDatabase()
+    const pages = await loadPagesFromDatabase(forceSiteId)
     
     const filePath = path.join(STATIC_DIR, 'pages.json')
     await fs.writeFile(filePath, JSON.stringify(pages || [], null, 2))
@@ -203,12 +203,12 @@ export async function generatePagesFile() {
 }
 
 // Generate templates JSON file
-export async function generateTemplatesFile() {
+export async function generateTemplatesFile(forceSiteId?: string | null) {
   try {
-    console.log('📄 Generating static templates file...')
+    console.log('📄 Generating static templates file with siteId:', forceSiteId)
     
     await ensureStaticDir()
-    const templates = await loadTemplatesFromDatabase()
+    const templates = await loadTemplatesFromDatabase(forceSiteId)
     
     const filePath = path.join(STATIC_DIR, 'templates.json')
     await fs.writeFile(filePath, JSON.stringify(templates || [], null, 2))
@@ -232,11 +232,11 @@ export async function generateTemplatesFile() {
 }
 
 // Generate site settings JSON file
-export async function generateSiteSettingsFile() {
+export async function generateSiteSettingsFile(forceSiteId?: string | null) {
   try {
-    console.log('📄 Generating static site settings file...')
+    console.log('📄 Generating static site settings file with siteId:', forceSiteId)
     
-    let siteId = getCurrentSiteId()
+    let siteId = forceSiteId || getCurrentSiteId()
     if (!siteId) {
       siteId = await autoConfigureSiteId()
       if (!siteId) {
@@ -256,26 +256,21 @@ export async function generateSiteSettingsFile() {
     
     await ensureStaticDir()
     
-    // Load settings from database
-    const { getSiteSettings } = await import('./supabase')
-    const settings = await getSiteSettings(siteId)
+    // Load settings from database using the explicit site ID
+    const { getSiteById } = await import('./supabase')
+    const site = await getSiteById(siteId)
     
-    // Convert to key-value object
-    const settingsObj = Object.fromEntries(
-      (settings || []).map(setting => [setting.key, setting.value])
-    )
-    
-    // Add default settings if empty
-    if (Object.keys(settingsObj).length === 0) {
-      settingsObj.siteName = 'My Site'
-      settingsObj.siteDescription = 'Welcome to my site'
-      settingsObj.theme = 'default'
+    const settings = {
+      theme: site?.settings?.theme || 'default',
+      siteName: site?.name || 'My Site',
+      siteDescription: site?.settings?.description || '',
+      domain: site?.domain || ''
     }
     
     const filePath = path.join(STATIC_DIR, 'settings.json')
-    await fs.writeFile(filePath, JSON.stringify(settingsObj, null, 2))
+    await fs.writeFile(filePath, JSON.stringify(settings, null, 2))
     
-    console.log('✅ Static settings file generated:', filePath, `(${Object.keys(settingsObj).length} settings)`)
+    console.log('✅ Static settings file generated:', filePath, `(theme: ${settings.theme})`)
     return true
   } catch (error) {
     console.error('❌ Error generating settings file:', error)
@@ -324,10 +319,10 @@ export async function generateAllStaticFiles(forceSiteId?: string | null) {
   }
   
   const results = await Promise.allSettled([
-    generateNavigationFile(),
-    generatePagesFile(),
-    generateTemplatesFile(),
-    generateSiteSettingsFile()
+    generateNavigationFile(siteId),
+    generatePagesFile(siteId),
+    generateTemplatesFile(siteId),
+    generateSiteSettingsFile(siteId)
   ])
   
   const successful = results.filter(r => r.status === 'fulfilled' && r.value === true).length

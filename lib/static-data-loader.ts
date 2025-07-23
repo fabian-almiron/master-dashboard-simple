@@ -61,34 +61,34 @@ async function loadWithFallback<T>(
   return defaultValue
 }
 
-export async function loadStaticPages() {
+export async function loadStaticPages(forceSiteId?: string | null) {
   return loadWithFallback(
     'pages.json',
     async () => {
       const { loadPagesFromDatabase } = await import('./cms-data-server')
-      return await loadPagesFromDatabase()
+      return await loadPagesFromDatabase(forceSiteId)
     },
     []
   )
 }
 
-export async function loadStaticNavigation() {
+export async function loadStaticNavigation(forceSiteId?: string | null) {
   return loadWithFallback(
     'navigation.json',
     async () => {
       const { loadNavigationFromDatabase } = await import('./cms-data-server')
-      return await loadNavigationFromDatabase()
+      return await loadNavigationFromDatabase(forceSiteId)
     },
     []
   )
 }
 
-export async function loadStaticSettings() {
+export async function loadStaticSettings(forceSiteId?: string | null) {
   return loadWithFallback(
     'settings.json',
     async () => {
       const { getCurrentSiteId } = await import('./site-config-server')
-      const siteId = getCurrentSiteId()
+      const siteId = forceSiteId || getCurrentSiteId()
       if (!siteId) {
         return { theme: 'default', siteName: 'My Site', siteDescription: '', domain: '' }
       }
@@ -106,12 +106,12 @@ export async function loadStaticSettings() {
   )
 }
 
-export async function loadStaticTemplates() {
+export async function loadStaticTemplates(forceSiteId?: string | null) {
   return loadWithFallback(
     'templates.json',
     async () => {
       const { loadTemplatesFromDatabase } = await import('./cms-data-server')
-      return await loadTemplatesFromDatabase()
+      return await loadTemplatesFromDatabase(forceSiteId)
     },
     []
   )
