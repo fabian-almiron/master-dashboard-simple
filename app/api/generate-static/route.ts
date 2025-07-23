@@ -99,10 +99,18 @@ export async function POST(request: NextRequest) {
     const success = await generateAllStaticFiles(siteId)
     console.log('🔍 DEBUG: generateAllStaticFiles returned:', success)
     
+    // Check if we're in a serverless environment
+    const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+    
     if (success) {
+      const message = isServerless 
+        ? 'Static file generation skipped - data served directly from database (serverless mode)'
+        : 'Static files regenerated successfully'
+        
       return NextResponse.json({ 
         success: true, 
-        message: 'Static files regenerated successfully',
+        message,
+        serverless: isServerless,
         timestamp: new Date().toISOString(),
         debug: {
           detectedSiteId: siteId,
@@ -110,9 +118,14 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
+      const message = isServerless
+        ? 'Database connection or data loading failed'
+        : 'Some static files failed to generate. This may be normal for a new installation.'
+        
       return NextResponse.json({ 
         success: false, 
-        message: 'Some static files failed to generate. This may be normal for a new installation.',
+        message,
+        serverless: isServerless,
         debug: {
           detectedSiteId: siteId,
           requestDomain: domain

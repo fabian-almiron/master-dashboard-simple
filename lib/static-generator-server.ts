@@ -4,8 +4,13 @@ import { loadNavigationFromDatabase, loadPagesFromDatabase, loadTemplatesFromDat
 import { getCurrentSiteId, autoConfigureSiteId, getAutoSiteDomain, isVercelDeployment, getDeploymentContext } from './site-config-server'
 import { createSite, getSiteByDomain, getAllSites } from './supabase'
 
-// Static files directory
-const STATIC_DIR = path.join(process.cwd(), 'public', 'generated')
+// Static files directory - use /tmp in serverless environments
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+const STATIC_DIR = isServerless 
+  ? path.join('/tmp', 'generated')
+  : path.join(process.cwd(), 'public', 'generated')
+
+console.log('🔍 DEBUG: Static files directory:', STATIC_DIR, 'isServerless:', isServerless)
 
 // Ensure a default site exists for new deployments
 export async function ensureDefaultSite(): Promise<string> {
@@ -280,6 +285,13 @@ async function generateSiteSettingsFile(siteId: string): Promise<boolean> {
 // Generate all static files
 export async function generateAllStaticFiles(forceSiteId?: string | null) {
   console.log('🚀 Generating all static files...')
+  
+  // In serverless environments, skip file generation since data is served directly from database
+  if (isServerless) {
+    console.log('🌐 Serverless environment detected - data will be served directly from database')
+    console.log('✅ Skipping static file generation (using database-first approach)')
+    return true
+  }
   
   // Use provided site ID or ensure we have a site configured
   let siteId = forceSiteId
