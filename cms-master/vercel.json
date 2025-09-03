@@ -1,43 +1,29 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
   "functions": {
-    "app/api/**/*.ts": {
+    "app/api/*/route.ts": {
       "maxDuration": 30
     }
   },
-  "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/admin/pages",
-      "permanent": false
-    }
-  ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         },
         {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
+          "key": "Pragma",
+          "value": "no-cache"
         },
         {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
+          "key": "Expires",
+          "value": "0"
         }
       ]
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/generate-static",
-      "schedule": "0 */6 * * *"
-    }
   ]
-} 
+}

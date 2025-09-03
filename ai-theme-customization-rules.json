@@ -1,0 +1,344 @@
+{
+  "name": "AI Theme Customization Rules",
+  "version": "1.0.0",
+  "description": "Comprehensive rules for AI to modify CMS TailWinds themes based on user input",
+  
+  "project_context": {
+    "cms_name": "CMS TailWinds",
+    "framework": "Next.js",
+    "styling": "Tailwind CSS",
+    "component_system": "React with auto-discovery",
+    "base_theme_location": "/cms-master/themes/base-theme/",
+    "theme_discovery": "Automatic via auto-register.tsx file"
+  },
+
+  "core_requirements": {
+    "mandatory_structure": {
+      "root_files": [
+        "auto-register.tsx",
+        "register-blocks.tsx", 
+        "styles.css",
+        "tailwind.config.ts",
+        "README.md"
+      ],
+      "ui_directory": {
+        "required_components": [
+          "Header.tsx",
+          "Footer.tsx", 
+          "DNDArea.tsx",
+          "Hero.tsx",
+          "Features.tsx",
+          "CTA.tsx",
+          "Blog.tsx",
+          "Pricing.tsx",
+          "Testimonials.tsx"
+        ],
+        "optional_subdirectories": [
+          "tailwind-components/"
+        ]
+      }
+    },
+
+    "component_metadata_format": {
+      "required_export": "metadata: ComponentInfo",
+      "properties": {
+        "type": "Must match component function name exactly",
+        "name": "Human-readable display name",
+        "description": "Description for admin interface",
+        "category": "One of: content-blocks, layout, ui-primitives, page-templates",
+        "icon": "Lucide React icon name only"
+      },
+      "template": "export const metadata: ComponentInfo = { type: 'ComponentName', name: 'Display Name', description: 'Component description', category: 'content-blocks', icon: 'IconName' }"
+    }
+  },
+
+  "customization_guidelines": {
+    "color_system": {
+      "css_variables_required": true,
+      "variable_format": "--theme-primary-{shade}: R G B",
+      "required_shades": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "primary_colors": {
+        "description": "Main brand colors for theme identity",
+        "usage": "Buttons, links, accents, CTAs",
+        "recommended_hues": ["blue", "green", "purple", "orange", "red", "teal", "indigo", "pink"]
+      },
+      "gray_colors": {
+        "description": "Neutral colors for text, borders, backgrounds",
+        "usage": "Text, borders, cards, subtle backgrounds"
+      },
+      "color_application": {
+        "backgrounds": "bg-theme-primary-{shade}",
+        "text": "text-theme-primary-{shade}",
+        "borders": "border-theme-primary-{shade}",
+        "focus_rings": "focus:ring-theme-primary-{shade}"
+      }
+    },
+
+    "typography_system": {
+      "font_families": {
+        "sans": "Primary body font (Inter, Roboto, System)",
+        "heading": "Heading font (can be same as sans or decorative)"
+      },
+      "hierarchy": {
+        "h1": "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold",
+        "h2": "text-2xl sm:text-3xl md:text-4xl font-bold", 
+        "h3": "text-xl sm:text-2xl font-semibold",
+        "body": "text-sm md:text-base",
+        "small": "text-xs sm:text-sm"
+      }
+    },
+
+    "layout_system": {
+      "container": "theme-container class or container mx-auto px-4 md:px-6",
+      "spacing": {
+        "sections": "py-12 md:py-24 lg:py-32",
+        "elements": "space-y-4, space-y-6, space-y-8",
+        "responsive": "Always use responsive spacing classes"
+      },
+      "grid_system": "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+      "responsive_design": "Mobile-first with sm:, md:, lg:, xl: breakpoints"
+    }
+  },
+
+  "component_customization_rules": {
+    "Header": {
+      "required_elements": ["Logo/Brand", "Navigation", "CTA Button", "Mobile Menu"],
+      "customizable_aspects": [
+        "Logo design and text",
+        "Navigation links and styling",
+        "Background color and transparency",
+        "Typography and spacing",
+        "Mobile menu style"
+      ],
+      "style_variations": [
+        "Transparent with background on scroll",
+        "Solid background with shadow",
+        "Minimal with border bottom",
+        "Colorful branded header"
+      ]
+    },
+
+    "Hero": {
+      "required_elements": ["Main Headline", "Subtext", "CTA Buttons"],
+      "customizable_aspects": [
+        "Background (gradient, solid, image)",
+        "Headline size and style",
+        "Button styles and text",
+        "Layout (centered, left-aligned)",
+        "Trust indicators or badges"
+      ],
+      "style_variations": [
+        "Gradient background with centered text",
+        "Split layout with image",
+        "Video background",
+        "Minimal with subtle background"
+      ]
+    },
+
+    "Features": {
+      "common_layouts": ["3-column grid", "2-column grid", "List layout", "Alternating layout"],
+      "customizable_aspects": [
+        "Grid layout and columns",
+        "Icon style and color",
+        "Card design",
+        "Typography hierarchy",
+        "Spacing and alignment"
+      ]
+    },
+
+    "Footer": {
+      "required_elements": ["Copyright", "Links", "Contact Info"],
+      "customizable_aspects": [
+        "Layout (columns, single row)",
+        "Social media icons",
+        "Newsletter signup",
+        "Background color",
+        "Link organization"
+      ]
+    }
+  },
+
+  "design_style_categories": {
+    "minimal": {
+      "characteristics": "Clean, lots of white space, subtle colors, simple typography",
+      "colors": "Neutral grays with single accent color",
+      "typography": "Sans-serif, readable hierarchy",
+      "components": "Simple cards, minimal borders, subtle shadows"
+    },
+    
+    "modern": {
+      "characteristics": "Bold colors, gradients, rounded corners, contemporary feel",
+      "colors": "Vibrant primary colors with gradients",
+      "typography": "Modern sans-serif with varied weights", 
+      "components": "Cards with gradients, rounded elements, hover effects"
+    },
+
+    "professional": {
+      "characteristics": "Business-focused, trustworthy, conservative design",
+      "colors": "Blues, grays, conservative palette",
+      "typography": "Clean, readable fonts",
+      "components": "Structured layouts, subtle effects, professional imagery"
+    },
+
+    "creative": {
+      "characteristics": "Bold, artistic, unique layouts, experimental",
+      "colors": "Bright, contrasting colors, artistic combinations",
+      "typography": "Mix of fonts, creative hierarchy",
+      "components": "Unique layouts, artistic elements, bold visuals"
+    },
+
+    "tech": {
+      "characteristics": "Dark themes, neon accents, futuristic feel",
+      "colors": "Dark backgrounds with bright accent colors",
+      "typography": "Monospace or modern sans-serif",
+      "components": "Dark cards, glowing effects, tech-inspired elements"
+    }
+  },
+
+  "ai_customization_process": {
+    "step_1_analysis": {
+      "description": "Analyze user request for style, industry, purpose",
+      "actions": [
+        "Identify target audience",
+        "Determine style category",
+        "Extract color preferences",
+        "Understand business type"
+      ]
+    },
+
+    "step_2_color_generation": {
+      "description": "Generate cohesive color palette",
+      "actions": [
+        "Select primary color based on industry/preference",
+        "Generate full 50-900 shade range",
+        "Ensure accessibility (contrast ratios)",
+        "Update CSS variables in styles.css"
+      ]
+    },
+
+    "step_3_component_modification": {
+      "description": "Modify components to match style",
+      "actions": [
+        "Update color classes throughout components",
+        "Adjust typography and spacing",
+        "Modify layouts if needed",
+        "Update content placeholders",
+        "Ensure responsive design"
+      ]
+    },
+
+    "step_4_tailwind_config": {
+      "description": "Update Tailwind configuration",
+      "actions": [
+        "Update color definitions",
+        "Modify font families if needed",
+        "Adjust spacing or sizing if required"
+      ]
+    },
+
+    "step_5_metadata_update": {
+      "description": "Update theme metadata and auto-register",
+      "actions": [
+        "Update theme name and description",
+        "Verify all component imports",
+        "Ensure metadata consistency"
+      ]
+    }
+  },
+
+  "content_customization": {
+    "placeholder_text": {
+      "industry_specific": true,
+      "examples": {
+        "technology": "Build the Future with AI",
+        "healthcare": "Your Health, Our Priority", 
+        "finance": "Secure Financial Solutions",
+        "education": "Learn, Grow, Succeed",
+        "restaurant": "Delicious Food, Memorable Experience",
+        "agency": "Creative Solutions for Your Brand"
+      }
+    },
+
+    "cta_buttons": {
+      "primary_variations": ["Get Started", "Start Free Trial", "Learn More", "Contact Us", "Shop Now"],
+      "secondary_variations": ["Learn More", "View Demo", "Read More", "Explore", "Discover"]
+    }
+  },
+
+  "quality_assurance": {
+    "required_checks": [
+      "All components export metadata correctly",
+      "CSS variables are properly defined",
+      "Components use theme color classes",
+      "Responsive design works on all breakpoints",
+      "Auto-register.tsx imports all components",
+      "No hardcoded colors outside CSS variables",
+      "Accessibility standards met (contrast, keyboard navigation)"
+    ],
+
+    "testing_requirements": [
+      "Components render without errors",
+      "Theme colors apply correctly",
+      "Mobile responsiveness works",
+      "All required files present",
+      "Auto-discovery system compatible"
+    ]
+  },
+
+  "common_modifications": {
+    "color_changes": {
+      "description": "Change primary brand color",
+      "files_to_modify": ["styles.css", "tailwind.config.ts"],
+      "component_updates": "Update all theme-primary-* classes"
+    },
+
+    "layout_changes": {
+      "description": "Modify component layouts",
+      "common_changes": [
+        "Grid column counts",
+        "Section spacing", 
+        "Container widths",
+        "Element alignment"
+      ]
+    },
+
+    "typography_changes": {
+      "description": "Update fonts and text styling",
+      "modifications": [
+        "Font family in tailwind.config.ts",
+        "Text size classes",
+        "Font weight classes",
+        "Line height adjustments"
+      ]
+    }
+  },
+
+  "error_prevention": {
+    "common_mistakes": [
+      "Missing metadata export",
+      "Wrong category names",
+      "Hardcoded colors instead of CSS variables",
+      "Missing responsive classes",
+      "Incorrect folder structure",
+      "Component name mismatch with metadata.type"
+    ],
+
+    "validation_checklist": [
+      "✅ All required files present",
+      "✅ Component metadata exports correct",
+      "✅ CSS variables defined properly",
+      "✅ Tailwind config matches variables", 
+      "✅ Auto-register.tsx includes all components",
+      "✅ Components use responsive design",
+      "✅ No TypeScript errors",
+      "✅ Theme follows naming conventions"
+    ]
+  },
+
+  "output_format": {
+    "theme_structure": "Complete theme folder with all required files",
+    "naming_convention": "Use kebab-case for theme folder name",
+    "file_organization": "Follow exact structure defined in mandatory_structure",
+    "documentation": "Include README.md with theme description and customization details"
+  }
+}

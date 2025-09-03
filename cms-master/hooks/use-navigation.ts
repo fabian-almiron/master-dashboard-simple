@@ -1,73 +1,53 @@
 import { useState, useEffect } from 'react'
-import { loadNavigationFromDatabase, clearNavigationCache } from '@/lib/cms-data'
-import { loadStaticNavigation } from '@/lib/static-data-loader'
-import { getCurrentSiteId } from '@/lib/site-config'
+import { getNavigationItems, getCurrentSite } from '@/lib/cms-data'
+import { NavigationItem } from '@/lib/supabase'
 
-export interface NavigationItem {
-  id: string
-  label: string
-  type: 'internal' | 'external'
-  href?: string
-  pageId?: string
-  order: number
-  isVisible: boolean
-}
-
-interface UseNavigationReturn {
-  navigation: NavigationItem[]
-  isLoading: boolean
-  isError: boolean
-  refresh: () => Promise<void>
-  clearCache: () => void
-}
-
-export function useNavigation(): UseNavigationReturn {
+export function useNavigation() {
   const [navigation, setNavigation] = useState<NavigationItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
-
-  const loadNavigation = async (showLoading = true) => {
-    if (showLoading) setIsLoading(true)
-    setIsError(false)
-
-    try {
-      // Try static files first (faster), fallback to database
-      console.log('🔍 Loading navigation from static files...')
-      const data = await loadStaticNavigation()
-      console.log(`🔍 Loaded ${data?.length || 0} navigation items from static files`)
-      setNavigation(data)
-    } catch (error) {
-      console.error('Error loading navigation:', error)
-      setIsError(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const refresh = async () => {
-    const siteId = getCurrentSiteId()
-    if (siteId) {
-      clearNavigationCache(siteId)
-    }
-    await loadNavigation(false) // Don't show loading state on refresh
-  }
-
-  const clearCache = () => {
-    const siteId = getCurrentSiteId()
-    if (siteId) {
-      clearNavigationCache(siteId)
-    }
-  }
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const loadNavigation = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const site = await getCurrentSite()
+        if (!site) {
+          setError('No active site found')
+          return
+        }
+
+        const items = await getNavigationItems(site.id)
+        setNavigation(items)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load navigation')
+        console.error('Error loading navigation:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     loadNavigation()
   }, [])
+
+  const refreshNavigation = async () => {
+    try {
+      const site = await getCurrentSite()
+      if (site) {
+        const items = await getNavigationItems(site.id)
+        setNavigation(items)
+      }
+    } catch (err) {
+      console.error('Error refreshing navigation:', err)
+    }
+  }
 
   return {
     navigation,
     isLoading,
-    isError,
-    refresh,
-    clearCache
+    error,
+    refreshNavigation,
   }
-} 
+}

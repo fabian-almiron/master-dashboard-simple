@@ -1,0 +1,960 @@
+# CMS TailWinds Theme Generation Rules
+# Complete Guide for Creating New Themes in Standalone Projects
+
+## CMS TailWinds Project Context
+
+### What is CMS TailWinds?
+CMS TailWinds is a multi-tenant content management system built with Next.js 14, TypeScript, Tailwind CSS, and Supabase. It features:
+- **Multi-tenant architecture** with site isolation
+- **Drag-and-drop page builder** similar to Elementor
+- **Theme system** with hot-swappable themes
+- **Template system** for headers, footers, and page layouts
+- **Component-based architecture** with metadata-driven registration
+
+### How Themes Work in CMS TailWinds
+1. **Theme Discovery**: Themes are auto-discovered from folder structure
+2. **Component Registration**: Components register themselves via metadata exports
+3. **Hot Swapping**: Themes can be switched without page reload
+4. **Page Builder Integration**: All theme components become available in the drag-drop builder
+5. **Template System**: Themes provide Header, Footer, and DNDArea for complete page layouts
+
+### Database Integration
+Themes integrate with a PostgreSQL database via Supabase:
+- **Sites**: Multi-tenant site management
+- **Pages**: Individual pages with slug-based routing
+- **Templates**: Header/footer/page template definitions
+- **Page Blocks**: Individual component instances with props and ordering
+- **Navigation**: Dynamic menu items with internal/external links
+
+## Overview
+These rules guide the creation of new themes for CMS TailWinds. Each theme should be a complete design system with creative freedom while maintaining compatibility with the CMS architecture. The Modern theme serves as the reference architecture.
+
+## Required Dependencies and Project Setup
+
+### Package.json Dependencies (Required)
+```json
+{
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "typescript": "^5.0.0",
+    "tailwindcss": "^3.4.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "lucide-react": "^0.400.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  }
+}
+```
+
+### Required File Structure
+
+#### Core Required Files (MUST HAVE)
+```
+/theme-name/
+├── auto-register.tsx         # Component registration and exports
+├── register-blocks.tsx       # Simple export of auto-register
+├── main.js                  # Theme JavaScript functionality
+├── styles.css               # Theme-specific CSS and animations
+├── tailwind.config.ts       # Theme color palette and design tokens
+├── ui/                      # Component library
+│   ├── Header.tsx           # REQUIRED: Site navigation and branding
+│   ├── Footer.tsx           # REQUIRED: Site footer
+│   ├── DNDArea.tsx          # REQUIRED: Dynamic content area for templates
+│   └── tailwind-components/ # Reusable UI primitives
+└── page-templates/          # Custom page layouts (optional but recommended)
+
+```
+
+## Creative Freedom Guidelines
+
+### Theme Identity
+- **Name**: Choose a distinctive theme name that reflects its design philosophy
+- **Color Palette**: Create a unique color system with 50-900 shades for primary and accent colors
+- **Typography**: Select fonts that match the theme's personality (modern, classic, playful, etc.)
+- **Design Language**: Develop consistent spacing, border radius, shadows, and animation patterns
+
+### Visual Styles
+- **Aesthetic Direction**: Choose any design style (minimalist, glassmorphism, neumorphism, brutalist, etc.)
+- **Component Styling**: Create unique visual treatments for buttons, cards, forms, etc.
+- **Layout Patterns**: Design distinctive layouts and spacing systems
+- **Interactive Elements**: Add hover effects, transitions, and micro-animations
+
+## Required Components Architecture
+
+## Required Types and Interfaces
+
+### ComponentInfo Interface
+```typescript
+// This interface defines component metadata for CMS registration
+export interface ComponentInfo {
+  type: string              // Unique component identifier
+  name: string             // Display name in admin
+  description: string      // Brief component description
+  category: 'layout' | 'content-blocks' | 'ui-primitives' | 'page-templates'
+  icon: string            // Lucide React icon name
+  props?: Record<string, {
+    type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+    default?: any
+    required?: boolean
+    description?: string
+  }>
+}
+```
+
+### Required Utility Functions
+```typescript
+// Add this to your lib/utils.ts or equivalent
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+export function formatDate(date: Date | string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(new Date(date))
+}
+```
+
+### useNavigation Hook Implementation
+```typescript
+// Required hook for Header component
+import { useState, useEffect } from 'react'
+
+interface NavigationItem {
+  id: string
+  label: string
+  type: 'internal' | 'external'
+  href?: string
+  page_id?: string
+  order_index: number
+  is_visible: boolean
+}
+
+export function useNavigation() {
+  const [navigation, setNavigation] = useState<NavigationItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // In standalone project, you can mock this or connect to your CMS
+    const mockNavigation: NavigationItem[] = [
+      { id: '1', label: 'Home', type: 'internal', href: '/', order_index: 1, is_visible: true },
+      { id: '2', label: 'About', type: 'internal', href: '/about', order_index: 2, is_visible: true },
+      { id: '3', label: 'Services', type: 'internal', href: '/services', order_index: 3, is_visible: true },
+      { id: '4', label: 'Contact', type: 'internal', href: '/contact', order_index: 4, is_visible: true },
+    ]
+    
+    setTimeout(() => {
+      setNavigation(mockNavigation)
+      setIsLoading(false)
+    }, 100)
+  }, [])
+
+  return { navigation, isLoading }
+}
+```
+
+### 1. Header.tsx (REQUIRED)
+```typescript
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Menu, X, Zap } from 'lucide-react' // Replace with your icons
+import { ComponentInfo } from '../types' // Adjust import path
+import { useNavigation } from '../hooks/use-navigation' // Adjust import path
+
+// Component metadata - MUST follow this pattern
+export const metadata: ComponentInfo = {
+  type: 'Header',
+  name: 'Header',
+  description: 'Site navigation and branding header',
+  category: 'layout',
+  icon: 'Navigation', // Any lucide-react icon name
+}
+
+interface NavigationItem {
+  id: string
+  label: string
+  type: 'internal' | 'external'
+  href?: string
+  page_id?: string
+  order_index: number
+  is_visible: boolean
+}
+
+export default function Header() {
+  const { navigation, isLoading } = useNavigation()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const visibleNavigation = navigation.filter(item => item.is_visible)
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur">
+      <div className="container px-4 mx-auto flex h-16 items-center justify-between">
+        {/* Logo/Branding */}
+        <Link href="/" className="flex items-center gap-2">
+          <Zap className="h-6 w-6 text-blue-600" />
+          <span className="text-xl font-bold">Your Site</span>
+        </Link>
+        
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex gap-6">
+          {isLoading ? (
+            <div className="flex gap-4">
+              <div className="h-4 bg-gray-200 rounded w-12 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-14 animate-pulse"></div>
+            </div>
+          ) : (
+            visibleNavigation.map((item) => (
+              <Link 
+                key={item.id}
+                href={item.href || '/'} 
+                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))
+          )}
+        </nav>
+        
+        {/* Admin Link */}
+        <div className="flex items-center gap-4">
+          <Link href="/admin" className="text-sm font-medium hover:underline hidden sm:block">
+            Admin
+          </Link>
+          
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+      
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t bg-white">
+          <nav className="container px-4 py-4 space-y-2">
+            {visibleNavigation.map((item) => (
+              <Link 
+                key={item.id}
+                href={item.href || '/'}
+                className="block py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link 
+              href="/admin"
+              className="block py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Admin
+            </Link>
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}
+```
+
+**Creative Freedom:**
+- Choose any layout (horizontal, vertical, sidebar, floating, etc.)
+- Design unique navigation styles (dropdown, mega menu, drawer, etc.)
+- Add animations, glassmorphism, shadows, or any visual effects
+- Include search bars, CTAs, user menus, or theme switchers
+
+### 2. Footer.tsx (REQUIRED)
+```typescript
+import Link from "next/link"
+import { Github, Twitter, Linkedin, Mail } from "lucide-react"
+import { ComponentInfo } from '../types' // Adjust import path
+
+// Component metadata - MUST follow this pattern
+export const metadata: ComponentInfo = {
+  type: 'Footer',
+  name: 'Footer',
+  description: 'Site footer with links and information',
+  category: 'layout',
+  icon: 'Layout',
+}
+
+export default function Footer() {
+  return (
+    <footer className="w-full border-t border-gray-200 bg-white py-8 md:py-12">
+      <div className="container mx-auto px-4">
+        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
+          {/* Brand Section */}
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="h-8 w-8 bg-blue-600 rounded"></div>
+              <span className="text-xl font-bold">Your Site</span>
+            </Link>
+            <p className="text-sm text-gray-600 max-w-xs">
+              Your site description goes here. Brief and engaging.
+            </p>
+          </div>
+          
+          {/* Product Links */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-gray-900">Product</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</Link></li>
+              <li><Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link></li>
+              <li><Link href="/integrations" className="text-gray-600 hover:text-gray-900 transition-colors">Integrations</Link></li>
+              <li><Link href="/changelog" className="text-gray-600 hover:text-gray-900 transition-colors">Changelog</Link></li>
+            </ul>
+          </div>
+          
+          {/* Resources Links */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-gray-900">Resources</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/docs" className="text-gray-600 hover:text-gray-900 transition-colors">Documentation</Link></li>
+              <li><Link href="/guides" className="text-gray-600 hover:text-gray-900 transition-colors">Guides</Link></li>
+              <li><Link href="/support" className="text-gray-600 hover:text-gray-900 transition-colors">Support</Link></li>
+              <li><Link href="/api" className="text-gray-600 hover:text-gray-900 transition-colors">API</Link></li>
+            </ul>
+          </div>
+          
+          {/* Company Links */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-gray-900">Company</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">About</Link></li>
+              <li><Link href="/blog" className="text-gray-600 hover:text-gray-900 transition-colors">Blog</Link></li>
+              <li><Link href="/careers" className="text-gray-600 hover:text-gray-900 transition-colors">Careers</Link></li>
+              <li><Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">Contact</Link></li>
+            </ul>
+          </div>
+        </div>
+        
+        {/* Bottom Section */}
+        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
+          <p className="text-xs text-gray-600">
+            © {new Date().getFullYear()} Your Site Name. All rights reserved.
+          </p>
+          
+          {/* Social Links */}
+          <div className="flex items-center gap-4">
+            <Link href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Twitter className="h-5 w-5" />
+              <span className="sr-only">Twitter</span>
+            </Link>
+            <Link href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Github className="h-5 w-5" />
+              <span className="sr-only">GitHub</span>
+            </Link>
+            <Link href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Linkedin className="h-5 w-5" />
+              <span className="sr-only">LinkedIn</span>
+            </Link>
+            <Link href="mailto:hello@yoursite.com" className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Mail className="h-5 w-5" />
+              <span className="sr-only">Email</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+```
+
+**Creative Freedom:**
+- Multi-column, single column, or creative layouts
+- Newsletter signups, contact forms, or interactive elements
+- Unique social media icon designs
+- Background patterns, gradients, or textures
+
+### 3. DNDArea.tsx (REQUIRED)
+```typescript
+'use client'
+
+import React from 'react'
+import { Layers, ArrowDown, RotateCcw, Palette, Plus } from 'lucide-react'
+import { ComponentInfo } from '../types' // Adjust import path
+
+// Component metadata - MUST follow this pattern
+export const metadata: ComponentInfo = {
+  type: 'DNDArea',
+  name: 'Dynamic Content Area',
+  description: 'Placeholder for dynamic page content in templates',
+  category: 'layout',
+  icon: 'Layers',
+}
+
+// MUST maintain this interface for CMS compatibility
+interface DNDAreaProps {
+  pageBlocks?: Array<{
+    id: string
+    type: string
+    props: Record<string, any>
+    order: number
+    isVisible: boolean
+  }>
+  isTemplateEdit?: boolean
+  className?: string
+  padding?: 'none' | 'small' | 'medium' | 'large'
+  background?: string
+}
+
+// Mock component registry for standalone development
+const mockComponentRegistry: Record<string, React.ComponentType<any>> = {
+  'Hero': ({ title = 'Hero Title', subtitle = 'Hero subtitle' }) => (
+    <div className="bg-blue-600 text-white py-20 text-center">
+      <h1 className="text-4xl font-bold mb-4">{title}</h1>
+      <p className="text-xl">{subtitle}</p>
+    </div>
+  ),
+  'Features': ({ title = 'Features' }) => (
+    <div className="py-16 text-center">
+      <h2 className="text-3xl font-bold mb-8">{title}</h2>
+      <div className="grid md:grid-cols-3 gap-8">
+        {[1,2,3].map(i => (
+          <div key={i} className="p-6 border rounded-lg">
+            <h3 className="font-semibold mb-2">Feature {i}</h3>
+            <p className="text-gray-600">Feature description here.</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+  'CTA': ({ title = 'Call to Action', buttonText = 'Get Started' }) => (
+    <div className="bg-gray-900 text-white py-16 text-center">
+      <h2 className="text-3xl font-bold mb-4">{title}</h2>
+      <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors">
+        {buttonText}
+      </button>
+    </div>
+  ),
+}
+
+function getComponent(type: string) {
+  return mockComponentRegistry[type] || null
+}
+
+function renderComponent(type: string, props: Record<string, any> = {}) {
+  const Component = getComponent(type)
+  return Component ? <Component {...props} /> : (
+    <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
+      <p className="text-gray-500">Component "{type}" not found</p>
+    </div>
+  )
+}
+
+export default function DNDArea({ 
+  pageBlocks = [], 
+  isTemplateEdit = false,
+  className = '',
+  padding = 'medium',
+  background = 'transparent'
+}: DNDAreaProps) {
+  
+  const paddingClasses = {
+    none: '',
+    small: 'py-4',
+    medium: 'py-8 md:py-12',
+    large: 'py-12 md:py-16'
+  }
+  
+  // Template edit mode - show placeholder
+  if (isTemplateEdit) {
+    return (
+      <div className={`w-full ${className}`}>
+        <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 rounded-lg p-8 md:p-12 text-center transition-colors hover:bg-blue-100/50">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <Layers className="h-16 w-16 text-blue-600" />
+              <div className="absolute -bottom-2 -right-2 bg-blue-600 rounded-full p-1">
+                <Plus className="h-4 w-4 text-white" />
+              </div>
+            </div>
+          </div>
+          
+          <h3 className="text-2xl font-bold text-blue-900 mb-4">
+            Dynamic Content Area
+          </h3>
+          
+          <p className="text-gray-700 mb-8 max-w-2xl mx-auto leading-relaxed">
+            This is where your page content will be dynamically inserted. In the CMS, 
+            users can drag and drop components here to build their pages.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-lg p-6 text-center">
+              <RotateCcw className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+              <div className="font-semibold text-blue-900 mb-2">Flexible Layout</div>
+              <div className="text-sm text-gray-600">Adapts to any content structure</div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-lg p-6 text-center">
+              <ArrowDown className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+              <div className="font-semibold text-blue-900 mb-2">Drag & Drop</div>
+              <div className="text-sm text-gray-600">Reorderable components</div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-sm border border-blue-200 rounded-lg p-6 text-center">
+              <Palette className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+              <div className="font-semibold text-blue-900 mb-2">Customizable</div>
+              <div className="text-sm text-gray-600">Style each component</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Render page blocks if they exist
+  if (pageBlocks && pageBlocks.length > 0) {
+    return (
+      <div 
+        className={`w-full ${paddingClasses[padding]} ${className}`}
+        style={{ backgroundColor: background !== 'transparent' ? background : undefined }}
+      >
+        <div className="space-y-0"> {/* No gap for seamless sections */}
+          {pageBlocks
+            .sort((a, b) => a.order - b.order)
+            .map((block) => {
+              if (!block.isVisible) return null
+              
+              return (
+                <div key={block.id} className="relative">
+                  {renderComponent(block.type, block.props || {})}
+                </div>
+              )
+            })}
+        </div>
+      </div>
+    )
+  }
+
+  // Empty state
+  return (
+    <div className={`w-full ${paddingClasses[padding]} ${className}`}>
+      <div className="text-center py-16 text-gray-500">
+        <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <h3 className="text-lg font-medium mb-2">No Content Yet</h3>
+        <p className="text-sm max-w-md mx-auto">
+          This page doesn't have any content blocks yet. 
+          Add some components to get started.
+        </p>
+      </div>
+    </div>
+  )
+}
+```
+
+## Additional UI Components (Creative Freedom)
+
+### Content Blocks (Recommended)
+Create beautiful, unique components for common website sections:
+- **Hero**: Landing section with call-to-action
+- **Features**: Product/service features showcase
+- **CTA**: Call-to-action sections
+- **Testimonials**: Customer testimonials
+- **Pricing**: Pricing tables
+- **Blog**: Blog post cards and layouts
+- **About**: About section layouts
+- **Contact**: Contact forms and information
+- **Gallery**: Image galleries and portfolios
+- **Stats**: Statistics and counters
+- **Timeline**: Process or history timelines
+- **FAQ**: Frequently asked questions
+- **Team**: Team member profiles
+
+### UI Primitives (Tailwind Components)
+Build a complete design system in `/ui/tailwind-components/`:
+- **Button**: Multiple variants (primary, secondary, outline, ghost, etc.)
+- **Card**: Container components with various styles
+- **Badge**: Labels and status indicators
+- **Input**: Form input components
+- **Modal**: Dialog and popup components
+- **Tabs**: Tabbed content interfaces
+- **Accordion**: Collapsible content sections
+- **Slider**: Image or content sliders
+- **Progress**: Progress bars and indicators
+- **Alert**: Notification and alert components
+
+### Component Metadata Pattern
+Every UI component MUST export metadata:
+```typescript
+export const metadata: ComponentInfo = {
+  type: 'ComponentName',           // Unique identifier
+  name: 'Display Name',            // Human-readable name
+  description: 'Component description', // Brief description
+  category: 'content-blocks',      // Category: layout, content-blocks, ui-primitives
+  icon: 'IconName',               // Lucide React icon name
+  props?: {                       // Optional: Define editable props
+    title: { type: 'string', default: 'Default Title' },
+    subtitle: { type: 'string', default: '' },
+    buttonText: { type: 'string', default: 'Learn More' },
+    // ... other props
+  }
+}
+```
+
+## Theme Configuration Files
+
+### auto-register.tsx (REQUIRED STRUCTURE)
+```typescript
+import React from 'react'
+
+// Define ComponentInfo interface locally if not importing from lib
+export interface ComponentInfo {
+  type: string
+  name: string
+  description: string
+  category: 'layout' | 'content-blocks' | 'ui-primitives' | 'page-templates'
+  icon: string
+  props?: Record<string, {
+    type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+    default?: any
+    required?: boolean
+    description?: string
+  }>
+}
+
+// Import all your components with metadata
+import Header, { metadata as HeaderMetadata } from './ui/Header'
+import Footer, { metadata as FooterMetadata } from './ui/Footer'
+import DNDArea, { metadata as DNDAreaMetadata } from './ui/DNDArea'
+import Hero, { metadata as HeroMetadata } from './ui/Hero'
+import Features, { metadata as FeaturesMetadata } from './ui/Features'
+import CTA, { metadata as CTAMetadata } from './ui/CTA'
+// ... import all other components
+
+// Theme identity (customize these)
+export const themeName = 'YourThemeName'
+export const themeDescription = 'A beautiful, modern theme with creative design elements'
+export const themeAuthor = 'Your Name or Company'
+export const themeVersion = '1.0.0'
+
+// Component registry (add all components)
+export const componentRegistry = {
+  [HeaderMetadata.type]: Header,
+  [FooterMetadata.type]: Footer,
+  [DNDAreaMetadata.type]: DNDArea,
+  [HeroMetadata.type]: Hero,
+  [FeaturesMetadata.type]: Features,
+  [CTAMetadata.type]: CTA,
+  // ... register all components
+} as const
+
+// Component info array (add all metadata)
+export const componentInfo: ComponentInfo[] = [
+  HeaderMetadata,
+  FooterMetadata,
+  DNDAreaMetadata,
+  HeroMetadata,
+  FeaturesMetadata,
+  CTAMetadata,
+  // ... add all metadata
+]
+
+// Required exports (keep these as-is for CMS compatibility)
+export const getComponent = (type: string) => componentRegistry[type as keyof typeof componentRegistry]
+export const renderComponent = (type: string, props: Record<string, any> = {}) => {
+  const Component = getComponent(type)
+  return Component ? <Component {...props} /> : null
+}
+export const getComponentInfo = (type: string) => componentInfo.find(info => info.type === type)
+export const getAllComponents = () => componentInfo
+export const getComponentsByCategory = (category: string) => componentInfo.filter(info => info.category === category)
+```
+
+### register-blocks.tsx (REQUIRED)
+```typescript
+export * from './auto-register'
+```
+
+### tailwind.config.ts (Customize Color Palette)
+```typescript
+import type { Config } from "tailwindcss"
+
+const config: Config = {
+  darkMode: ["class"],
+  content: [
+    './components/themes/your-theme-name/**/*.{ts,tsx}',
+  ],
+  prefix: "",
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      fontFamily: {
+        sans: ["Your Font", "sans-serif"],
+        heading: ["Your Heading Font", "sans-serif"],
+      },
+      colors: {
+        // CREATE UNIQUE COLOR PALETTE
+        'theme-primary': {
+          50: '#color50',
+          100: '#color100',
+          // ... 200-900
+        },
+        'theme-secondary': {
+          // Your secondary color palette
+        },
+        'theme-accent': {
+          // Your accent color palette
+        },
+      },
+      animation: {
+        // Add custom animations
+        'your-animation': 'yourKeyframe 1s ease-in-out',
+      },
+      keyframes: {
+        yourKeyframe: {
+          '0%': { /* start state */ },
+          '100%': { /* end state */ },
+        },
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config
+
+export default config
+```
+
+### styles.css (Theme Styles)
+```css
+/* Import Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme Namespace */
+.your-theme-name {
+  /* Theme-specific base styles */
+}
+
+/* Custom Component Classes */
+.your-theme-button-primary {
+  @apply /* your tailwind classes */;
+}
+
+.your-theme-card {
+  @apply /* your tailwind classes */;
+}
+
+/* JavaScript Enhancement Styles */
+[data-mobile-menu] {
+  /* Mobile menu animations */
+}
+
+[data-animate] {
+  /* Scroll animations */
+}
+
+/* Custom animations and effects */
+.your-custom-effect {
+  /* Custom CSS for unique effects */
+}
+```
+
+### main.js (Theme JavaScript)
+```javascript
+// Theme namespace
+window.YourThemeName = window.YourThemeName || {};
+
+window.YourThemeName = {
+  name: 'YourThemeName',
+  version: '1.0.0',
+  
+  init() {
+    console.log('🚀 Initializing YourThemeName theme');
+    // Initialize your theme features
+    this.setupInteractions();
+    this.setupAnimations();
+    // Add any custom JavaScript functionality
+  },
+  
+  cleanup() {
+    console.log('🧹 Cleaning up YourThemeName theme');
+    // Remove event listeners and cleanup
+  },
+  
+  setupInteractions() {
+    // Add interactive features
+  },
+  
+  setupAnimations() {
+    // Add scroll animations, hover effects, etc.
+  },
+  
+  utils: {
+    // Utility functions for your theme
+  }
+};
+
+// Auto-initialize
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.YourThemeName.init();
+  });
+} else {
+  window.YourThemeName.init();
+}
+```
+
+## Design Inspiration & Creative Direction
+
+### Modern Trends to Explore
+- **Glassmorphism**: Frosted glass effects with backdrop-blur
+- **Neumorphism**: Soft, extruded UI elements
+- **Dark Mode**: Complete dark/light theme support
+- **Brutalism**: Bold, raw, unconventional designs
+- **Minimalism**: Clean, spacious, typography-focused
+- **Gradients**: Dynamic color transitions and overlays
+- **3D Elements**: CSS transforms and perspective effects
+- **Micro-interactions**: Subtle hover and click animations
+
+### Color Palette Ideas
+- **Sunset**: Warm oranges, pinks, and purples
+- **Ocean**: Deep blues, teals, and aquamarines
+- **Forest**: Greens, browns, and earth tones
+- **Neon**: Bright, electric colors with dark backgrounds
+- **Monochrome**: Sophisticated grays with accent colors
+- **Vintage**: Muted, retro-inspired color schemes
+- **High Contrast**: Bold blacks and whites with bright accents
+
+### Typography Combinations
+- **Modern**: Inter + JetBrains Mono
+- **Classic**: Playfair Display + Source Sans Pro
+- **Playful**: Poppins + Nunito
+- **Editorial**: Crimson Text + Source Sans Pro
+- **Tech**: Space Grotesk + Fira Code
+- **Elegant**: Cormorant Garamond + Work Sans
+
+## Advanced Features (Optional)
+
+### Custom Page Templates
+Create pre-designed page layouts in `/page-templates/`:
+- Landing pages with unique structures
+- Portfolio layouts
+- Blog post templates
+- E-commerce product pages
+- Contact and about pages
+
+### Interactive Components
+- Image carousels and galleries
+- Video backgrounds and players
+- Interactive maps and forms
+- Real-time data displays
+- Custom animations and transitions
+
+### Accessibility & Performance
+- Ensure proper ARIA labels and keyboard navigation
+- Optimize images and animations for performance
+- Test color contrast and screen reader compatibility
+- Implement proper semantic HTML structure
+
+## Theme Testing Checklist
+
+### Before Publishing
+- [ ] All required files present (auto-register.tsx, Header, Footer, DNDArea)
+- [ ] Component metadata properly exported
+- [ ] Theme loads without TypeScript errors
+- [ ] Header navigation works with CMS
+- [ ] DNDArea renders content blocks correctly
+- [ ] Responsive design works on all screen sizes
+- [ ] Color palette is cohesive and accessible
+- [ ] JavaScript initializes and cleans up properly
+- [ ] Theme switches cleanly from other themes
+
+### Quality Standards
+- [ ] Unique visual identity
+- [ ] Consistent design language
+- [ ] Smooth animations and transitions
+- [ ] Cross-browser compatibility
+- [ ] Mobile-first responsive design
+- [ ] Loading performance optimized
+- [ ] Documentation included where needed
+
+## Final Notes
+
+### Creative Freedom Philosophy
+The theme system encourages complete creative freedom within the architectural constraints. The only hard requirements are the three core components (Header, Footer, DNDArea) and the proper metadata structure. Everything else is an opportunity for creative expression.
+
+### Best Practices
+- Start with a clear design vision and color palette
+- Build a cohesive component library
+- Test thoroughly across devices and browsers
+- Document any special features or usage instructions
+- Consider creating multiple variants or layouts for flexibility
+
+### Theme Naming Convention
+Use descriptive names that reflect the theme's character:
+- Aesthetic: "Minimal", "Glassmorphic", "Neon", "Vintage"
+- Industry: "Agency", "Portfolio", "Blog", "Corporate"
+- Style: "Modern", "Classic", "Experimental", "Artistic"
+
+## Development Workflow
+
+### 1. Start with Core Components
+1. Create `types/index.ts` with interfaces
+2. Implement `lib/utils.ts` and `hooks/use-navigation.ts`
+3. Build Header, Footer, and DNDArea components
+4. Set up auto-register.tsx with proper exports
+5. Configure tailwind.config.ts with your color palette
+
+### 2. Add Content Components
+1. Create Hero, Features, CTA components
+2. Build additional content blocks as needed
+3. Develop tailwind-components library
+4. Test all components individually
+
+### 3. Theme Integration
+1. Add main.js with theme functionality
+2. Create styles.css with theme-specific CSS
+3. Test theme switching and cleanup
+4. Ensure all components work together
+
+### 4. Testing and Refinement
+1. Test responsive design across devices
+2. Verify accessibility compliance
+3. Optimize performance and loading
+4. Document any special features
+
+## Standalone Theme Development
+
+Since you're creating this theme in a new project without the CMS TailWinds codebase:
+
+1. **Use mock data** provided in the examples for development and testing
+2. **Keep local type definitions** - they're compatible with the final CMS system
+3. **Test theme independently** using the component examples and mock navigation
+4. **Focus on visual design** and component functionality rather than CMS integration
+5. **Export theme folder** when complete for integration into the CMS system
+
+### Theme Delivery
+
+When your theme is complete:
+1. The entire theme folder can be copied into any CMS TailWinds installation
+2. The auto-register.tsx will automatically register all components
+3. Mock data will be replaced with real CMS data automatically
+4. Your theme will work immediately in the page builder system
+
+Your theme is completely self-contained and doesn't need any existing CMS infrastructure to develop and test.
+
+Remember: The goal is to create themes that are both visually stunning and functionally excellent within the CMS TailWinds ecosystem.

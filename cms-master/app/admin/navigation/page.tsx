@@ -1,246 +1,155 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  getCurrentSite, 
+  getNavigationItems, 
+  createNavigationItem, 
+  updateNavigationItem, 
+  deleteNavigationItem,
+  reorderNavigationItems,
+  getPagesBySite 
+} from '@/lib/cms-data'
+import { NavigationItem, Page } from '@/lib/supabase'
 import { 
   Plus, 
   Edit, 
   Trash2, 
-  MoreHorizontal,
-  GripVertical,
+  Grip, 
+  Eye, 
+  EyeOff,
   ExternalLink,
   FileText,
-  Home,
-  Eye,
-  Menu
+  X,
+  Save
 } from 'lucide-react'
 
-// Navigation item type
-interface NavigationItem {
-  id: string
+interface NavigationFormData {
   label: string
-  type: 'internal' | 'external' | 'dropdown'
-  href?: string
-  pageId?: string
-  order: number
-  isVisible: boolean
-  children?: NavigationItem[]
+  type: 'internal' | 'external'
+  href: string
+  page_id: string
+  is_visible: boolean
 }
 
-// localStorage utilities
-const STORAGE_KEY = 'cms_navigation'
-const PAGES_STORAGE_KEY = 'cms_pages'
-
-async function loadNavigationFromDatabase() {
-  try {
-    const { loadNavigationFromDatabase: dbLoadNavigation } = await import('@/lib/cms-data')
-    const result = await dbLoadNavigation()
-    console.log('✅ Loaded navigation from database:', result)
-    return result
-  } catch (error) {
-    console.error('❌ Error loading navigation from database:', error)
-    return []
-  }
-}
-
-async function saveNavigationToDatabase(navigation: NavigationItem[]) {
-  try {
-    console.log('💾 Saving navigation to database:', navigation)
-    const { saveNavigationToDatabase: dbSaveNavigation, clearNavigationCache } = await import('@/lib/cms-data')
-    const { getCurrentSiteId } = await import('@/lib/site-config')
-    
-    const siteId = getCurrentSiteId()
-    
-    const mapped = navigation
-      .filter(item => item.type !== 'dropdown') // Filter out dropdown items as database doesn't support them
-      .map(item => ({
-        id: item.id,
-        label: item.label,
-        type: item.type as 'internal' | 'external',
-        href: item.href,
-        pageId: item.pageId,
-        order: item.order,
-        isVisible: item.isVisible
-      }))
-    
-    console.log('💾 Mapped navigation for database:', mapped)
-    const result = await dbSaveNavigation(mapped)
-    
-    // Clear cache after successful save so changes appear immediately
-    if (result) {
-      if (siteId) {
-        clearNavigationCache(siteId)
-        console.log('🗑️ Navigation cache cleared')
-      }
-    }
-    
-    console.log('✅ Navigation save result:', result)
-    return result
-  } catch (error) {
-    console.error('❌ Error saving navigation to database:', error)
-    return false
-  }
-}
-
-async function loadPagesFromDatabase() {
-  try {
-    const { loadPagesFromDatabase } = await import('@/lib/cms-data')
-    return await loadPagesFromDatabase()
-  } catch (error) {
-    console.error('Error loading pages from database:', error)
-    return []
-  }
-}
-
-// Navigation now starts empty - no default items
-
-export default function NavigationManager() {
-  const [navigation, setNavigation] = useState<NavigationItem[]>([])
-  const [pages, setPages] = useState<any[]>([])
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+export default function NavigationPage() {
+  const [navItems, setNavItems] = useState<NavigationItem[]>([])
+  const [pages, setPages] = useState<Page[]>([])
+  const [loading, setLoading] = useState(true)
   const [editingItem, setEditingItem] = useState<NavigationItem | null>(null)
-  const [formData, setFormData] = useState({
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState<NavigationFormData>({
     label: '',
-    type: 'internal' as NavigationItem['type'],
+    type: 'internal',
     href: '',
-    pageId: '',
-    isVisible: true
+    page_id: '',
+    is_visible: true,
   })
 
-  // Load navigation and pages on mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const loadedNavigation = await loadNavigationFromDatabase()
-        const loadedPages = await loadPagesFromDatabase()
-        setNavigation(loadedNavigation)
-        setPages(loadedPages)
-      } catch (error) {
-        console.error('Error loading data:', error)
-      } finally {
-        setIsLoaded(true)
-      }
-    }
-
     loadData()
   }, [])
 
-  const handleSave = async () => {
-    if (!formData.label) return
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const site = await getCurrentSite()
+      if (site) {
+        const [navigationData, pagesData] = await Promise.all([
+          getNavigationItems(site.id),
+          getPagesBySite(site.id)
+        ])
 
-    const newItem: NavigationItem = {
-      id: editingItem?.id || `nav-${Date.now()}`,
-      label: formData.label,
-      type: formData.type,
-      href: formData.type === 'external' ? formData.href : undefined,
-      pageId: formData.type === 'internal' ? formData.pageId : undefined,
-      order: editingItem?.order ?? navigation.length,
-      isVisible: formData.isVisible
-    }
-
-    let updatedNavigation: NavigationItem[]
-
-    // If editing, update existing item
-    if (editingItem) {
-      updatedNavigation = navigation.map(item => 
-        item.id === editingItem.id ? newItem : item
-      )
-    } else {
-      // Adding new item
-      updatedNavigation = [...navigation, newItem]
-    }
-
-    // Update local state immediately for better UX
-      setNavigation(updatedNavigation)
-
-    // Save to database
-    console.log('🔄 Saving navigation to database...')
-    const success = await saveNavigationToDatabase(updatedNavigation)
-    
-    if (success) {
-      console.log('✅ Navigation saved successfully!')
-      
-      // Force invalidate ALL navigation caches (including Vercel Edge Cache)
-      try {
-        console.log('🔄 Invalidating all navigation caches...')
-        
-        // 1. Clear local memory/localStorage cache
-        const { clearNavigationCache } = await import('@/lib/cms-data')
-        const { getCurrentSiteId } = await import('@/lib/site-config')
-        const siteId = getCurrentSiteId()
-        if (siteId) {
-          clearNavigationCache(siteId)
-          console.log('🗑️ Local navigation cache cleared')
-        }
-        
-        // 2. Force refresh the API cache (invalidates Vercel Edge Cache)
-        const response = await fetch('/api/navigation', { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        })
-        
-        if (response.ok) {
-          console.log('✅ API navigation cache refreshed')
-        } else {
-          console.warn('⚠️ Failed to refresh API cache:', response.status)
-        }
-        
-      } catch (error) {
-        console.warn('⚠️ Failed to invalidate caches:', error)
+        setNavItems(navigationData)
+        setPages(pagesData)
       }
-    } else {
-      console.error('❌ Failed to save navigation')
-      alert('Failed to save navigation. Please try again.')
-      return
+    } catch (error) {
+      console.error('Error loading navigation data:', error)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    // Reset form
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return
+
+    const items = Array.from(navItems)
+    const [reorderedItem] = items.splice(result.source.index, 1)
+    items.splice(result.destination.index, 0, reorderedItem)
+
+    // Update local state immediately
+    setNavItems(items)
+
+    // Update order indices in database
+    const site = await getCurrentSite()
+    if (site) {
+      const orderUpdates = items.map((item, index) => ({
+        id: item.id,
+        order_index: index
+      }))
+      await reorderNavigationItems(site.id, orderUpdates)
+    }
+  }
+
+  const resetForm = () => {
     setFormData({
       label: '',
       type: 'internal',
       href: '',
-      pageId: '',
-      isVisible: true
+      page_id: '',
+      is_visible: true,
     })
     setEditingItem(null)
-    setIsDialogOpen(false)
+    setShowForm(false)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const site = await getCurrentSite()
+    if (!site) return
+
+    try {
+      if (editingItem) {
+        // Update existing item
+        const updatedItem = await updateNavigationItem(editingItem.id, {
+          label: formData.label,
+          type: formData.type,
+          href: formData.type === 'external' ? formData.href : undefined,
+          page_id: formData.type === 'internal' ? formData.page_id : undefined,
+          is_visible: formData.is_visible,
+        })
+        
+        if (updatedItem) {
+          setNavItems(navItems.map(item => 
+            item.id === editingItem.id ? updatedItem : item
+          ))
+        }
+      } else {
+        // Create new item
+        const newItem = await createNavigationItem({
+          site_id: site.id,
+          label: formData.label,
+          type: formData.type,
+          href: formData.type === 'external' ? formData.href : undefined,
+          page_id: formData.type === 'internal' ? formData.page_id : undefined,
+          order_index: navItems.length,
+          is_visible: formData.is_visible,
+        })
+        
+        if (newItem) {
+          setNavItems([...navItems, newItem])
+        }
+      }
+      
+      resetForm()
+    } catch (error) {
+      console.error('Error saving navigation item:', error)
+      alert('Failed to save navigation item. Please try again.')
+    }
   }
 
   const handleEdit = (item: NavigationItem) => {
@@ -249,412 +158,309 @@ export default function NavigationManager() {
       label: item.label,
       type: item.type,
       href: item.href || '',
-      pageId: item.pageId || '',
-      isVisible: item.isVisible
+      page_id: item.page_id || '',
+      is_visible: item.is_visible,
     })
-    setIsDialogOpen(true)
+    setShowForm(true)
   }
 
-  const handleDelete = async (itemId: string) => {
-    if (confirm('Are you sure you want to delete this navigation item?')) {
-      const updatedNavigation = navigation.filter(item => item.id !== itemId)
-      setNavigation(updatedNavigation)
-      
-      console.log('🗑️ Deleting navigation item...')
-      const success = await saveNavigationToDatabase(updatedNavigation)
-      
+  const handleDelete = async (itemId: string, label: string) => {
+    if (confirm(`Are you sure you want to delete "${label}"?`)) {
+      const success = await deleteNavigationItem(itemId)
       if (success) {
-        console.log('✅ Navigation item deleted successfully!')
-        
-        // Clear frontend cache
-        try {
-          const { clearNavigationCache } = await import('@/lib/cms-data')
-          const { getCurrentSiteId } = await import('@/lib/site-config')
-          const siteId = getCurrentSiteId()
-          if (siteId) {
-            clearNavigationCache(siteId)
-          }
-        } catch (error) {
-          console.warn('⚠️ Failed to clear frontend cache:', error)
-        }
+        setNavItems(navItems.filter(item => item.id !== itemId))
       } else {
-        console.error('❌ Failed to delete navigation item')
         alert('Failed to delete navigation item. Please try again.')
       }
     }
   }
 
-  const handleToggleVisibility = async (itemId: string) => {
-    const updatedNavigation = navigation.map(item => 
-      item.id === itemId 
-        ? { ...item, isVisible: !item.isVisible }
-        : item
-    )
-    setNavigation(updatedNavigation)
+  const handleToggleVisibility = async (item: NavigationItem) => {
+    const updatedItem = await updateNavigationItem(item.id, {
+      is_visible: !item.is_visible
+    })
     
-    console.log('👁️ Toggling navigation item visibility...')
-    const success = await saveNavigationToDatabase(updatedNavigation)
-    
-    if (success) {
-      console.log('✅ Navigation visibility updated successfully!')
-      
-      // Clear frontend cache
-      try {
-        const { clearNavigationCache } = await import('@/lib/cms-data')
-        const { getCurrentSiteId } = await import('@/lib/site-config')
-        const siteId = getCurrentSiteId()
-        if (siteId) {
-          clearNavigationCache(siteId)
-        }
-      } catch (error) {
-        console.warn('⚠️ Failed to clear frontend cache:', error)
-      }
-    } else {
-      console.error('❌ Failed to update navigation visibility')
-      alert('Failed to update navigation visibility. Please try again.')
+    if (updatedItem) {
+      setNavItems(navItems.map(navItem => 
+        navItem.id === item.id ? updatedItem : navItem
+      ))
     }
   }
 
-  const getItemHref = (item: NavigationItem) => {
-    if (item.type === 'external') {
-      return item.href || '#'
-    } else if (item.type === 'internal' && item.pageId) {
-      const page = pages.find(p => p.id === item.pageId)
-      return page ? `/${page.slug}` : '/'
-    }
-    return '/'
+  const getPageTitle = (pageId: string) => {
+    const page = pages.find(p => p.id === pageId)
+    return page ? page.title : 'Unknown Page'
   }
 
-  if (!isLoaded) {
+  if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading navigation...</p>
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-96 bg-gray-200 rounded"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Navigation Manager</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your website's navigation menus
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={async () => {
-                console.log('🔄 Manually refreshing ALL navigation caches...')
-                try {
-                  // 1. Clear local caches
-                  const { clearNavigationCache } = await import('@/lib/cms-data')
-                  const { getCurrentSiteId } = await import('@/lib/site-config')
-                  const siteId = getCurrentSiteId()
-                  if (siteId) {
-                    clearNavigationCache(siteId)
-                    console.log('✅ Local navigation cache cleared')
-                  }
-                  
-                  // 2. Force refresh the navigation API cache (invalidates Vercel Edge)
-                  const navResponse = await fetch('/api/navigation', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                  })
-                  
-                  if (navResponse.ok) {
-                    console.log('✅ Navigation API cache refreshed')
-                  } else {
-                    console.warn('⚠️ Navigation API cache refresh failed:', navResponse.status)
-                  }
-                  
-                  // 3. Also trigger general static file regeneration
-                  const response = await fetch('/api/generate-static', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                  })
-                  
-                  if (response.ok) {
-                    console.log('✅ Static files regenerated')
-                    alert('All navigation caches refreshed! Your new nav item should now be visible on the frontend.')
-                  } else {
-                    console.warn('⚠️ Static file regeneration failed')
-                    alert('Navigation caches cleared, but static file regeneration had issues.')
-                  }
-                } catch (error) {
-                  console.error('❌ Failed to refresh caches:', error)
-                  alert('Failed to refresh navigation caches.')
-                }
-              }}
-            >
-              Refresh Cache
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={async () => {
-                if (confirm('Clear all navigation items? This action cannot be undone.')) {
-                  setNavigation([])
-                  await saveNavigationToDatabase([])
-                }
-              }}
-            >
-              Clear Navigation
-            </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => {
-                  setEditingItem(null)
-                  setFormData({
-                    label: '',
-                    type: 'internal',
-                    href: '',
-                    pageId: '',
-                    isVisible: true
-                  })
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Navigation Item
-                                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingItem ? 'Edit Navigation Item' : 'Add Navigation Item'}
-                </DialogTitle>
-                <DialogDescription>
-                  Configure your navigation item settings.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="label">Label</Label>
-                  <Input
-                    id="label"
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Navigation</h1>
+          <p className="text-gray-600">Manage your site's navigation menu.</p>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Add Menu Item
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Navigation Builder */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Menu Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable 
+                droppableId="navigation" 
+                isDropDisabled={false} 
+                isCombineEnabled={false}
+                ignoreContainerClipping={false}
+                mode="standard"
+              >
+                {(provided, snapshot) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className={`nav-builder-container ${snapshot.isDraggingOver ? 'drag-over' : ''}`}
+                  >
+                    {navItems.length === 0 ? (
+                      <div className="nav-empty-state">
+                        <FileText className="h-8 w-8 mx-auto mb-2" />
+                        <p>No menu items yet</p>
+                        <p>Add your first menu item to get started</p>
+                      </div>
+                    ) : (
+                      navItems.map((item, index) => (
+                        <Draggable key={item.id} draggableId={item.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`nav-item-card ${snapshot.isDragging ? 'dragging' : ''} ${!item.is_visible ? 'hidden' : ''}`}
+                            >
+                              <div className="nav-item-content">
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="nav-drag-handle"
+                                >
+                                  <Grip className="h-4 w-4" />
+                                </div>
+                                
+                                <div className="nav-item-text">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="nav-item-title">
+                                      {item.label}
+                                    </h4>
+                                    {item.type === 'external' && (
+                                      <ExternalLink className="h-3 w-3" style={{ color: '#94a3b8', opacity: '0.8' }} />
+                                    )}
+                                  </div>
+                                  <p className="nav-item-description">
+                                    {item.type === 'internal' 
+                                      ? `Page: ${getPageTitle(item.page_id || '')}`
+                                      : `URL: ${item.href}`
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="nav-item-actions">
+                                <button
+                                  className="nav-action-btn"
+                                  onClick={() => handleToggleVisibility(item)}
+                                  title={item.is_visible ? 'Hide from navigation' : 'Show in navigation'}
+                                >
+                                  {item.is_visible ? 
+                                    <Eye className="h-3 w-3" /> : 
+                                    <EyeOff className="h-3 w-3" />
+                                  }
+                                </button>
+                                
+                                <button
+                                  className="nav-action-btn"
+                                  onClick={() => handleEdit(item)}
+                                  title="Edit navigation item"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </button>
+                                
+                                <button
+                                  className="nav-action-btn delete"
+                                  onClick={() => handleDelete(item.id, item.label)}
+                                  title="Delete navigation item"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                        ))
+                    )}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </CardContent>
+        </Card>
+
+        {/* Add/Edit Form */}
+        {showForm && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>
+                  {editingItem ? 'Edit Menu Item' : 'Add Menu Item'}
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={resetForm}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="admin-field">
+                  <label className="admin-label required">
+                    Label
+                  </label>
+                  <input
+                    type="text"
+                    required
                     value={formData.label}
-                    onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-                    placeholder="Navigation label"
+                    onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                    className="admin-input"
+                    placeholder="Menu item label"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="type">Link Type</Label>
-                  <Select 
-                    value={formData.type} 
-                    onValueChange={(value: NavigationItem['type']) => 
-                      setFormData(prev => ({ ...prev, type: value }))
-                    }
+                <div className="admin-field">
+                  <label className="admin-label">
+                    Type
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      type: e.target.value as 'internal' | 'external',
+                      href: '',
+                      page_id: ''
+                    })}
+                    className="admin-select"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select link type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="internal">Internal Page</SelectItem>
-                      <SelectItem value="external">External URL</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <option value="internal">Internal Page</option>
+                    <option value="external">External URL</option>
+                  </select>
                 </div>
 
-                {formData.type === 'internal' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="pageId">Page</Label>
-                    <Select 
-                      value={formData.pageId} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, pageId: value }))}
+                {formData.type === 'internal' ? (
+                  <div className="admin-field">
+                    <label className="admin-label required">
+                      Page
+                    </label>
+                    <select
+                      required
+                      value={formData.page_id}
+                      onChange={(e) => setFormData({ ...formData, page_id: e.target.value })}
+                      className="admin-select"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a page" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="home">Home Page</SelectItem>
-                        {pages
-                          .filter(page => page.status === 'published')
-                          .map((page) => (
-                            <SelectItem key={page.id} value={page.id}>
-                              {page.title}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                      <option value="">Select a page</option>
+                      {pages.map((page) => (
+                        <option key={page.id} value={page.id}>
+                          {page.title} (/{page.slug})
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                )}
-
-                {formData.type === 'external' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="href">URL</Label>
-                    <Input
-                      id="href"
+                ) : (
+                  <div className="admin-field">
+                    <label className="admin-label required">
+                      URL
+                    </label>
+                    <input
+                      type="url"
+                      required
                       value={formData.href}
-                      onChange={(e) => setFormData(prev => ({ ...prev, href: e.target.value }))}
-                      placeholder="https://example.com or #section"
+                      onChange={(e) => setFormData({ ...formData, href: e.target.value })}
+                      className="admin-input"
+                      placeholder="https://example.com"
                     />
                   </div>
                 )}
-              </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={!formData.label}>
-                  {editingItem ? 'Update' : 'Add'} Item
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          </div>
-        </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_visible"
+                    checked={formData.is_visible}
+                    onChange={(e) => setFormData({ ...formData, is_visible: e.target.checked })}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_visible" className="ml-2 block text-sm text-gray-300">
+                    Visible in navigation
+                  </label>
+                </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Items</CardTitle>
-              <Menu className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{navigation.length}</div>
+                <div className="flex items-center gap-3 pt-4">
+                  <Button type="submit">
+                    <Save className="h-4 w-4 mr-2" />
+                    {editingItem ? 'Update' : 'Add'} Item
+                  </Button>
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
-          
+        )}
+
+        {/* Preview */}
+        {!showForm && (
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Visible Items</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle>Navigation Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {navigation.filter(item => item.isVisible).length}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Internal Links</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {navigation.filter(item => item.type === 'internal').length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Navigation Items Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Navigation Items</CardTitle>
-            <CardDescription>
-              Manage your website navigation structure
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">Order</TableHead>
-                  <TableHead>Label</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Link</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {navigation
-                  .sort((a, b) => a.order - b.order)
-                  .map((item, index) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                          <span className="text-sm text-muted-foreground">
-                            {index + 1}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">{item.label}</TableCell>
-                      <TableCell>
-                        <Badge variant={item.type === 'internal' ? 'default' : 'secondary'}>
-                          {item.type === 'internal' ? (
-                            <>
-                              <FileText className="h-3 w-3 mr-1" />
-                              Internal
-                            </>
-                          ) : (
-                            <>
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              External
-                            </>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {getItemHref(item)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={item.isVisible ? 'default' : 'secondary'}>
-                          {item.isVisible ? 'Visible' : 'Hidden'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEdit(item)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleVisibility(item.id)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              {item.isVisible ? 'Hide' : 'Show'}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDelete(item.id)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="text-sm font-medium text-gray-700 mb-3">
+                  How it appears on your site:
+                </div>
+                <nav className="flex flex-wrap gap-4">
+                  {navItems.filter(item => item.is_visible).map((item) => (
+                    <span
+                      key={item.id}
+                      className="px-3 py-1 bg-white border rounded-md text-sm text-gray-700"
+                    >
+                      {item.label}
+                      {item.type === 'external' && (
+                        <ExternalLink className="inline h-3 w-3 ml-1" />
+                      )}
+                    </span>
                   ))}
-              </TableBody>
-            </Table>
-
-            {navigation.length === 0 && (
-              <div className="text-center py-8">
-                <Menu className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No navigation items</h3>
-                <p className="text-muted-foreground mb-4">
-                  Get started by adding your first navigation item.
-                </p>
-                <Button onClick={() => setIsDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Navigation Item
-                </Button>
+                  {navItems.filter(item => item.is_visible).length === 0 && (
+                    <span className="text-gray-500 text-sm">No visible menu items</span>
+                  )}
+                </nav>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
-} 
+}

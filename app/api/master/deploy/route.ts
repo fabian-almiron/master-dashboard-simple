@@ -13,12 +13,21 @@ import { createSite, updateSite } from '@/lib/supabase'
 interface DeploymentRequest {
   name: string
   domain?: string
+  subdomain?: string
   owner_name: string
   owner_email: string
+  status: 'active' | 'inactive' | 'suspended'
+  plan: 'free' | 'pro' | 'enterprise'
   template_id: string
   theme_id: string
   auto_deploy: boolean
   description?: string
+  // AI Customization fields
+  enable_ai_customization?: boolean
+  ai_customization_message?: string
+  target_industry?: string
+  design_style?: string
+  primary_color?: string
 }
 
 // Vercel API configuration
@@ -122,6 +131,59 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
     })
     
     const siteRecord = await createSiteInSharedDatabase(instanceId, data)
+    
+    // Step 1.5: Generate AI custom theme if enabled
+    let customThemeName = data.theme_id
+    if (data.enable_ai_customization && data.ai_customization_message) {
+      await updateDeploymentLog(deploymentLogId, {
+        status: 'building',
+        log_data: { steps: ['instance-created', 'site-record-created', 'generating-ai-theme'] }
+      })
+      
+      try {
+                    const themeResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/master/ai-customize-theme`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ai_customization_message: data.ai_customization_message,
+            target_industry: data.target_industry,
+            design_style: data.design_style,
+            primary_color: data.primary_color,
+            site_name: data.name,
+            instance_id: instanceId
+          })
+        })
+        
+        if (themeResponse.ok) {
+          const themeResult = await themeResponse.json()
+          customThemeName = 'base-theme' // Always use base-theme
+          
+          // Update CMS instance with AI customization info
+          await updateCMSInstance(instanceId, {
+            theme_id: 'base-theme', // Keep using base-theme
+            settings: {
+              ...siteRecord.settings,
+              ai_customization: {
+                enabled: true,
+                theme_name: themeResult.theme_name,
+                customizations_applied: themeResult.customizations_applied,
+                backup_path: themeResult.backup_path,
+                processing_time: themeResult.processing_time,
+                timestamp: new Date().toISOString()
+              }
+            }
+          })
+          
+          console.log(`✅ AI customized base-theme with targeted approach`)
+          console.log(`💾 Backup created at: ${themeResult.backup_path}`)
+          console.log(`⚡ Fast processing: ${themeResult.processing_time}`)
+        } else {
+          console.log('⚠️ AI theme customization failed, using default theme')
+        }
+      } catch (error) {
+        console.log('⚠️ AI theme generation error, using default theme:', error)
+      }
+    }
     
     // Step 2: Create Bitbucket repository
     await updateDeploymentLog(deploymentLogId, {
@@ -274,9 +336,10 @@ async function createSiteInSharedDatabase(instanceId: string, data: DeploymentRe
   const siteData = {
     name: data.name,
     domain: uniqueDomain,
+    subdomain: data.subdomain,
     owner_email: data.owner_email,
-    status: 'active' as const,
-    plan: 'free' as const,
+    status: data.status,
+    plan: data.plan,
     settings: {
       siteName: data.name,
       siteDescription: data.description || '',
@@ -284,7 +347,8 @@ async function createSiteInSharedDatabase(instanceId: string, data: DeploymentRe
       template: data.template_id,
       ownerName: data.owner_name,
       masterInstanceId: instanceId, // Link back to master dashboard instance
-      originalDomain: data.domain // Store original domain if provided
+      originalDomain: data.domain, // Store original domain if provided
+      originalSubdomain: data.subdomain // Store original subdomain if provided
     }
   }
   
@@ -586,6 +650,12 @@ async function configureVercelEnvironmentVariables(vercelProjectId: string, site
     },
     {
       key: 'SUPABASE_SERVICE_ROLE_KEY',
+      value: SHARED_CMS_SUPABASE_SERVICE_KEY,
+      type: 'encrypted',
+      target: ['production', 'preview', 'development']
+    },
+    {
+      key: 'NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY',
       value: SHARED_CMS_SUPABASE_SERVICE_KEY,
       type: 'encrypted',
       target: ['production', 'preview', 'development']

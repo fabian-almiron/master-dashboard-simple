@@ -1,116 +1,117 @@
-export interface PageBlock {
-  id: string
-  type: ComponentType
-  order: number
-  props?: Record<string, any>
-  isVisible?: boolean
-}
-
-export interface Page {
-  id: string
-  slug: string
-  title: string
-  description?: string
-  blocks: PageBlock[]
-  isPublished: boolean
-  headerTemplateId?: string
-  footerTemplateId?: string
-  createdAt: string
-  updatedAt: string
-}
-
-export type ComponentType = 
-  | 'Hero'
-  | 'Features' 
-  | 'Testimonials'
-  | 'Pricing'
-  | 'Blog'
-  | 'CTA'
-  | 'Header'
-  | 'Footer'
-  | 'DNDArea'
-  | 'Button'
-  | 'Card'
-  | 'Badge'
-  | 'Separator'
-  | 'Progress'
-
+// Component system types
 export interface ComponentInfo {
-  type: ComponentType
+  type: string
   name: string
   description: string
   category: 'content-blocks' | 'layout' | 'ui-primitives' | 'page-templates'
   icon: string
-  previewImage?: string
 }
 
-export interface DraggedComponent {
-  type: ComponentType
-  isNewComponent: boolean
-  sourceId?: string
-}
-
-// Template types
-export type TemplateType = 'header' | 'footer' | 'page' | 'post'
-
-export interface Template {
-  id: string
+// Theme system types
+export interface ThemeInfo {
   name: string
-  type: TemplateType
-  description?: string
-  blocks: PageBlock[]
-  isDefault?: boolean
-  createdAt: string
-  updatedAt: string
+  description: string
+  author: string
+  version: string
+  components: ComponentInfo[]
 }
 
-export interface TemplateAssignment {
-  pageId: string
-  headerTemplateId?: string
-  footerTemplateId?: string
-  pageTemplateId?: string
-}
-
-// Database types for Supabase
-export interface DbPage {
+// CMS-specific types
+export interface CMSPage {
   id: string
-  slug: string
   title: string
-  description: string | null
-  is_published: boolean
+  slug: string
+  status: 'draft' | 'published'
+  blocks: CMSBlock[]
+  template?: CMSTemplate
+  meta_title?: string
+  meta_description?: string
   created_at: string
   updated_at: string
 }
 
-export interface DbPageBlock {
+export interface CMSBlock {
   id: string
-  page_id: string
-  component_type: ComponentType
-  order_index: number
-  props: Record<string, any> | null
-  is_visible: boolean
-  created_at: string
-  updated_at: string
+  type: string
+  props: Record<string, any>
+  order: number
+  isVisible: boolean
 }
 
-// Database types for templates
-export interface DbTemplate {
+export interface CMSTemplate {
   id: string
   name: string
-  type: TemplateType
-  description: string | null
-  blocks: PageBlock[]
+  type: 'header' | 'footer' | 'page'
+  blocks: CMSBlock[]
+  theme_id: string
   is_default: boolean
-  created_at: string
-  updated_at: string
 }
 
-export interface DbTemplateAssignment {
+export interface CMSSite {
   id: string
-  page_id: string
-  header_template_id: string | null
-  footer_template_id: string | null
-  page_template_id: string | null
-  created_at: string
-  updated_at: string
-} 
+  name: string
+  domain: string
+  status: 'active' | 'inactive' | 'suspended'
+  theme_id: string
+  settings: Record<string, any>
+}
+
+// Form types for CMS operations
+export interface CreatePageData {
+  title: string
+  slug: string
+  status: 'draft' | 'published'
+  meta_title?: string
+  meta_description?: string
+  theme_id: string
+  header_template_id?: string
+  footer_template_id?: string
+  page_template_id?: string
+}
+
+export interface UpdatePageData extends Partial<CreatePageData> {
+  id: string
+}
+
+export interface CreateTemplateData {
+  name: string
+  type: 'header' | 'footer' | 'page'
+  theme_id: string
+  is_default: boolean
+}
+
+export interface UpdateTemplateData extends Partial<CreateTemplateData> {
+  id: string
+}
+
+export interface CreateNavigationData {
+  label: string
+  type: 'internal' | 'external'
+  href?: string
+  page_id?: string
+  order_index: number
+  is_visible: boolean
+}
+
+export interface UpdateNavigationData extends Partial<CreateNavigationData> {
+  id: string
+}
+
+// Drag and drop types
+export interface DraggedComponent {
+  type: string
+  data?: Record<string, any>
+}
+
+export interface DropResult {
+  draggableId: string
+  type: string
+  source: {
+    droppableId: string
+    index: number
+  }
+  destination?: {
+    droppableId: string
+    index: number
+  }
+}

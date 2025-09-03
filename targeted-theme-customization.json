@@ -1,0 +1,178 @@
+{
+  "name": "Targeted AI Theme Customization Structure",
+  "description": "Efficient structure for AI to customize themes with targeted changes",
+  
+  "customization_structure": {
+    "theme_info": {
+      "name": "string - descriptive theme name",
+      "description": "string - theme description",
+      "industry": "string - target industry",
+      "style": "string - design style"
+    },
+    
+    "colors": {
+      "primary": {
+        "50": "hex color - lightest shade",
+        "100": "hex color",
+        "200": "hex color", 
+        "300": "hex color",
+        "400": "hex color",
+        "500": "hex color - main brand color",
+        "600": "hex color",
+        "700": "hex color",
+        "800": "hex color",
+        "900": "hex color - darkest shade"
+      },
+      "gray": {
+        "50": "hex color - lightest gray",
+        "100": "hex color",
+        "200": "hex color",
+        "300": "hex color", 
+        "400": "hex color",
+        "500": "hex color",
+        "600": "hex color",
+        "700": "hex color",
+        "800": "hex color",
+        "900": "hex color - darkest gray"
+      }
+    },
+    
+    "typography": {
+      "font_family_sans": "string - main font (Inter, Roboto, etc.)",
+      "font_family_heading": "string - heading font",
+      "font_sizes": {
+        "hero_title": "string - Tailwind class like text-5xl",
+        "section_title": "string - Tailwind class like text-3xl",
+        "body_text": "string - Tailwind class like text-base"
+      }
+    },
+    
+    "content": {
+      "site_tagline": "string - main site tagline",
+      "hero": {
+        "headline": "string - main hero headline",
+        "subtext": "string - supporting hero text",
+        "cta_primary": "string - primary button text",
+        "cta_secondary": "string - secondary button text"
+      },
+      "header": {
+        "logo_text": "string - brand name",
+        "nav_items": ["Home", "About", "Services", "Contact"],
+        "cta_button": "string - header CTA text"
+      },
+      "features": {
+        "section_title": "string - features section title",
+        "section_subtitle": "string - features subtitle",
+        "feature_items": [
+          {
+            "title": "string - feature title",
+            "description": "string - feature description",
+            "icon": "string - Lucide icon name"
+          }
+        ]
+      },
+      "footer": {
+        "copyright": "string - copyright text",
+        "tagline": "string - footer tagline"
+      }
+    },
+    
+    "styling": {
+      "design_approach": "minimal|modern|professional|creative|tech",
+      "button_style": "rounded|square|pill",
+      "card_style": "minimal|shadowed|bordered|gradient",
+      "spacing": "tight|normal|spacious",
+      "animations": "none|subtle|dynamic"
+    }
+  },
+
+  "example_output": {
+    "theme_info": {
+      "name": "Modern Tech Startup",
+      "description": "Clean, innovative design for technology companies",
+      "industry": "technology",
+      "style": "modern"
+    },
+    "colors": {
+      "primary": {
+        "50": "#eff6ff",
+        "100": "#dbeafe", 
+        "200": "#bfdbfe",
+        "300": "#93c5fd",
+        "400": "#60a5fa",
+        "500": "#3b82f6",
+        "600": "#2563eb",
+        "700": "#1d4ed8",
+        "800": "#1e40af",
+        "900": "#1e3a8a"
+      },
+      "gray": {
+        "50": "#f9fafb",
+        "100": "#f3f4f6",
+        "200": "#e5e7eb", 
+        "300": "#d1d5db",
+        "400": "#9ca3af",
+        "500": "#6b7280",
+        "600": "#4b5563",
+        "700": "#374151",
+        "800": "#1f2937",
+        "900": "#111827"
+      }
+    },
+    "typography": {
+      "font_family_sans": "Inter",
+      "font_family_heading": "Inter",
+      "font_sizes": {
+        "hero_title": "text-4xl md:text-6xl",
+        "section_title": "text-3xl md:text-4xl",
+        "body_text": "text-base md:text-lg"
+      }
+    },
+    "content": {
+      "site_tagline": "Innovation at Scale",
+      "hero": {
+        "headline": "Build the Future with AI",
+        "subtext": "Revolutionary technology solutions that transform how businesses operate and scale.",
+        "cta_primary": "Start Building",
+        "cta_secondary": "View Demo"
+      },
+      "header": {
+        "logo_text": "TechVision",
+        "nav_items": ["Solutions", "Technology", "Company", "Contact"],
+        "cta_button": "Get Started"
+      },
+      "features": {
+        "section_title": "Why Choose Our Technology",
+        "section_subtitle": "Advanced solutions built for the modern enterprise",
+        "feature_items": [
+          {
+            "title": "AI-Powered Innovation",
+            "description": "Leverage cutting-edge artificial intelligence to automate and optimize your processes.",
+            "icon": "Zap"
+          },
+          {
+            "title": "Scalable Architecture", 
+            "description": "Built to grow with your business from startup to enterprise scale.",
+            "icon": "TrendingUp"
+          },
+          {
+            "title": "Security First",
+            "description": "Enterprise-grade security with end-to-end encryption and compliance.",
+            "icon": "Shield"
+          }
+        ]
+      },
+      "footer": {
+        "copyright": "© 2024 TechVision. All rights reserved.",
+        "tagline": "Innovating for tomorrow, today."
+      }
+    },
+    "styling": {
+      "design_approach": "modern",
+      "button_style": "rounded",
+      "card_style": "shadowed", 
+      "spacing": "normal",
+      "animations": "subtle"
+    }
+  }
+}

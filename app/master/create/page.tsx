@@ -21,12 +21,21 @@ import {
 interface FormData {
   name: string
   domain: string
+  subdomain: string
   ownerName: string
   ownerEmail: string
+  status: 'active' | 'inactive' | 'suspended'
+  plan: 'free' | 'pro' | 'enterprise'
   templateId: string
   themeId: string
   autoDeploy: boolean
   description: string
+  // AI Theme Customization
+  enableAICustomization: boolean
+  aiCustomizationMessage: string
+  targetIndustry: string
+  designStyle: string
+  primaryColor: string
 }
 
 interface DeploymentStep {
@@ -42,12 +51,21 @@ export default function CreateWebsite() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     domain: '',
+    subdomain: '',
     ownerName: '',
     ownerEmail: '',
+    status: 'active',
+    plan: 'free',
     templateId: 'default',
-    themeId: 'default',
+    themeId: 'base-theme',
     autoDeploy: true,
-    description: ''
+    description: '',
+    // AI Theme Customization
+    enableAICustomization: false,
+    aiCustomizationMessage: '',
+    targetIndustry: '',
+    designStyle: '',
+    primaryColor: ''
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
@@ -74,18 +92,46 @@ export default function CreateWebsite() {
   }
 
   const validateForm = (): string | null => {
+    // Required fields validation (matching database NOT NULL constraints)
     if (!formData.name.trim()) return 'Website name is required'
     if (!formData.ownerName.trim()) return 'Owner name is required'
     if (!formData.ownerEmail.trim()) return 'Owner email is required'
     if (!formData.templateId) return 'Please select a template'
     
-    // Validate email format
+    // AI Customization validation
+    if (formData.enableAICustomization) {
+      if (!formData.aiCustomizationMessage.trim()) {
+        return 'Please describe your vision for AI customization'
+      }
+      if (formData.aiCustomizationMessage.trim().length < 20) {
+        return 'Please provide a more detailed description (at least 20 characters)'
+      }
+    }
+    
+    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.ownerEmail)) return 'Please enter a valid email address'
     
-    // Validate domain format if provided
+    // Domain format validation (if provided)
     if (formData.domain && !/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/.test(formData.domain)) {
       return 'Please enter a valid domain (e.g., example.com)'
+    }
+    
+    // Subdomain validation (if provided)
+    if (formData.subdomain && !/^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]$/.test(formData.subdomain)) {
+      return 'Subdomain must contain only letters, numbers, and hyphens'
+    }
+    
+    // Status validation (matching database CHECK constraint)
+    const validStatuses = ['active', 'inactive', 'suspended']
+    if (!validStatuses.includes(formData.status)) {
+      return 'Invalid site status selected'
+    }
+    
+    // Plan validation (matching database CHECK constraint)
+    const validPlans = ['free', 'pro', 'enterprise']
+    if (!validPlans.includes(formData.plan)) {
+      return 'Invalid plan selected'
     }
     
     return null
@@ -94,11 +140,14 @@ export default function CreateWebsite() {
   const initializeDeploymentSteps = () => {
     const steps: DeploymentStep[] = [
       { id: 'create-instance', name: 'Creating CMS instance record', status: 'running' },
-      { id: 'setup-database', name: 'Creating site in shared database', status: 'pending' },
-      { id: 'create-vercel', name: 'Creating Vercel project', status: 'pending' },
-      { id: 'configure-env', name: 'Configuring environment variables', status: 'pending' },
-      { id: 'deploy', name: 'Deploying to Vercel', status: 'pending' },
-      { id: 'finalize', name: 'Finalizing deployment', status: 'pending' }
+      ...(formData.enableAICustomization ? [
+        { id: 'ai-customize-theme', name: 'AI customizing theme based on your requirements', status: 'pending' as const }
+      ] : []),
+      { id: 'setup-database', name: 'Creating site in shared database', status: 'pending' as const },
+      { id: 'create-vercel', name: 'Creating Vercel project', status: 'pending' as const },
+      { id: 'configure-env', name: 'Configuring environment variables', status: 'pending' as const },
+      { id: 'deploy', name: 'Deploying to Vercel', status: 'pending' as const },
+      { id: 'finalize', name: 'Finalizing deployment', status: 'pending' as const }
     ]
     setDeploymentSteps(steps)
     return steps
@@ -138,12 +187,21 @@ export default function CreateWebsite() {
         body: JSON.stringify({
           name: formData.name,
           domain: formData.domain || undefined,
+          subdomain: formData.subdomain || undefined,
           owner_name: formData.ownerName,
           owner_email: formData.ownerEmail,
+          status: formData.status,
+          plan: formData.plan,
           template_id: formData.templateId,
           theme_id: formData.themeId,
           auto_deploy: formData.autoDeploy,
-          description: formData.description
+          description: formData.description,
+          // AI Customization data
+          enable_ai_customization: formData.enableAICustomization,
+          ai_customization_message: formData.aiCustomizationMessage,
+          target_industry: formData.targetIndustry,
+          design_style: formData.designStyle,
+          primary_color: formData.primaryColor
         })
       })
 
@@ -309,7 +367,86 @@ export default function CreateWebsite() {
                     placeholder="example.com"
                     className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    If not provided, a unique domain will be auto-generated
+                  </p>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="subdomain" className="text-gray-300">Subdomain (Optional)</Label>
+                  <Input
+                    id="subdomain"
+                    value={formData.subdomain}
+                    onChange={(e) => updateFormData('subdomain', e.target.value)}
+                    placeholder="blog"
+                    className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    For subdomain-based multi-tenancy (e.g., blog.yoursite.com)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="plan" className="text-gray-300">Plan</Label>
+                  <Select value={formData.plan} onValueChange={(value) => updateFormData('plan', value as 'free' | 'pro' | 'enterprise')}>
+                    <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                      <SelectValue placeholder="Select a plan" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                      <SelectItem value="free" className="focus:bg-gray-800">
+                        <div className="flex items-center space-x-2">
+                          <span>Free</span>
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Basic</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="pro" className="focus:bg-gray-800">
+                        <div className="flex items-center space-x-2">
+                          <span>Pro</span>
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Advanced</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="enterprise" className="focus:bg-gray-800">
+                        <div className="flex items-center space-x-2">
+                          <span>Enterprise</span>
+                          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Full</Badge>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="status" className="text-gray-300">Site Status</Label>
+                <Select value={formData.status} onValueChange={(value) => updateFormData('status', value as 'active' | 'inactive' | 'suspended')}>
+                  <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                    <SelectValue placeholder="Select site status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                    <SelectItem value="active" className="focus:bg-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <span>Active</span>
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Live</Badge>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="inactive" className="focus:bg-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <span>Inactive</span>
+                        <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Paused</Badge>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="suspended" className="focus:bg-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <span>Suspended</span>
+                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Blocked</Badge>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Site status controls accessibility and functionality
+                </p>
               </div>
 
               <div>
@@ -363,6 +500,154 @@ export default function CreateWebsite() {
             </CardContent>
           </Card>
 
+          {/* AI Theme Customization */}
+          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <div className="relative mr-3">
+                  <Zap className="h-5 w-5 text-purple-400" />
+                  <div className="absolute inset-0 bg-purple-400/20 rounded-full blur-sm"></div>
+                </div>
+                AI Theme Customization
+                <Badge className="ml-2 bg-purple-500/20 text-purple-400 border-purple-500/30">Beta</Badge>
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Let AI customize your theme colors, layout, and content based on your business
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="enableAICustomization"
+                  checked={formData.enableAICustomization}
+                  onCheckedChange={(checked) => updateFormData('enableAICustomization', checked as boolean)}
+                  className="border-gray-600 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+                />
+                <Label htmlFor="enableAICustomization" className="text-sm font-medium text-gray-300 cursor-pointer">
+                  Enable AI theme customization
+                </Label>
+              </div>
+
+              {formData.enableAICustomization && (
+                <div className="space-y-6 p-4 bg-purple-500/5 border border-purple-500/20 rounded-lg">
+                  <div>
+                    <Label htmlFor="aiMessage" className="text-gray-300">
+                      Describe your vision <span className="text-purple-400">*</span>
+                    </Label>
+                    <Textarea
+                      id="aiMessage"
+                      value={formData.aiCustomizationMessage}
+                      onChange={(e) => updateFormData('aiCustomizationMessage', e.target.value)}
+                      placeholder="I want a modern, professional website for my tech startup. Use blue and white colors with a clean, minimalist design. The site should feel trustworthy and innovative..."
+                      rows={4}
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500"
+                      required={formData.enableAICustomization}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Describe your business, preferred colors, style, and any specific requirements
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="targetIndustry" className="text-gray-300">Industry/Business Type</Label>
+                      <Select value={formData.targetIndustry} onValueChange={(value) => updateFormData('targetIndustry', value)}>
+                        <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                          <SelectValue placeholder="Select your industry" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                          <SelectItem value="technology" className="focus:bg-gray-800">Technology</SelectItem>
+                          <SelectItem value="healthcare" className="focus:bg-gray-800">Healthcare</SelectItem>
+                          <SelectItem value="finance" className="focus:bg-gray-800">Finance</SelectItem>
+                          <SelectItem value="education" className="focus:bg-gray-800">Education</SelectItem>
+                          <SelectItem value="restaurant" className="focus:bg-gray-800">Restaurant/Food</SelectItem>
+                          <SelectItem value="agency" className="focus:bg-gray-800">Creative Agency</SelectItem>
+                          <SelectItem value="ecommerce" className="focus:bg-gray-800">E-commerce</SelectItem>
+                          <SelectItem value="professional" className="focus:bg-gray-800">Professional Services</SelectItem>
+                          <SelectItem value="nonprofit" className="focus:bg-gray-800">Non-profit</SelectItem>
+                          <SelectItem value="other" className="focus:bg-gray-800">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="designStyle" className="text-gray-300">Design Style</Label>
+                      <Select value={formData.designStyle} onValueChange={(value) => updateFormData('designStyle', value)}>
+                        <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+                          <SelectValue placeholder="Select design style" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                          <SelectItem value="minimal" className="focus:bg-gray-800">
+                            <div className="flex items-center space-x-2">
+                              <span>Minimal</span>
+                              <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Clean</Badge>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="modern" className="focus:bg-gray-800">
+                            <div className="flex items-center space-x-2">
+                              <span>Modern</span>
+                              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Trendy</Badge>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="professional" className="focus:bg-gray-800">
+                            <div className="flex items-center space-x-2">
+                              <span>Professional</span>
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Business</Badge>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="creative" className="focus:bg-gray-800">
+                            <div className="flex items-center space-x-2">
+                              <span>Creative</span>
+                              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Artistic</Badge>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="tech" className="focus:bg-gray-800">
+                            <div className="flex items-center space-x-2">
+                              <span>Tech</span>
+                              <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">Dark</Badge>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="primaryColor" className="text-gray-300">Preferred Primary Color (Optional)</Label>
+                    <div className="flex items-center space-x-3 mt-2">
+                      <Input
+                        id="primaryColor"
+                        type="color"
+                        value={formData.primaryColor}
+                        onChange={(e) => updateFormData('primaryColor', e.target.value)}
+                        className="w-12 h-10 bg-gray-800/50 border-gray-700 rounded cursor-pointer"
+                      />
+                      <Input
+                        value={formData.primaryColor}
+                        onChange={(e) => updateFormData('primaryColor', e.target.value)}
+                        placeholder="#3B82F6"
+                        className="flex-1 bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave empty to let AI choose the best color for your industry
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                    <h4 className="text-sm font-medium text-purple-300 mb-1">How it works:</h4>
+                    <ul className="text-xs text-gray-400 space-y-1">
+                      <li>• AI analyzes your requirements and industry</li>
+                      <li>• Generates a custom color palette and design</li>
+                      <li>• Modifies components, layouts, and content</li>
+                      <li>• Creates a unique theme just for your business</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Template Selection */}
           <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">
             <CardHeader>
@@ -398,9 +683,8 @@ export default function CreateWebsite() {
                       <SelectValue placeholder="Select a theme" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                      <SelectItem value="base-theme" className="focus:bg-gray-800">Base Theme</SelectItem>
                       <SelectItem value="default" className="focus:bg-gray-800">Default</SelectItem>
-                      <SelectItem value="modern" className="focus:bg-gray-800">Modern</SelectItem>
-                      <SelectItem value="minimal" className="focus:bg-gray-800">Minimal</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

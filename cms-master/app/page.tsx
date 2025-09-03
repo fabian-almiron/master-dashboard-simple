@@ -1,178 +1,178 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { PageBlock } from '@/lib/cms-types'
-import PageRenderer from '@/components/cms/PageRenderer'
-import { useThemeComponents, useCurrentTheme } from '@/lib/theme-context'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
+import { getCurrentSite, getSiteSettings, getPageById, getPageBlocks, getTemplateById, getTemplateBlocks, getNavigationItems } from '@/lib/cms-data'
+import { renderComponent } from '@/lib/dynamic-theme-import'
+import { PageRenderer } from '@/components/frontend/page-renderer'
+import { ThemeTest } from '@/components/theme-test'
+import { ThemeDebug } from '@/components/theme-debug'
+import { Template, TemplateBlock } from '@/lib/supabase'
+import { ArrowRight, Database, Layout, Palette, Settings } from 'lucide-react'
 
-// Homepage component that checks for CMS pages
-function Homepage() {
-  const { componentInfo, renderComponent } = useThemeComponents()
-  const currentTheme = useCurrentTheme()
-  const [pages, setPages] = useState<any[]>([])
-  const [homePage, setHomePage] = useState<any>(null)
-  const [isSettingUpContent, setIsSettingUpContent] = useState(false)
+// Force dynamic rendering for multi-tenant site detection
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-  useEffect(() => {
-    // Load pages from database
-    const loadPages = async () => {
-      try {
-        const { loadPagesFromDatabase } = await import('@/lib/cms-data')
-        const loadedPages = await loadPagesFromDatabase()
-        setPages(loadedPages)
+interface HomePageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const urlSearchParams = await searchParams
+  const headersList = await headers()
+  
+  try {
+    // Get current site with domain and URL-based selection
+    console.log('🌐 Homepage: URL params:', urlSearchParams)
+    console.log('🌐 Homepage: Headers host:', headersList.get('host'))
+    
+    const site = await getCurrentSite(urlSearchParams, headersList)
+    console.log('🌐 Homepage: Current site detected:', site ? { id: site.id, name: site.name, domain: site.domain } : 'NOT FOUND')
+    
+    if (!site) {
+      return notFound()
+    }
+
+    // Check if a homepage is set
+    const siteSettings = await getSiteSettings(site.id)
+    console.log('🏠 All site settings:', siteSettings.map(s => ({ key: s.key, value: s.value })))
+    
+    const homepageSetting = siteSettings.find(setting => setting.key === 'homepage_page_id')
+    console.log('🏠 Homepage setting found:', homepageSetting)
+    
+    if (homepageSetting && homepageSetting.value) {
+      // Get the homepage page
+      const page = await getPageById(homepageSetting.value)
+      console.log('🏠 Homepage page found:', page ? { id: page.id, title: page.title, slug: page.slug, status: page.status } : 'NOT FOUND')
+      
+      if (page && page.status === 'published') {
+        // Get page blocks
+        const pageBlocks = await getPageBlocks(page.id)
+
+        // Get template if page has one
+        let template: Template | null = null
+        let templateBlocks: TemplateBlock[] = []
         
-        // If no pages exist, automatically create starter content
-        if (loadedPages.length === 0 && !isSettingUpContent) {
-          console.log('🚀 No pages found - creating starter content...')
-          setIsSettingUpContent(true)
-          
-          try {
-            const { setupCompleteStarterSite } = await import('@/lib/cms-data')
-            const success = await setupCompleteStarterSite()
-            
-            if (success) {
-              console.log('✅ Starter content created successfully!')
-              
-              // Give static files a moment to regenerate
-              await new Promise(resolve => setTimeout(resolve, 2000))
-              
-              // Reload pages after creating starter content
-              const newPages = await loadPagesFromDatabase()
-              setPages(newPages)
-              
-              // Find the home page
-              const home = newPages.find((page: any) => 
-                page.slug === 'home' || page.slug === '/' || page.slug === ''
-              )
-              setHomePage(home)
-              
-              // Refresh the page to ensure navigation loads properly
-              console.log('🔄 Refreshing page to load new navigation...')
-              window.location.reload()
-            }
-          } catch (error) {
-            console.error('❌ Failed to create starter content:', error)
-          } finally {
-            setIsSettingUpContent(false)
+        if (page.page_template_id) {
+          template = await getTemplateById(page.page_template_id)
+          if (template) {
+            templateBlocks = await getTemplateBlocks(template.id)
           }
-        } else {
-          // Look for a homepage (slug 'home' or '/')
-          const home = loadedPages.find((page: any) => 
-            page.slug === 'home' || page.slug === '/' || page.slug === ''
-          )
-          setHomePage(home)
         }
-      } catch (error) {
-        console.error('Error loading pages from database:', error)
-        setPages([])
+
+        // Get navigation and settings for the frontend layout
+        const navigationItems = await getNavigationItems(site.id)
+
+        return (
+          <PageRenderer
+            page={page}
+            pageBlocks={pageBlocks}
+            template={template}
+            templateBlocks={templateBlocks}
+            site={site}
+            navigationItems={navigationItems}
+            siteSettings={siteSettings}
+          />
+        )
       }
     }
 
-    loadPages()
-  }, [])
-
-  if (!currentTheme) {
+    // Default welcome page (when no homepage is set)
+    console.log('🏠 No valid homepage found, showing default welcome page')
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading Theme...</h1>
-          <p className="text-gray-600">Please wait while we load your theme components.</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="container mx-auto px-4 py-16">
+                {/* Theme Test Component - Remove this after testing */}
+      <div className="mb-8">
+        <ThemeTest />
       </div>
-    )
-  }
-
-  // Show loading state while setting up starter content
-  if (isSettingUpContent) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold mb-4">Setting Up Your Website...</h1>
-          <p className="text-gray-600 mb-2">Creating professional starter content</p>
-          <p className="text-sm text-gray-500">This includes pages, templates, and navigation</p>
-        </div>
-      </div>
-    )
-  }
-
-  // If there's a homepage, render it
-  if (homePage) {
-    return (
-      <PageRenderer 
-        blocks={homePage.blocks || []}
-        headerTemplateId={homePage.headerTemplateId}
-        footerTemplateId={homePage.footerTemplateId}
-        pageTemplateId={homePage.pageTemplateId}
-      />
-    )
-  }
-
-  // If no pages exist, show welcome screen
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header if available */}
-      {currentTheme.getComponent('Header') && (
-        <header>
-          {renderComponent('Header')}
-        </header>
-      )}
       
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">
-            Welcome to Your CMS
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Your website is ready! Starter content will be created automatically on your next visit.
-          </p>
+      {/* Theme Debug Component - Remove this after testing */}
+      <div className="mb-8">
+        <ThemeDebug />
+      </div>
           
-          <div className="bg-white rounded-lg p-8 shadow-lg mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Current Theme: {currentTheme.name}</h2>
-            <p className="text-gray-600 mb-6">{currentTheme.description}</p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-              {componentInfo.map(comp => (
-                <div key={comp.type} className="p-3 bg-gray-50 rounded-md">
-                  <div className="font-medium text-sm">{comp.name}</div>
-                  <div className="text-xs text-gray-500 capitalize">{comp.category}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <Link href="/admin/pages/new">
-                <Button size="lg" className="mr-4">
-                  Create Your First Page
-                </Button>
-              </Link>
-              <Link href="/admin">
-                <Button variant="outline" size="lg">
-                  Go to Admin Panel
-                </Button>
-              </Link>
-            </div>
-            <p className="text-sm text-gray-500">
-              Create pages using the {currentTheme.name} theme components available above.
+          <div className="text-center mb-16">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              CMS TailWinds
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              A powerful multi-tenant Content Management System with drag-and-drop page builder, 
+              template system, and automatic theme detection.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/admin"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Go to Admin Dashboard
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link
+                href="/preview"
+                className="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-medium rounded-lg border border-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                Preview Site
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <Database className="h-12 w-12 text-blue-600 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Multi-Tenant Database</h3>
+              <p className="text-gray-600">Built on Supabase with row-level security for complete data isolation.</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <Layout className="h-12 w-12 text-green-600 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Drag & Drop Builder</h3>
+              <p className="text-gray-600">Intuitive page builder with pre-built components from your theme.</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <Palette className="h-12 w-12 text-purple-600 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Theme System</h3>
+              <p className="text-gray-600">Drop in new themes and they're automatically detected and registered.</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <Settings className="h-12 w-12 text-orange-600 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Template Management</h3>
+              <p className="text-gray-600">WordPress-like header, footer, and page templates for complete control.</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-8 shadow-lg">
+            <h2 className="text-2xl font-bold mb-6">Features</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-2">🏗️ Page Management</h3>
+                <p className="text-gray-600 mb-4">Create, edit, and manage pages with full CRUD operations and status control.</p>
+                
+                <h3 className="font-semibold mb-2">🎨 Template System</h3>
+                <p className="text-gray-600 mb-4">Create reusable header, footer, and page templates that can be assigned to any page.</p>
+                
+                <h3 className="font-semibold mb-2">🧩 Component Library</h3>
+                <p className="text-gray-600">Drag and drop components from your active theme into pages with live preview.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">🎯 Navigation Builder</h3>
+                <p className="text-gray-600 mb-4">Visual navigation management with internal page linking and external URL support.</p>
+                
+                <h3 className="font-semibold mb-2">⚙️ Site Settings</h3>
+                <p className="text-gray-600 mb-4">Comprehensive site configuration with theme-specific settings.</p>
+                
+                <h3 className="font-semibold mb-2">📊 Dashboard Analytics</h3>
+                <p className="text-gray-600">Overview of site statistics, recent activity, and quick actions.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      
-      {/* Footer if available */}
-      {currentTheme.getComponent('Footer') && (
-        <footer>
-          {renderComponent('Footer')}
-        </footer>
-      )}
-    </div>
-  )
-}
-
-export default function LandingPage() {
-  return <Homepage />
+    )
+  } catch (error) {
+    console.error('Error rendering homepage:', error)
+    return notFound()
+  }
 }

@@ -2,423 +2,291 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Save, Eye, Layout } from 'lucide-react'
-import { Template, TemplateType, PageBlock } from '@/lib/cms-types'
-import { useCurrentTheme } from '@/lib/theme-context'
-import { loadThemeTemplates } from '@/lib/theme-utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getCurrentSite, createPage, getTemplatesBySite } from '@/lib/cms-data'
+import { slugify } from '@/lib/utils'
+import { ArrowLeft, Save } from 'lucide-react'
+import Link from 'next/link'
+import { Template } from '@/lib/supabase'
 
 export default function NewPagePage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
-  const currentTheme = useCurrentTheme()
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
-    description: '',
-    isPublished: false,
-    templateId: 'none',
-    headerTemplateId: 'none',
-    footerTemplateId: 'none',
-    pageTemplateId: 'none'
+    status: 'draft' as 'draft' | 'published',
+    meta_title: '',
+    meta_description: '',
+    header_template_id: '',
+    footer_template_id: '',
+    page_template_id: '',
   })
 
-  // Load theme templates and auto-assign defaults
   useEffect(() => {
-    if (!currentTheme) return
-    
-    const loadTemplates = async () => {
-      try {
-        // Load templates from database instead of using loadThemeTemplates
-        const { loadTemplatesFromDatabase } = await import('@/lib/cms-data')
-        const themeTemplates = await loadTemplatesFromDatabase()
-        setTemplates(themeTemplates)
-      
-        // Auto-select default templates from current theme
-        const defaultPageTemplate = themeTemplates.find((t: Template) => t.type === 'page' && t.isDefault)
-        const defaultHeaderTemplate = themeTemplates.find((t: Template) => t.type === 'header' && t.isDefault)
-        const defaultFooterTemplate = themeTemplates.find((t: Template) => t.type === 'footer' && t.isDefault)
-        
-        setFormData(prev => ({
-          ...prev,
-          templateId: defaultPageTemplate?.id || 'none',
-          headerTemplateId: defaultHeaderTemplate?.id || 'none',
-          footerTemplateId: defaultFooterTemplate?.id || 'none',
-          pageTemplateId: defaultPageTemplate?.id || 'none'
-        }))
-      } catch (error) {
-        console.error('Error loading templates:', error)
-        setTemplates([])
-      }
-    }
-    
     loadTemplates()
-  }, [currentTheme])
+  }, [])
 
-  // Auto-generate slug from title
-  const handleTitleChange = (title: string) => {
-    setFormData(prev => ({
-      ...prev,
-      title,
-      slug: title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '')
-    }))
+  const loadTemplates = async () => {
+    try {
+      const site = await getCurrentSite()
+      if (site) {
+        const templatesData = await getTemplatesBySite(site.id)
+        setTemplates(templatesData)
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value }
+      
+      // Auto-generate slug from title
+      if (field === 'title') {
+        updated.slug = slugify(value)
+      }
+      
+      return updated
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setLoading(true)
 
     try {
-      // Get template blocks if a template is selected
-      let templateBlocks: PageBlock[] = []
-      if (formData.templateId && formData.templateId !== 'none') {
-        const selectedTemplate = templates.find(t => t.id === formData.templateId)
-        if (selectedTemplate) {
-          templateBlocks = selectedTemplate.blocks
-        }
+      const site = await getCurrentSite()
+      if (!site) {
+        alert('No active site found')
+        return
       }
 
-      // Save to database
-      const { savePageToDatabase } = await import('@/lib/cms-data')
-      const savedPage = await savePageToDatabase({
+      const pageData = {
+        site_id: site.id,
         title: formData.title,
         slug: formData.slug,
-        description: formData.description,
-        status: formData.isPublished ? 'published' : 'draft',
-        blocks: templateBlocks,
-        templateId: (formData.templateId && formData.templateId !== 'none') ? formData.templateId : undefined,
-        headerTemplateId: (formData.headerTemplateId && formData.headerTemplateId !== 'none') ? formData.headerTemplateId : undefined,
-        footerTemplateId: (formData.footerTemplateId && formData.footerTemplateId !== 'none') ? formData.footerTemplateId : undefined,
-        pageTemplateId: (formData.pageTemplateId && formData.pageTemplateId !== 'none') ? formData.pageTemplateId : undefined
-      })
-      
-      if (!savedPage) {
-        throw new Error('Failed to save page to database')
+        status: formData.status,
+        theme_id: 'base-theme', // Use base-theme as default
+        meta_title: formData.meta_title || formData.title,
+        meta_description: formData.meta_description,
+        header_template_id: formData.header_template_id || undefined,
+        footer_template_id: formData.footer_template_id || undefined,
+        page_template_id: formData.page_template_id || undefined,
       }
-      
-      console.log('Page created successfully:', savedPage)
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      // Redirect to page builder using the ACTUAL database page ID
-      router.push(`/admin/builder?page=${savedPage.id}`)
+
+      const newPage = await createPage(pageData)
+      if (newPage) {
+        router.push(`/admin/pages/${newPage.id}/edit`)
+      } else {
+        alert('Failed to create page. Please try again.')
+      }
     } catch (error) {
       console.error('Error creating page:', error)
       alert('Failed to create page. Please try again.')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
+  const getTemplatesByType = (type: string) => {
+    return templates.filter(template => template.type === type)
+  }
+
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/admin/pages">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Pages
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Create New Page</h1>
-            <p className="text-muted-foreground mt-1">
-              Set up your page details and start building
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Page Details</CardTitle>
-                <CardDescription>
-                  Configure the basic information for your new page
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Page Title</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleTitleChange(e.target.value)}
-                      placeholder="Enter page title..."
-                      required
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      This will be displayed in the browser tab and search results
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">URL Slug</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">yoursite.com/</span>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                        placeholder="page-url"
-                        required
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Auto-generated from title, but you can customize it
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description (Optional)</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Brief description of this page..."
-                      rows={3}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Used for SEO meta description and internal reference
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="template">Page Template (Optional)</Label>
-                    <Select
-                      value={formData.templateId}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, templateId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a template or start blank" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No Template (Blank Page)</SelectItem>
-                        {templates
-                          .filter(template => template.type === 'page')
-                          .map(template => (
-                            <SelectItem key={template.id} value={template.id}>
-                              <div className="flex items-center gap-2">
-                                <Layout className="h-4 w-4" />
-                                <span>{template.name}</span>
-                                {template.isDefault && (
-                                  <span className="text-xs text-muted-foreground">(Default)</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))
-                        }
-                      </SelectContent>
-                    </Select>
-                    <p className="text-sm text-muted-foreground">
-                      Templates provide pre-built layouts and components to get started faster
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="page-template">Page Template</Label>
-                      <Select
-                        value={formData.pageTemplateId}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, pageTemplateId: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose page template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No Page Template</SelectItem>
-                          {templates
-                            .filter(template => template.type === 'page')
-                            .map(template => (
-                              <SelectItem key={template.id} value={template.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{template.name}</span>
-                                  {template.isDefault && (
-                                    <span className="text-xs text-muted-foreground">(Default)</span>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))
-                          }
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="header-template">Header Template</Label>
-                      <Select
-                        value={formData.headerTemplateId}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, headerTemplateId: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose header template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No Header Template</SelectItem>
-                          {templates
-                            .filter(template => template.type === 'header')
-                            .map(template => (
-                              <SelectItem key={template.id} value={template.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{template.name}</span>
-                                  {template.isDefault && (
-                                    <span className="text-xs text-muted-foreground">(Default)</span>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))
-                          }
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="footer-template">Footer Template</Label>
-                      <Select
-                        value={formData.footerTemplateId}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, footerTemplateId: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose footer template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No Footer Template</SelectItem>
-                          {templates
-                            .filter(template => template.type === 'footer')
-                            .map(template => (
-                              <SelectItem key={template.id} value={template.id}>
-                                <div className="flex items-center gap-2">
-                                  <span>{template.name}</span>
-                                  {template.isDefault && (
-                                    <span className="text-xs text-muted-foreground">(Default)</span>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))
-                          }
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Default header and footer templates are automatically assigned from your current theme ({currentTheme?.name}). 
-                    Page template defines the content structure, while header and footer templates wrap around everything globally.
-                  </p>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <Label htmlFor="published">Publish Immediately</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Make this page visible to visitors right away
-                      </p>
-                    </div>
-                    <Switch
-                      id="published"
-                      checked={formData.isPublished}
-                      onCheckedChange={(checked) => 
-                        setFormData(prev => ({ ...prev, isPublished: checked }))
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-4 pt-4">
-                    <Button type="submit" disabled={isLoading || !formData.title.trim()}>
-                      {isLoading ? (
-                        <>Creating...</>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Create & Build Page
-                        </>
-                      )}
-                    </Button>
-                    <Button type="button" variant="outline" asChild>
-                      <Link href="/admin/pages">Cancel</Link>
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Next Steps</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
-                    1
-                  </div>
-                  <div>
-                    <div className="font-medium">Create Page</div>
-                    <div className="text-sm text-muted-foreground">
-                      Fill out the form and create your page
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-semibold">
-                    2
-                  </div>
-                  <div>
-                    <div className="font-medium">Design Layout</div>
-                    <div className="text-sm text-muted-foreground">
-                      Use the page builder to add components
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-semibold">
-                    3
-                  </div>
-                  <div>
-                    <div className="font-medium">Publish</div>
-                    <div className="text-sm text-muted-foreground">
-                      Make your page live for visitors
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Tips</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div>
-                  <strong>SEO-friendly URLs:</strong> Keep slugs short, descriptive, and use hyphens instead of spaces
-                </div>
-                <div>
-                  <strong>Page Titles:</strong> Make them clear and descriptive for better search rankings
-                </div>
-                <div>
-                  <strong>Drafts:</strong> Start as a draft to build your page before publishing
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" asChild>
+          <Link href="/admin/pages" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Pages
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Create New Page</h1>
+          <p className="text-gray-600">Add a new page to your site.</p>
         </div>
       </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Page Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="admin-field">
+                <label htmlFor="title" className="admin-label required">
+                  Page Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  required
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  className="admin-input"
+                  placeholder="Enter page title..."
+                />
+              </div>
+              
+              <div className="admin-field">
+                <label htmlFor="slug" className="admin-label required">
+                  URL Slug
+                </label>
+                <input
+                  type="text"
+                  id="slug"
+                  required
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange('slug', e.target.value)}
+                  className="admin-input"
+                  placeholder="page-url-slug"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  URL: yoursite.com/{formData.slug || 'page-url-slug'}
+                </p>
+              </div>
+            </div>
+
+            <div className="admin-field">
+              <label htmlFor="status" className="admin-label">
+                Status
+              </label>
+              <select
+                id="status"
+                value={formData.status}
+                onChange={(e) => handleInputChange('status', e.target.value)}
+                className="admin-select"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Templates</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="admin-field">
+                <label htmlFor="header_template" className="admin-label">
+                  Header Template
+                </label>
+                <select
+                  id="header_template"
+                  value={formData.header_template_id}
+                  onChange={(e) => handleInputChange('header_template_id', e.target.value)}
+                  className="admin-select"
+                >
+                  <option value="">Default Header</option>
+                  {getTemplatesByType('header').map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="admin-field">
+                <label htmlFor="footer_template" className="admin-label">
+                  Footer Template
+                </label>
+                <select
+                  id="footer_template"
+                  value={formData.footer_template_id}
+                  onChange={(e) => handleInputChange('footer_template_id', e.target.value)}
+                  className="admin-select"
+                >
+                  <option value="">Default Footer</option>
+                  {getTemplatesByType('footer').map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="admin-field">
+                <label htmlFor="page_template" className="admin-label">
+                  Page Template
+                </label>
+                <select
+                  id="page_template"
+                  value={formData.page_template_id}
+                  onChange={(e) => handleInputChange('page_template_id', e.target.value)}
+                  className="admin-select"
+                >
+                  <option value="">Default Page</option>
+                  {getTemplatesByType('page').map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>SEO Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="admin-field">
+              <label htmlFor="meta_title" className="admin-label">
+                Meta Title
+              </label>
+              <input
+                type="text"
+                id="meta_title"
+                value={formData.meta_title}
+                onChange={(e) => handleInputChange('meta_title', e.target.value)}
+                className="admin-input"
+                placeholder="Leave empty to use page title"
+              />
+            </div>
+            
+            <div className="admin-field">
+              <label htmlFor="meta_description" className="admin-label">
+                Meta Description
+              </label>
+              <textarea
+                id="meta_description"
+                rows={3}
+                value={formData.meta_description}
+                onChange={(e) => handleInputChange('meta_description', e.target.value)}
+                className="admin-textarea"
+                placeholder="Brief description for search engines..."
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center gap-4">
+          <Button type="submit" disabled={loading || !formData.title.trim()}>
+            {loading ? (
+              <>Saving...</>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Create Page
+              </>
+            )}
+          </Button>
+          
+          <Button variant="outline" type="button" asChild>
+            <Link href="/admin/pages">Cancel</Link>
+          </Button>
+        </div>
+      </form>
     </div>
   )
-} 
+}

@@ -2,396 +2,292 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getCurrentSite, getTemplatesBySite, deleteTemplate } from '@/lib/cms-data'
+import { formatDateTime } from '@/lib/utils'
 import { 
-  Layout, 
   Plus, 
   Edit, 
   Trash2, 
-  Copy,
-  Star,
-  Navigation,
-  PanelBottom,
+  Eye, 
+  Search,
+  Filter,
+  Layout,
+  Navigation as HeaderIcon,
   FileText,
-  BookOpen,
-  Eye,
-  Search
+  Layers
 } from 'lucide-react'
-import { Template, TemplateType } from '@/lib/cms-types'
-import { createStarterTemplatesForTheme } from '@/lib/theme-utils'
-import { useCurrentTheme } from '@/lib/theme-context'
-
-const templateTypeConfig = {
-  header: {
-    icon: Navigation,
-    label: 'Header',
-    description: 'Header sections and navigation',
-    color: 'bg-blue-500'
-  },
-  footer: {
-    icon: PanelBottom, 
-    label: 'Footer',
-    description: 'Footer sections and links',
-    color: 'bg-green-500'
-  },
-  page: {
-    icon: FileText,
-    label: 'Page',
-    description: 'Full page layouts',
-    color: 'bg-purple-500'
-  },
-  post: {
-    icon: BookOpen,
-    label: 'Post',
-    description: 'Blog post layouts',
-    color: 'bg-orange-500'
-  }
-}
+import { Template } from '@/lib/supabase'
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([])
-  const [activeTab, setActiveTab] = useState<TemplateType>('page')
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const currentTheme = useCurrentTheme()
+  const [typeFilter, setTypeFilter] = useState<'all' | 'header' | 'footer' | 'page'>('all')
 
-  // Load templates from database
   useEffect(() => {
-    const loadTemplates = async () => {
-      try {
-        const { loadTemplatesFromDatabase } = await import('@/lib/cms-data')
-        const dbTemplates = await loadTemplatesFromDatabase()
-        setTemplates(dbTemplates)
-      } catch (error) {
-        console.error('Error loading templates:', error)
-        setTemplates([])
-      }
-    }
-
     loadTemplates()
   }, [])
 
-  // Save templates to database
-  const saveTemplates = async (newTemplates: Template[]) => {
-    setTemplates(newTemplates)
-    // Note: Individual template operations should use saveTemplateToDatabase
-    // This function now mainly updates local state
-  }
-
-  // Filter templates by type and search
-  const filteredTemplates = templates.filter(template => 
-    template.type === activeTab &&
-    (template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     template.description?.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
-
-  // Get template stats
-  const getTemplateStats = () => {
-    return {
-      total: templates.length,
-      header: templates.filter(t => t.type === 'header').length,
-      footer: templates.filter(t => t.type === 'footer').length,
-      page: templates.filter(t => t.type === 'page').length,
-      post: templates.filter(t => t.type === 'post').length,
-      default: templates.filter(t => t.isDefault).length
-    }
-  }
-
-  const stats = getTemplateStats()
-
-  // Delete template
-  const deleteTemplate = (templateId: string) => {
-    const newTemplates = templates.filter(t => t.id !== templateId)
-    saveTemplates(newTemplates)
-  }
-
-  // Duplicate template
-  const duplicateTemplate = (template: Template) => {
-    const newTemplate: Template = {
-      ...template,
-      id: Date.now().toString(),
-      name: `${template.name} (Copy)`,
-      isDefault: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-    saveTemplates([...templates, newTemplate])
-  }
-
-  // Set as default template
-  const setAsDefault = (templateId: string, type: TemplateType) => {
-    const newTemplates = templates.map(template => {
-      if (template.type === type) {
-        return { ...template, isDefault: template.id === templateId }
+  const loadTemplates = async () => {
+    try {
+      setLoading(true)
+      const site = await getCurrentSite()
+      if (site) {
+        const templatesData = await getTemplatesBySite(site.id)
+        setTemplates(templatesData)
       }
-      return template
-    })
-    saveTemplates(newTemplates)
+    } catch (error) {
+      console.error('Error loading templates:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Create starter templates
-  const createStarterTemplates = () => {
-    if (!currentTheme) return
-    
-    if (confirm('This will create basic Header, Footer, and Page templates. Continue?')) {
-      const starterTemplates = createStarterTemplatesForTheme(currentTheme.id)
-      setTemplates(starterTemplates)
+  const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+    if (confirm(`Are you sure you want to delete "${templateName}"? This action cannot be undone.`)) {
+      const success = await deleteTemplate(templateId)
+      if (success) {
+        setTemplates(templates.filter(template => template.id !== templateId))
+      } else {
+        alert('Failed to delete template. Please try again.')
+      }
     }
+  }
+
+  const filteredTemplates = templates.filter(template => {
+    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = typeFilter === 'all' || template.type === typeFilter
+    return matchesSearch && matchesType
+  })
+
+  const getTemplateIcon = (type: string) => {
+    switch (type) {
+      case 'header':
+        return HeaderIcon
+      case 'footer':
+        return Layers
+      case 'page':
+        return FileText
+      default:
+        return Layout
+    }
+  }
+
+  const getTemplateColor = (type: string) => {
+    switch (type) {
+      case 'header':
+        return 'bg-blue-100 text-blue-800'
+      case 'footer':
+        return 'bg-green-100 text-green-800'
+      case 'page':
+        return 'bg-purple-100 text-purple-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-32 bg-gray-200 rounded mb-4"></div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-4 lg:p-8  mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2">
-          <Layout className="h-8 w-8" />
-          <div>
-            <h1 className="text-3xl font-bold">Templates</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage page templates and layouts
-            </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Templates</h1>
+          <p className="text-gray-600">Manage your site's reusable templates.</p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/templates/new" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            New Template
+          </Link>
+        </Button>
+      </div>
+
+      {/* Template Type Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <HeaderIcon className="h-4 w-4 text-blue-600" />
+              Header Templates
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {templates.filter(t => t.type === 'header').length}
             </div>
-          </div>
-          <div className="flex gap-2">
-            {templates.length === 0 ? (
-              <Button variant="outline" onClick={createStarterTemplates}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Starter Templates
-              </Button>
-            ) : (
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  if (confirm('Clear all templates? This action cannot be undone.')) {
-                    setTemplates([])
-                    if (currentTheme) {
-                      localStorage.removeItem(`cms-templates-${currentTheme.id}`)
-                    }
-                  }
-                }}
-              >
-                Clear All Templates
-              </Button>
-            )}
-            <Button asChild>
-              <Link href="/admin/templates/new">
-                <Plus className="h-4 w-4 mr-2" />
-                New Template
-              </Link>
-            </Button>
-          </div>
-        </div>
+            <p className="text-xs text-gray-600">Site navigation headers</p>
+          </CardContent>
+        </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-sm text-muted-foreground">Total Templates</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-500">{stats.header}</div>
-              <div className="text-sm text-muted-foreground">Headers</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-500">{stats.footer}</div>
-              <div className="text-sm text-muted-foreground">Footers</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-purple-500">{stats.page}</div>
-              <div className="text-sm text-muted-foreground">Pages</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-orange-500">{stats.post}</div>
-              <div className="text-sm text-muted-foreground">Posts</div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Layers className="h-4 w-4 text-green-600" />
+              Footer Templates
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {templates.filter(t => t.type === 'footer').length}
+            </div>
+            <p className="text-xs text-gray-600">Site footer layouts</p>
+          </CardContent>
+        </Card>
 
-        {/* Search and Actions */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search templates..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button asChild className="lg:w-auto">
-            <Link href="/admin/templates/new">
-              <Plus className="h-4 w-4 mr-2" />
-              New Template
-            </Link>
-          </Button>
-        </div>
-
-        {/* Template Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TemplateType)}>
-          <TabsList className="grid w-full grid-cols-4">
-            {Object.entries(templateTypeConfig).map(([type, config]) => {
-              const Icon = config.icon
-              return (
-                <TabsTrigger key={type} value={type} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{config.label}</span>
-                </TabsTrigger>
-              )
-            })}
-          </TabsList>
-
-          {Object.entries(templateTypeConfig).map(([type, config]) => (
-            <TabsContent key={type} value={type} className="mt-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <config.icon className="h-5 w-5" />
-                  {config.label} Templates
-                </h3>
-                <p className="text-muted-foreground text-sm">{config.description}</p>
-              </div>
-
-              {filteredTemplates.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <config.icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No {config.label} Templates</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Create your first {config.label.toLowerCase()} template to get started.
-                    </p>
-                    <Button asChild>
-                      <Link href="/admin/templates/new">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create {config.label} Template
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredTemplates.map((template) => (
-                    <Card key={template.id} className="group">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base">{template.name}</CardTitle>
-                            {template.isDefault && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Star className="h-3 w-3 mr-1" />
-                                Default
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        {template.description && (
-                          <CardDescription className="text-sm">
-                            {template.description}
-                          </CardDescription>
-                        )}
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-xs text-muted-foreground mb-4">
-                          {template.blocks.length} components • Created {new Date(template.createdAt).toLocaleDateString()}
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Preview
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => duplicateTemplate(template)}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/admin/templates/${template.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          {!template.isDefault && (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => deleteTemplate(template.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-
-                        {!template.isDefault && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="w-full mt-2"
-                            onClick={() => setAsDefault(template.id, template.type)}
-                          >
-                            <Star className="h-4 w-4 mr-2" />
-                            Set as Default
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* Template Builder Info */}
-        <Card className="mt-8">
-          <CardContent className="text-center py-8">
-            <Layout className="h-12 w-12 text-primary mx-auto mb-4" />
-            {templates.length === 0 ? (
-              <>
-                <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
-                <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base mb-4">
-                  Get started by creating basic starter templates, or build custom templates from scratch.
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={createStarterTemplates}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Starter Templates
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link href="/admin/templates/new">
-                      Custom Template
-                    </Link>
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="text-lg font-semibold mb-2">Template Builder Available</h3>
-            <p className="text-muted-foreground max-w-md mx-auto text-sm lg:text-base">
-                  Create and edit templates with the visual drag-and-drop builder. 
-                  Use the DND Area component in header/footer templates to mark where page content should appear.
-            </p>
-                <Button asChild className="mt-4">
-                  <Link href="/admin/templates/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Custom Template
-                  </Link>
-                </Button>
-              </>
-            )}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <FileText className="h-4 w-4 text-purple-600" />
+              Page Templates
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {templates.filter(t => t.type === 'page').length}
+            </div>
+            <p className="text-xs text-gray-600">Page layout templates</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as 'all' | 'header' | 'footer' | 'page')}
+                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Types</option>
+                <option value="header">Header</option>
+                <option value="footer">Footer</option>
+                <option value="page">Page</option>
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Templates List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {filteredTemplates.length} {filteredTemplates.length === 1 ? 'Template' : 'Templates'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredTemplates.length === 0 ? (
+            <div className="text-center py-12">
+              <Layout className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {searchTerm || typeFilter !== 'all' ? 'No templates found' : 'No templates yet'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || typeFilter !== 'all' 
+                  ? 'Try adjusting your search or filters'
+                  : 'Create your first template to get started'
+                }
+              </p>
+              {!searchTerm && typeFilter === 'all' && (
+                <Button asChild>
+                  <Link href="/admin/templates/new">Create your first template</Link>
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredTemplates.map((template) => {
+                const Icon = getTemplateIcon(template.type)
+                return (
+                  <div
+                    key={template.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <Icon className="h-8 w-8 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-medium text-gray-900">{template.name}</h3>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTemplateColor(template.type)}`}>
+                            {template.type}
+                          </span>
+                          {template.is_default && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <span>Theme: {template.theme_id}</span>
+                          <span>•</span>
+                          <span>Created {formatDateTime(template.created_at)}</span>
+                          <span>•</span>
+                          <span>Modified {formatDateTime(template.updated_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/admin/templates/${template.id}/preview`} target="_blank">
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/admin/templates/${template.id}/edit`}>
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteTemplate(template.id, template.name)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
-} 
+}

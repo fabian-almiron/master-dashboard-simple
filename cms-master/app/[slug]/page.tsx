@@ -1,108 +1,102 @@
-'use client'
-
-import { useEffect, useState, use } from 'react'
 import { notFound } from 'next/navigation'
-import { PageBlock } from '@/lib/cms-types'
-import PageRenderer from '@/components/cms/PageRenderer'
-import { loadPagesFromDatabase } from '@/lib/cms-data'
+import { headers } from 'next/headers'
+import { getPageBySlug, getPageBlocks, getTemplateById, getTemplateBlocks, getCurrentSite, getNavigationItems, getSiteSettings } from '@/lib/cms-data'
 
-interface DynamicPageProps {
+import { PageRenderer } from '@/components/frontend/page-renderer'
+import { Template, TemplateBlock } from '@/lib/supabase'
+
+// Force dynamic rendering for multi-tenant site detection
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+interface PageProps {
   params: Promise<{
     slug: string
   }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default function DynamicPage({ params }: DynamicPageProps) {
-  const [page, setPage] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [notFoundFlag, setNotFoundFlag] = useState(false)
+export default async function DynamicPage({ params, searchParams }: PageProps) {
+  const { slug } = await params
+  const urlSearchParams = await searchParams
+  const headersList = await headers()
   
-  // Unwrap the params Promise
-  const resolvedParams = use(params)
-
-  useEffect(() => {
-    // Load page from database
-    const loadPage = async () => {
-      try {
-        const pages = await loadPagesFromDatabase()
-    const foundPage = pages.find((p: any) => p.slug === resolvedParams.slug)
+  try {
+    // Log environment for debugging
+    console.log('🔍 [DynamicPage] Environment check:', {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      slug,
+      searchParams: urlSearchParams,
+      host: headersList.get('host')
+    })
     
-    if (!foundPage) {
-      setNotFoundFlag(true)
-      setIsLoading(false)
-      return
+    // Get current site with domain and URL-based selection
+    const site = await getCurrentSite(urlSearchParams, headersList)
+    if (!site) {
+      console.error('❌ [DynamicPage] No site found for slug:', slug)
+      return notFound()
+    }
+    
+    console.log('✅ [DynamicPage] Using site:', { name: site.name, id: site.id })
+
+    // Get page by slug
+    const page = await getPageBySlug(slug, site.id)
+    if (!page || page.status !== 'published') {
+      return notFound()
     }
 
-    // Check if page is published
-    if (foundPage.status !== 'published') {
-      setNotFoundFlag(true)
-      setIsLoading(false)
-      return
-    }
+    // Get page blocks
+    const pageBlocks = await getPageBlocks(page.id)
 
-    setPage(foundPage)
-    setIsLoading(false)
-      } catch (error) {
-        console.error('Error loading pages from database:', error)
-        setNotFoundFlag(true)
-        setIsLoading(false)
+    // Get template if page has one
+    let template: Template | null = null
+    let templateBlocks: TemplateBlock[] = []
+    
+    if (page.page_template_id) {
+      template = await getTemplateById(page.page_template_id)
+      if (template) {
+        templateBlocks = await getTemplateBlocks(template.id)
       }
     }
 
-    loadPage()
-  }, [resolvedParams.slug])
+    // Get navigation and settings for the frontend layout
+    const navigationItems = await getNavigationItems(site.id)
+    const siteSettings = await getSiteSettings(site.id)
 
-  // Set document title when page loads
-  useEffect(() => {
-    if (page?.title) {
-      document.title = page.title
-    }
-  }, [page])
-
-  // Show loading state
-  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading page...</p>
-        </div>
-      </div>
+      <PageRenderer
+        page={page}
+        pageBlocks={pageBlocks}
+        template={template}
+        templateBlocks={templateBlocks}
+        site={site}
+        navigationItems={navigationItems}
+        siteSettings={siteSettings}
+      />
     )
+  } catch (error) {
+    console.error('❌ [DynamicPage] Error rendering page:', {
+      error: error instanceof Error ? error.message : error,
+      slug,
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    return notFound()
   }
-
-  // Show 404 if page not found or not published
-  if (notFoundFlag) {
-    notFound()
-  }
-
-  // Get page blocks
-  const blocks: PageBlock[] = page?.blocks || []
-
-  return (
-    <div className="flex min-h-screen flex-col">
-      {/* Render Page with Templates */}
-      {blocks.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
-            <p className="text-muted-foreground">
-              This page is under construction.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <PageRenderer 
-          blocks={blocks} 
-          pageId={page.id}
-          headerTemplateId={page.headerTemplateId}
-          footerTemplateId={page.footerTemplateId}
-          pageTemplateId={page.pageTemplateId}
-          className="flex-1"
-        />
-      )}
-    </div>
-  )
 }
 
- 
+// Generate static params for known pages
+export async function generateStaticParams() {
+  try {
+    const site = await getCurrentSite()
+    if (!site) return []
+
+    // This would need to be implemented to get all published pages
+    // For now, we'll rely on dynamic rendering
+    return []
+  } catch (error) {
+    console.error('Error generating static params:', error)
+    return []
+  }
+}

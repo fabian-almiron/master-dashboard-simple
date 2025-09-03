@@ -1,0 +1,2404 @@
+/* Modern Dark Admin Theme - Only loaded in admin interface */
+
+/* Modern Dark Theme Color Variables */
+:root {
+  /* Dark theme colors - Cohesive blue/slate palette */
+  --admin-bg-primary: #0f172a;
+  --admin-bg-secondary: #1e293b;
+  --admin-bg-tertiary: #334155;
+  --admin-bg-card: #1e293b;
+  --admin-bg-input: #334155;
+  --admin-text-primary: #f8fafc;
+  --admin-text-secondary: #cbd5e1;
+  --admin-text-muted: #94a3b8;
+  --admin-accent-primary: #3b82f6;
+  --admin-accent-secondary: #6366f1;
+  --admin-accent-tertiary: #8b5cf6;
+  --admin-border: #475569;
+  --admin-border-light: #64748b;
+  
+  /* Modern gradient definitions - cohesive blue theme */
+  --admin-gradient-main: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  --admin-gradient-sidebar: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  --admin-gradient-card: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+  --admin-gradient-button: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  --admin-gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --admin-gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --admin-gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --admin-gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Global admin text styling */
+.admin-layout,
+.admin-layout * {
+  color: var(--admin-text-primary);
+}
+
+/* Headings with modern typography */
+.admin-layout h1,
+.admin-layout h2, 
+.admin-layout h3,
+.admin-layout h4,
+.admin-layout h5,
+.admin-layout h6,
+.admin-content h1,
+.admin-content h2,
+.admin-content h3,
+.admin-content h4,
+.admin-content h5,
+.admin-content h6 {
+  color: var(--admin-text-primary) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em;
+}
+
+/* Modern dark form inputs */
+.admin-input {
+  background: var(--admin-bg-input);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  width: 100%;
+}
+
+.admin-input::placeholder {
+  color: var(--admin-text-muted);
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(51, 65, 85, 0.8);
+}
+
+.admin-select {
+  background: var(--admin-bg-input);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  width: 100%;
+}
+
+.admin-select:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(51, 65, 85, 0.8);
+}
+
+.admin-textarea {
+  background: var(--admin-bg-input);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  resize: vertical;
+  width: 100%;
+}
+
+.admin-textarea::placeholder {
+  color: var(--admin-text-muted);
+}
+
+.admin-textarea:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(51, 65, 85, 0.8);
+}
+
+/* Admin form labels */
+.admin-label {
+  display: block;
+  color: var(--admin-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.025em;
+}
+
+.admin-label.required::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Form field spacing */
+.admin-field {
+  margin-bottom: 1.5rem;
+}
+
+.admin-field:last-child {
+  margin-bottom: 0;
+}
+
+/* Form field styles for enhanced forms */
+.form-field {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: #111827;
+}
+
+.form-field label {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  color: #6b7280;
+  font-size: 1rem;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  background: white;
+  padding: 0 0.25rem;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-field input:focus + label,
+.form-field textarea:focus + label,
+.form-field .has-value + label {
+  transform: translateY(-1.5rem) scale(0.8);
+  color: #3b82f6;
+}
+
+/* Modern dark layout */
+.admin-layout {
+  background: var(--admin-gradient-main);
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  background: var(--admin-gradient-sidebar);
+  border-right: 1px solid var(--admin-border);
+  backdrop-filter: blur(20px);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.admin-header {
+  background: rgba(30, 41, 59, 0.8);
+  border-bottom: 1px solid var(--admin-border);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-content {
+  background: transparent;
+
+}
+
+/* Modern sidebar navigation styling */
+.admin-sidebar nav a,
+.admin-sidebar nav button {
+  background: transparent !important;
+  color: var(--admin-text-secondary) !important;
+  border: none !important;
+  transition: all 0.2s ease;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+.admin-sidebar nav a:hover,
+.admin-sidebar nav button:hover {
+  background: rgba(51, 65, 85, 0.4) !important;
+  color: var(--admin-text-primary) !important;
+  transform: translateX(4px);
+}
+
+/* Active/selected navigation items */
+.admin-sidebar nav a[class*="bg-"],
+.admin-sidebar nav button[class*="bg-"],
+.admin-sidebar .bg-gray-800,
+.admin-sidebar [class*="bg-gray-8"] {
+  background: rgba(51, 65, 85, 0.6) !important;
+  color: var(--admin-text-primary) !important;
+  border-left: 3px solid var(--admin-accent-primary) !important;
+  padding-left: calc(1rem - 3px) !important;
+}
+
+.admin-sidebar nav a[class*="bg-"] *,
+.admin-sidebar nav button[class*="bg-"] *,
+.admin-sidebar .bg-gray-800 *,
+.admin-sidebar [class*="bg-gray-8"] * {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Sidebar brand/logo area */
+.admin-sidebar h1,
+.admin-sidebar h2,
+.admin-sidebar h3 {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Force override any blue navigation backgrounds */
+.admin-sidebar .bg-blue-500,
+.admin-sidebar .bg-blue-600,
+.admin-sidebar .bg-blue-700,
+.admin-sidebar [class*="bg-blue"] {
+  background: rgba(51, 65, 85, 0.6) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Additional sidebar refinements */
+.admin-sidebar ul,
+.admin-sidebar ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-sidebar li {
+  margin: 0.125rem 0;
+}
+
+/* Sidebar icons */
+.admin-sidebar svg,
+.admin-sidebar [data-icon] {
+  color: inherit !important;
+  opacity: 0.8;
+}
+
+.admin-sidebar nav a:hover svg,
+.admin-sidebar nav button:hover svg,
+.admin-sidebar nav a:hover [data-icon],
+.admin-sidebar nav button:hover [data-icon] {
+  opacity: 1;
+}
+
+/* Brand area styling */
+.admin-sidebar > div:first-child {
+  border-bottom: 1px solid var(--admin-border);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  padding-top: 1rem;
+}
+
+/* Navigation sections */
+.admin-sidebar nav {
+  padding: 0 1rem;
+}
+
+/* Text color consistency */
+.admin-sidebar * {
+  color: var(--admin-text-secondary);
+}
+
+.admin-sidebar h1 *,
+.admin-sidebar h2 *,
+.admin-sidebar h3 * {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Subtle primary buttons */
+.btn-primary,
+.btn-primary * {
+  background: rgba(71, 85, 105, 0.9) !important;
+  border: 1px solid var(--admin-border-light) !important;
+  color: var(--admin-text-primary) !important;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+
+.btn-primary:hover,
+.btn-primary:hover * {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  background: rgba(100, 116, 139, 1) !important;
+  color: white !important;
+}
+
+.btn-secondary {
+  background: rgba(51, 65, 85, 0.8);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(71, 85, 105, 0.9);
+  border-color: var(--admin-border-light);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-outline:hover {
+  background: var(--admin-accent-primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Success/Green buttons */
+.btn-success {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+}
+
+/* Danger/Red buttons */
+.btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
+/* Warning/Orange buttons */
+.btn-warning {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
+}
+
+.btn-warning:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+}
+
+/* Dark buttons with accent gradient */
+.btn-dark {
+  background: var(--admin-gradient-accent);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-dark:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+/* Light buttons */
+.btn-light {
+  background: rgba(248, 250, 252, 0.1);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-secondary);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-light:hover {
+  background: rgba(248, 250, 252, 0.2);
+  border-color: var(--admin-border-light);
+  transform: translateY(-1px);
+}
+
+/* Small button variants */
+.btn-sm {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Large button variants */
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* Fix for any existing dark buttons with poor contrast */
+button:not([class*="btn-"]) {
+  background: var(--admin-gradient-button);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Override any buttons that might be too dark */
+.bg-gray-900:not(.admin-sidebar),
+.bg-gray-800:not(.admin-sidebar),
+.bg-black:not(.admin-sidebar) {
+  background: var(--admin-gradient-button) !important;
+  color: white !important;
+}
+
+/* Ensure all interactive elements have good contrast */
+[role="button"]:not([class*="btn-"]),
+.button:not([class*="btn-"]) {
+  background: var(--admin-gradient-button);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Modern glass-morphism cards */
+.admin-card {
+  background: var(--admin-gradient-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border-color: var(--admin-border-light);
+}
+
+/* Force all cards in admin to use dark theme */
+.admin-layout .bg-white,
+.admin-content .bg-white,
+.admin-layout [class*="bg-gray-"],
+.admin-content [class*="bg-gray-"],
+.admin-layout .border,
+.admin-content .border {
+  background: var(--admin-gradient-card) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Override any default card backgrounds */
+.admin-layout div[class*="rounded"],
+.admin-content div[class*="rounded"] {
+  background: var(--admin-gradient-card);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+}
+
+/* Specific card component overrides */
+.admin-layout [role="article"],
+.admin-layout [class*="card"],
+.admin-content [role="article"],
+.admin-content [class*="card"] {
+  background: var(--admin-gradient-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Modern status badges with cohesive color scheme */
+.status-active {
+  background: var(--admin-gradient-success);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+  border: none;
+}
+
+.status-inactive {
+  background: rgba(71, 85, 105, 0.8);
+  color: var(--admin-text-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--admin-border);
+  backdrop-filter: blur(10px);
+}
+
+.status-draft {
+  background: var(--admin-gradient-warning);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+  border: none;
+}
+
+.status-published {
+  background: var(--admin-gradient-success);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+  border: none;
+}
+
+.status-error {
+  background: var(--admin-gradient-danger);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+  border: none;
+}
+
+/* Clean link styling without underlines */
+a:not(.btn-primary):not(.btn-secondary):not(.btn-outline):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-dark):not(.btn-light) {
+  color: var(--admin-text-secondary);
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+}
+
+a:not(.btn-primary):not(.btn-secondary):not(.btn-outline):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-dark):not(.btn-light):hover {
+  color: var(--admin-text-primary);
+  text-decoration: none !important;
+}
+
+/* Remove all underlines */
+.admin-layout a,
+.admin-content a {
+  text-decoration: none !important;
+}
+
+.admin-layout a:hover,
+.admin-content a:hover {
+  text-decoration: none !important;
+}
+
+/* Dark theme text color fixes */
+.admin-layout .text-gray-900,
+.admin-layout .text-gray-800,
+.admin-layout .text-black {
+  color: var(--admin-text-primary) !important;
+}
+
+.admin-layout .text-gray-600 {
+  color: var(--admin-text-secondary) !important;
+}
+
+.admin-layout .text-gray-500 {
+  color: var(--admin-text-muted) !important;
+}
+
+/* Modern icon buttons */
+.icon-button {
+  background: rgba(51, 65, 85, 0.6);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-secondary);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.icon-button:hover {
+  background: rgba(71, 85, 105, 0.8);
+  color: var(--admin-text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Action button group improvements */
+.action-group button {
+  min-width: 80px;
+  justify-content: center;
+}
+
+/* FORCE override all CSS variables to prevent global inheritance */
+.admin-layout,
+.admin-content,
+.admin-layout *,
+.admin-content * {
+  /* NO BLUE COLORS - Dark slate theme only */
+  --primary: 71 85 105 !important; /* slate-600 */
+  --primary-foreground: 248 250 252 !important; /* slate-50 */
+  
+  /* Secondary colors - Dark slate */
+  --secondary: 100 116 139 !important; /* slate-500 */
+  --secondary-foreground: 248 250 252 !important; /* slate-50 */
+  
+  /* Muted colors - Dark theme */
+  --muted: 30 41 59 !important; /* slate-800 */
+  --muted-foreground: 148 163 184 !important; /* slate-400 */
+  
+  /* Accent colors - Dark slate instead of blue */
+  --accent: 71 85 105 !important; /* slate-600 */
+  --accent-foreground: 248 250 252 !important; /* slate-50 */
+  
+  /* Destructive colors */
+  --destructive: 239 68 68 !important; /* red-500 */
+  --destructive-foreground: 248 250 252 !important; /* slate-50 */
+  
+  /* Background colors - Dark theme */
+  --background: 15 23 42 !important; /* slate-900 */
+  --foreground: 248 250 252 !important; /* slate-50 */
+  
+  /* Border and input colors - Dark theme */
+  --border: 71 85 105 !important; /* slate-600 */
+  --input: 51 65 85 !important; /* slate-700 */
+  --ring: 71 85 105 !important; /* slate-600 - NO BLUE */
+  
+  /* Card colors - Dark glass effect */
+  --card: 30 41 59 !important; /* slate-800 */
+  --card-foreground: 248 250 252 !important; /* slate-50 */
+  
+  /* Popover colors - Dark theme */
+  --popover: 30 41 59 !important; /* slate-800 */
+  --popover-foreground: 248 250 252 !important; /* slate-50 */
+}
+
+/* Modern default button styling for all admin buttons */
+.admin-content button:not(.no-admin-style):not([class*="bg-"]),
+.admin-layout button:not(.no-admin-style):not([class*="bg-"]) {
+  background: rgba(71, 85, 105, 0.8) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+
+.admin-content button:not(.no-admin-style):not([class*="bg-"]):hover,
+.admin-layout button:not(.no-admin-style):not([class*="bg-"]):hover {
+  background: rgba(100, 116, 139, 0.9) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* FORCE override ALL blue backgrounds - strongest possible selectors */
+.admin-layout .bg-blue-50,
+.admin-layout .bg-blue-100,
+.admin-layout .bg-blue-200,
+.admin-layout .bg-blue-300,
+.admin-layout .bg-blue-400,
+.admin-layout .bg-blue-500,
+.admin-layout .bg-blue-600,
+.admin-layout .bg-blue-700,
+.admin-layout .bg-blue-800,
+.admin-layout .bg-blue-900,
+.admin-layout [class*="bg-blue"],
+.admin-content .bg-blue-50,
+.admin-content .bg-blue-100,
+.admin-content .bg-blue-200,
+.admin-content .bg-blue-300,
+.admin-content .bg-blue-400,
+.admin-content .bg-blue-500,
+.admin-content .bg-blue-600,
+.admin-content .bg-blue-700,
+.admin-content .bg-blue-800,
+.admin-content .bg-blue-900,
+.admin-content [class*="bg-blue"] {
+  background-color: rgba(71, 85, 105, 0.8) !important;
+  background-image: none !important;
+  background: rgba(71, 85, 105, 0.8) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.admin-layout .bg-blue-50:hover,
+.admin-layout .bg-blue-100:hover,
+.admin-layout .bg-blue-200:hover,
+.admin-layout .bg-blue-300:hover,
+.admin-layout .bg-blue-400:hover,
+.admin-layout .bg-blue-500:hover,
+.admin-layout .bg-blue-600:hover,
+.admin-layout .bg-blue-700:hover,
+.admin-layout .bg-blue-800:hover,
+.admin-layout .bg-blue-900:hover,
+.admin-layout [class*="bg-blue"]:hover,
+.admin-content .bg-blue-50:hover,
+.admin-content .bg-blue-100:hover,
+.admin-content .bg-blue-200:hover,
+.admin-content .bg-blue-300:hover,
+.admin-content .bg-blue-400:hover,
+.admin-content .bg-blue-500:hover,
+.admin-content .bg-blue-600:hover,
+.admin-content .bg-blue-700:hover,
+.admin-content .bg-blue-800:hover,
+.admin-content .bg-blue-900:hover,
+.admin-content [class*="bg-blue"]:hover {
+  background-color: rgba(100, 116, 139, 0.9) !important;
+  background-image: none !important;
+  background: rgba(100, 116, 139, 0.9) !important;
+  color: white !important;
+}
+
+/* Nuclear option - override any element with blue in class name */
+.admin-layout [class*="blue"],
+.admin-content [class*="blue"] {
+  background-color: rgba(71, 85, 105, 0.8) !important;
+  background-image: none !important;
+  background: rgba(71, 85, 105, 0.8) !important;
+  color: var(--admin-text-primary) !important;
+  border-color: var(--admin-border) !important;
+}
+
+.admin-layout [class*="blue"]:hover,
+.admin-content [class*="blue"]:hover {
+  background-color: rgba(100, 116, 139, 0.9) !important;
+  background-image: none !important;
+  background: rgba(100, 116, 139, 0.9) !important;
+  color: white !important;
+}
+
+/* Outline variant buttons - Dark theme */
+.admin-content button[data-variant="outline"],
+.admin-layout button[data-variant="outline"],
+.admin-content .outline,
+.admin-layout .outline {
+  background: transparent !important;
+  color: var(--admin-accent-primary) !important;
+  border: 1px solid var(--admin-accent-primary) !important;
+  backdrop-filter: blur(10px);
+}
+
+.admin-content button[data-variant="outline"]:hover,
+.admin-layout button[data-variant="outline"]:hover,
+.admin-content .outline:hover,
+.admin-layout .outline:hover {
+  background: var(--admin-accent-primary) !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Secondary variant buttons - Dark theme */
+.admin-content button[data-variant="secondary"],
+.admin-layout button[data-variant="secondary"],
+.admin-content .secondary,
+.admin-layout .secondary {
+  background: rgba(51, 65, 85, 0.8) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border) !important;
+  backdrop-filter: blur(10px);
+}
+
+.admin-content button[data-variant="secondary"]:hover,
+.admin-layout button[data-variant="secondary"]:hover,
+.admin-content .secondary:hover,
+.admin-layout .secondary:hover {
+  background: rgba(71, 85, 105, 0.9) !important;
+  border-color: var(--admin-border-light) !important;
+  transform: translateY(-1px);
+}
+
+/* Quick Actions buttons specific styling */
+.admin-content [role="button"],
+.admin-content .inline-flex.items-center {
+  min-height: 40px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+/* Ensure status badges and small elements don't get button styling */
+.admin-content .text-xs,
+.admin-content .rounded-full,
+.admin-content span:not(button span) {
+  background: initial !important;
+  color: initial !important;
+  border: initial !important;
+}
+
+/* Fix for dark buttons that might still exist */
+.admin-content .bg-gray-900,
+.admin-content .bg-gray-800,
+.admin-content .bg-black,
+.admin-layout .bg-gray-900,
+.admin-layout .bg-gray-800,
+.admin-layout .bg-black {
+  background: rgb(37 99 235) !important; /* blue-600 */
+  color: white !important;
+}
+
+/* Success/Error state buttons */
+.admin-content .bg-green-600,
+.admin-content .bg-red-600 {
+  color: white !important;
+}
+
+/* Ensure link elements within buttons maintain proper styling */
+.admin-content button a,
+.admin-layout button a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+/* Modern floating label enhancements */
+.has-value + label {
+  transform: translateY(-20px) scale(0.8);
+  color: var(--admin-accent-primary);
+}
+
+.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.menu-open {
+  overflow: hidden;
+}
+
+/* Modern scrollbars for dark theme */
+.admin-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-content::-webkit-scrollbar-track {
+  background: var(--admin-bg-secondary);
+  border-radius: 4px;
+}
+
+.admin-content::-webkit-scrollbar-thumb {
+  background: var(--admin-border-light);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.admin-content::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-accent-primary);
+}
+
+/* Loading spinner enhancements */
+.admin-layout .animate-spin {
+  border-color: var(--admin-accent-primary);
+  border-right-color: transparent;
+}
+
+/* Modern table styling */
+.admin-layout table {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--admin-gradient-card);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.admin-layout th {
+  background: rgba(15, 15, 35, 0.8);
+  color: var(--admin-text-primary);
+  font-weight: 600;
+  padding: 1rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-layout td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-text-secondary);
+}
+
+.admin-layout tr:hover td {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+/* Modern search input styling */
+.admin-layout input[type="search"] {
+  background: var(--admin-bg-input);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.admin-layout input[type="search"]:focus {
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  background: rgba(55, 65, 81, 0.8);
+}
+
+/* Strong overrides for UI components that might have default styling */
+.admin-layout .Card,
+.admin-layout .card,
+.admin-content .Card,
+.admin-content .card,
+.admin-layout [data-testid*="card"],
+.admin-content [data-testid*="card"],
+.admin-layout .shadow,
+.admin-content .shadow,
+.admin-layout .rounded-lg,
+.admin-content .rounded-lg,
+.admin-layout .rounded-xl,
+.admin-content .rounded-xl {
+  background: var(--admin-gradient-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Override any bg-amber, bg-orange, bg-yellow that might be causing brown/tan */
+.admin-layout .bg-amber-50,
+.admin-layout .bg-amber-100,
+.admin-layout .bg-orange-50,
+.admin-layout .bg-orange-100,
+.admin-layout .bg-yellow-50,
+.admin-layout .bg-yellow-100,
+.admin-layout .bg-stone-50,
+.admin-layout .bg-stone-100,
+.admin-content .bg-amber-50,
+.admin-content .bg-amber-100,
+.admin-content .bg-orange-50,
+.admin-content .bg-orange-100,
+.admin-content .bg-yellow-50,
+.admin-content .bg-yellow-100,
+.admin-content .bg-stone-50,
+.admin-content .bg-stone-100 {
+  background: var(--admin-gradient-card) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Force dark backgrounds on any container divs */
+.admin-layout > div,
+.admin-content > div,
+.admin-layout main > div,
+.admin-content main > div {
+  background-color: transparent !important;
+}
+
+/* Additional card selectors for shadcn/ui components */
+.admin-layout [class*="CardContent"],
+.admin-layout [class*="CardHeader"],
+.admin-layout [class*="CardTitle"],
+.admin-content [class*="CardContent"],
+.admin-content [class*="CardHeader"],
+.admin-content [class*="CardTitle"] {
+  background: transparent !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Selected items and navigation states */
+.admin-layout [aria-selected="true"],
+.admin-content [aria-selected="true"],
+.admin-layout .selected,
+.admin-content .selected,
+.admin-layout [data-state="selected"],
+.admin-content [data-state="selected"] {
+  background: var(--admin-gradient-button) !important;
+  color: white !important;
+  border-color: var(--admin-accent-primary) !important;
+}
+
+.admin-layout [aria-selected="true"] *,
+.admin-content [aria-selected="true"] *,
+.admin-layout .selected *,
+.admin-content .selected *,
+.admin-layout [data-state="selected"] *,
+.admin-content [data-state="selected"] * {
+  color: white !important;
+}
+
+/* Remove this - now handled by the new sidebar styles above */
+
+/* Fix any lingering pink/magenta colors */
+.admin-layout .text-pink-500,
+.admin-layout .text-pink-600,
+.admin-layout .text-magenta-500,
+.admin-layout .text-magenta-600,
+.admin-layout .bg-pink-500,
+.admin-layout .bg-pink-600,
+.admin-layout .bg-magenta-500,
+.admin-layout .bg-magenta-600,
+.admin-content .text-pink-500,
+.admin-content .text-pink-600,
+.admin-content .text-magenta-500,
+.admin-content .text-magenta-600,
+.admin-content .bg-pink-500,
+.admin-content .bg-pink-600,
+.admin-content .bg-magenta-500,
+.admin-content .bg-magenta-600 {
+  color: var(--admin-text-secondary) !important;
+  background: transparent !important;
+}
+
+/* Comprehensive pink text removal */
+.admin-layout p[style*="color"],
+.admin-content p[style*="color"],
+.admin-layout span[style*="color"],
+.admin-content span[style*="color"],
+.admin-layout div[style*="color"],
+.admin-content div[style*="color"] {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Override any pink/magenta text in specific contexts */
+.admin-layout [class*="text-pink"],
+.admin-layout [class*="text-magenta"],
+.admin-layout [class*="text-fuchsia"],
+.admin-layout [class*="text-rose"],
+.admin-layout [class*="text-purple"],
+.admin-content [class*="text-pink"],
+.admin-content [class*="text-magenta"],
+.admin-content [class*="text-fuchsia"],
+.admin-content [class*="text-rose"],
+.admin-content [class*="text-purple"] {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Force override inline styles with pink colors */
+.admin-layout *[style*="pink"],
+.admin-layout *[style*="magenta"],
+.admin-layout *[style*="fuchsia"],
+.admin-layout *[style*="#ff"],
+.admin-layout *[style*="#f0f"],
+.admin-content *[style*="pink"],
+.admin-content *[style*="magenta"],
+.admin-content *[style*="fuchsia"],
+.admin-content *[style*="#ff"],
+.admin-content *[style*="#f0f"] {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Site management specific text fixes */
+.admin-layout h3,
+.admin-layout h4,
+.admin-layout h5,
+.admin-content h3,
+.admin-content h4,
+.admin-content h5 {
+  color: var(--admin-text-primary) !important;
+}
+
+.admin-layout p,
+.admin-content p {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Dropdown and selector text fixes */
+.admin-layout [role="option"],
+.admin-content [role="option"],
+.admin-layout select option,
+.admin-content select option {
+  color: var(--admin-text-primary) !important;
+  background: var(--admin-bg-card) !important;
+}
+
+/* Site selector dropdown fixes */
+.admin-layout [role="combobox"],
+.admin-content [role="combobox"],
+.admin-layout [data-testid*="select"],
+.admin-content [data-testid*="select"] {
+  background: var(--admin-bg-card) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+/* ABSOLUTE NUCLEAR OPTION - Override ALL possible blue utilities */
+.admin-layout .text-blue-500,
+.admin-layout .text-blue-600,
+.admin-layout .text-blue-700,
+.admin-content .text-blue-500,
+.admin-content .text-blue-600,
+.admin-content .text-blue-700 {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Force override Tailwind primary color utilities */
+.admin-layout .bg-primary,
+.admin-layout .text-primary,
+.admin-layout .border-primary,
+.admin-content .bg-primary,
+.admin-content .text-primary,
+.admin-content .border-primary {
+  background-color: rgba(71, 85, 105, 0.8) !important;
+  color: var(--admin-text-primary) !important;
+  border-color: var(--admin-border) !important;
+}
+
+/* Override any remaining button styles */
+.admin-layout button,
+.admin-content button {
+  background-color: rgba(71, 85, 105, 0.8) !important;
+  background-image: none !important;
+  background: rgba(71, 85, 105, 0.8) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.admin-layout button:hover,
+.admin-content button:hover {
+  background-color: rgba(100, 116, 139, 0.9) !important;
+  background-image: none !important;
+  background: rgba(100, 116, 139, 0.9) !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Force all links to be consistent */
+.admin-layout a,
+.admin-content a {
+  color: var(--admin-text-secondary) !important;
+  text-decoration: none !important;
+}
+
+.admin-layout a:hover,
+.admin-content a:hover {
+  color: var(--admin-text-primary) !important;
+  text-decoration: none !important;
+}
+
+/* ULTIMATE PINK ELIMINATION - Target all possible pink variations */
+.admin-layout *[style*="pink"],
+.admin-layout *[style*="magenta"],
+.admin-layout *[style*="fuchsia"],
+.admin-layout *[style*="rose"],
+.admin-layout *[style*="purple"],
+.admin-layout *[style*="#ff"],
+.admin-layout *[style*="#f"],
+.admin-layout *[style*="rgb(255"],
+.admin-layout *[style*="rgb(240"],
+.admin-layout *[style*="rgb(236"],
+.admin-layout *[style*="rgb(219"],
+.admin-content *[style*="pink"],
+.admin-content *[style*="magenta"],
+.admin-content *[style*="fuchsia"],
+.admin-content *[style*="rose"],
+.admin-content *[style*="purple"],
+.admin-content *[style*="#ff"],
+.admin-content *[style*="#f"],
+.admin-content *[style*="rgb(255"],
+.admin-content *[style*="rgb(240"],
+.admin-content *[style*="rgb(236"],
+.admin-content *[style*="rgb(219"] {
+  color: var(--admin-text-secondary) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background: transparent !important;
+}
+
+/* Target ALL dropdown elements */
+.admin-layout [role="listbox"],
+.admin-layout [role="option"],
+.admin-layout [data-testid*="dropdown"],
+.admin-layout [data-testid*="select"],
+.admin-layout [data-testid*="option"],
+.admin-layout .dropdown,
+.admin-layout .select,
+.admin-layout select,
+.admin-layout option,
+.admin-content [role="listbox"],
+.admin-content [role="option"],
+.admin-content [data-testid*="dropdown"],
+.admin-content [data-testid*="select"],
+.admin-content [data-testid*="option"],
+.admin-content .dropdown,
+.admin-content .select,
+.admin-content select,
+.admin-content option {
+  background: var(--admin-bg-card) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+/* Force dropdown text colors */
+.admin-layout [role="listbox"] *,
+.admin-layout [role="option"] *,
+.admin-layout [data-testid*="dropdown"] *,
+.admin-layout [data-testid*="select"] *,
+.admin-layout [data-testid*="option"] *,
+.admin-layout .dropdown *,
+.admin-layout .select *,
+.admin-layout select *,
+.admin-layout option *,
+.admin-content [role="listbox"] *,
+.admin-content [role="option"] *,
+.admin-content [data-testid*="dropdown"] *,
+.admin-content [data-testid*="select"] *,
+.admin-content [data-testid*="option"] *,
+.admin-content .dropdown *,
+.admin-content .select *,
+.admin-content select *,
+.admin-content option * {
+  color: var(--admin-text-primary) !important;
+  background: transparent !important;
+}
+
+/* Emergency nuclear option for any remaining colored text */
+.admin-layout *,
+.admin-content * {
+  /* Remove any possible colored text that's not our admin colors */
+}
+
+.admin-layout span,
+.admin-layout div,
+.admin-layout p,
+.admin-layout label,
+.admin-layout small,
+.admin-layout em,
+.admin-layout strong,
+.admin-content span,
+.admin-content div,
+.admin-content p,
+.admin-content label,
+.admin-content small,
+.admin-content em,
+.admin-content strong {
+  color: inherit !important;
+}
+
+/* Force all text in dropdowns to be white/gray */
+.admin-layout [role="combobox"] span,
+.admin-layout [role="combobox"] div,
+.admin-layout [role="combobox"] p,
+.admin-content [role="combobox"] span,
+.admin-content [role="combobox"] div,
+.admin-content [role="combobox"] p {
+  color: var(--admin-text-primary) !important;
+}
+
+/* ========================================
+   PAGE BUILDER LAYOUT FIXES
+   ======================================== */
+
+/* Restore normal admin content padding */
+.admin-content {
+  background: transparent;
+  padding: 1.5rem;
+}
+
+/* Page header - full width with background, break out of container - ONLY for page builder */
+.admin-content .bg-white.rounded-lg.border .flex.items-center.justify-between {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--admin-border);
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  background: var(--admin-bg-secondary);
+  width: calc(100% + 3rem);
+  box-sizing: border-box;
+}
+
+/* Page builder exception - full width, break out of container */
+.admin-content .bg-white.rounded-lg.border {
+  margin: 0 -1.5rem !important;
+  padding: 0 !important;
+}
+
+.admin-content .flex.items-center.gap-4 h1 {
+  margin: 0 !important;
+  font-size: 1.875rem !important;
+  font-weight: 700 !important;
+  color: var(--admin-text-primary) !important;
+}
+
+.admin-content .flex.items-center.gap-4 p {
+  margin: 0.25rem 0 0 0 !important;
+  color: var(--admin-text-secondary) !important;
+  font-size: 0.875rem !important;
+}
+
+/* Fix button group spacing at top of page */
+.admin-content .flex.items-center.gap-3 {
+  gap: 0.75rem !important;
+}
+
+.admin-content .flex.items-center.gap-3 button,
+.admin-content .flex.items-center.gap-3 a {
+  padding: 0.5rem 1rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Tab navigation fixes - remove underlines */
+.admin-content nav.-mb-px.flex.space-x-8 {
+  border-bottom: 1px solid var(--admin-border) !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 0 !important;
+}
+
+.admin-content nav.-mb-px.flex.space-x-8 button {
+  padding: 0.75rem 1rem !important;
+  border: none !important;
+  border-bottom: none !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  color: var(--admin-text-secondary) !important;
+  background: var(--admin-bg-secondary) !important;
+  margin-bottom: 0 !important;
+  border-radius: 0.375rem 0.375rem 0 0 !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+}
+
+.admin-content nav.-mb-px.flex.space-x-8 button:hover {
+  color: var(--admin-text-primary) !important;
+  background: var(--admin-bg-hover) !important;
+  text-decoration: none !important;
+  border-bottom: 2px solid var(--admin-border) !important;
+}
+
+/* Active tab styling - clean solid background, no underlines */
+.admin-content nav.-mb-px.flex.space-x-8 button[class*="border-blue-500"],
+.admin-content nav.-mb-px.flex.space-x-8 button[class*="text-blue-600"] {
+  color: var(--admin-text-primary) !important;
+  background: var(--admin-bg-card) !important;
+  text-decoration: none !important;
+  border: 1px solid var(--admin-border) !important;
+  border-bottom: 2px solid var(--admin-accent-primary) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Force remove all underlines from tab buttons */
+.admin-content nav.-mb-px.flex.space-x-8 button,
+.admin-content nav.-mb-px.flex.space-x-8 button:hover,
+.admin-content nav.-mb-px.flex.space-x-8 button:focus,
+.admin-content nav.-mb-px.flex.space-x-8 button:active {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+  text-underline-offset: none !important;
+}
+
+/* Page builder container fixes */
+.admin-content .bg-white.rounded-lg.border {
+  background: var(--admin-bg-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden !important;
+}
+
+/* Fix page builder internal layout - remove multiple container wrapping */
+.admin-content .flex.h-screen.bg-gray-100 {
+  height: calc(100vh - 200px) !important;
+  background: var(--admin-bg-primary) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ONLY target page builder specific containers - very specific selectors */
+/* Only the PageBuilder component flex container */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Only the canvas area inside page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto .p-6 {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Component palette styling - fix overflow and spacing */
+.admin-content .w-80.bg-white.border-r.border-gray-200 {
+  background: var(--admin-bg-card) !important;
+  border-right: 1px solid var(--admin-border) !important;
+  width: 320px !important;
+  min-width: 320px !important;
+  max-width: 320px !important;
+  flex-shrink: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.admin-content .w-80.bg-white.border-r.border-gray-200 .p-6 {
+  padding: 0.75rem !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Fix component library container spacing */
+.admin-content .w-80 > div {
+  padding: 0.75rem !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.admin-content .w-80.bg-white.border-r.border-gray-200 h3 {
+  color: var(--admin-text-primary) !important;
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 1rem !important;
+}
+
+.admin-content .w-80.bg-white.border-r.border-gray-200 p {
+  color: var(--admin-text-secondary) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.4 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Page canvas area - ONLY for page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto {
+  background: var(--admin-bg-primary) !important;
+  flex: 1 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+}
+
+/* Make the blocks container ZERO padding - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+}
+
+/* Show the blocks properly - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto > div {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Page builder main container - ONLY for page builder, not all cards */
+.admin-content div:has(.flex.h-screen.bg-gray-100) {
+  background: var(--admin-bg-card) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Alternative selector for page builder container */
+.admin-content .bg-white.rounded-lg.border:has(.flex.h-screen) {
+  background: var(--admin-bg-card) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Style the page content header - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto .flex.items-center.justify-between {
+  padding: 0.75rem 1rem !important;
+  background: var(--admin-bg-secondary) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto .flex.items-center.justify-between h2,
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto .flex.items-center.justify-between h3 {
+  color: var(--admin-text-primary) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .flex-1.overflow-y-auto .flex.items-center.justify-between .text-sm {
+  color: var(--admin-text-secondary) !important;
+  font-size: 0.875rem !important;
+}
+
+/* Make blocks edge-to-edge with no margins - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] {
+  background: var(--admin-bg-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0 !important;
+  margin: 0 0 1px 0 !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+/* Component cards in palette - fix overflow */
+.admin-content .w-80 .space-y-6 {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.admin-content .w-80 .space-y-6 > div {
+  margin-bottom: 1.5rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.admin-content .w-80 h4 {
+  color: var(--admin-text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin-bottom: 0.75rem !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Individual component items - prevent overflow and fix spacing */
+.admin-content .w-80 [draggable="true"] {
+  background: var(--admin-bg-secondary) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.375rem !important;
+  padding: 0.5rem !important;
+  margin: 0 0 0.5rem 0 !important;
+  cursor: grab !important;
+  transition: all 0.2s ease !important;
+  width: calc(100% - 0.5rem) !important;
+  max-width: calc(100% - 0.5rem) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.admin-content .w-80 [draggable="true"]:hover {
+  background: var(--admin-bg-hover) !important;
+  border-color: var(--admin-accent-primary) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-content .w-80 [draggable="true"]:active {
+  cursor: grabbing !important;
+}
+
+/* Fix component icons - remove backgrounds */
+.admin-content .w-80 [draggable="true"] svg,
+.admin-content .w-80 [draggable="true"] .lucide {
+  color: var(--admin-text-secondary) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Fix any icon containers */
+.admin-content .w-80 [draggable="true"] .flex.items-center.justify-center,
+.admin-content .w-80 [draggable="true"] .w-8.h-8,
+.admin-content .w-80 [draggable="true"] .w-6.h-6,
+.admin-content .w-80 [draggable="true"] .w-4.h-4 {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Component text layout */
+.admin-content .w-80 [draggable="true"] > div {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* Fix any blue icon backgrounds */
+.admin-content .w-80 [draggable="true"] .bg-blue-50,
+.admin-content .w-80 [draggable="true"] .bg-blue-100,
+.admin-content .w-80 [draggable="true"] .bg-blue-500,
+.admin-content .w-80 [draggable="true"] [class*="bg-blue"] {
+  background: transparent !important;
+  color: var(--admin-text-secondary) !important;
+}
+
+/* COMPREHENSIVE ICON BACKGROUND CLEANUP */
+.admin-layout svg,
+.admin-content svg,
+.admin-layout .lucide,
+.admin-content .lucide {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove icon container backgrounds */
+.admin-layout .bg-blue-50,
+.admin-layout .bg-blue-100,
+.admin-layout .bg-blue-500,
+.admin-layout .bg-gray-100,
+.admin-layout .bg-gray-200,
+.admin-content .bg-blue-50,
+.admin-content .bg-blue-100,
+.admin-content .bg-blue-500,
+.admin-content .bg-gray-100,
+.admin-content .bg-gray-200 {
+  background: transparent !important;
+}
+
+/* Fix navigation item icons specifically */
+.admin-content .flex.items-center.justify-between .bg-blue-500,
+.admin-content .flex.items-center.justify-between [class*="bg-blue"] {
+  background: transparent !important;
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Remove any remaining colored backgrounds from icon containers */
+.admin-layout [class*="w-8"][class*="h-8"],
+.admin-layout [class*="w-6"][class*="h-6"],
+.admin-layout [class*="w-4"][class*="h-4"],
+.admin-content [class*="w-8"][class*="h-8"],
+.admin-content [class*="w-6"][class*="h-6"],
+.admin-content [class*="w-4"][class*="h-4"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Component text and descriptions - prevent overflow */
+.admin-content .w-80 [draggable="true"] h5,
+.admin-content .w-80 [draggable="true"] .font-medium {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: var(--admin-text-primary) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+.admin-content .w-80 [draggable="true"] p,
+.admin-content .w-80 [draggable="true"] .text-sm {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: var(--admin-text-secondary) !important;
+  font-size: 0.75rem !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Page canvas content blocks - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] {
+  background: var(--admin-bg-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.5rem !important;
+  margin-bottom: 1rem !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id]:hover {
+  border-color: var(--admin-accent-primary) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Block content wrapper - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] > div {
+  position: relative !important;
+}
+
+/* Block header with title and actions - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] .flex.items-center.justify-between {
+  background: var(--admin-bg-secondary) !important;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  margin: 0 !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] .flex.items-center.justify-between h3,
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] .flex.items-center.justify-between h4,
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] .flex.items-center.justify-between .font-medium {
+  color: var(--admin-text-primary) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+/* Block action buttons - ONLY in page builder */
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] .flex.items-center.gap-2,
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] .flex.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] button {
+  background: var(--admin-bg-hover) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text-secondary) !important;
+  padding: 0.375rem !important;
+  border-radius: 0.25rem !important;
+  transition: all 0.2s ease !important;
+  min-width: auto !important;
+  width: auto !important;
+  height: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] button:hover {
+  background: var(--admin-bg-primary) !important;
+  color: var(--admin-text-primary) !important;
+  border-color: var(--admin-accent-primary) !important;
+  transform: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-content .bg-white.rounded-lg.border .flex.h-screen.bg-gray-100 .space-y-4 > div[data-rbd-draggable-id] button svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: inherit !important;
+}
+
+/* Fix any remaining blue tab borders */
+.admin-layout .border-blue-500,
+.admin-content .border-blue-500 {
+  border-color: var(--admin-accent-primary) !important;
+}
+
+.admin-layout .text-blue-600,
+.admin-content .text-blue-600 {
+  color: var(--admin-text-primary) !important;
+}
+
+/* ========================================
+   THEMES PAGE - HIDE SPECIFIC CARDS
+   ======================================== */
+
+/* Hide Component Auto-Discovery card (2nd card) on themes page */
+.themes-page > div:nth-child(2) {
+  display: none !important;
+}
+
+/* Hide Template Auto-Generation card (3rd card) on themes page */
+.themes-page > div:nth-child(3) {
+  display: none !important;
+}
+
+/* ========================================
+   NAVIGATION PAGE FIXES
+   ======================================== */
+
+/* Navigation menu items container */
+.admin-content .space-y-2 {
+  gap: 0.75rem !important;
+  padding: 0.5rem !important;
+}
+
+/* Droppable area styling */
+.admin-content .border-2.border-dashed {
+  border: 2px dashed var(--admin-border) !important;
+  background: var(--admin-bg-secondary) !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem !important;
+  min-height: 200px !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-content .border-2.border-dashed.border-blue-400 {
+  border-color: var(--admin-accent-primary) !important;
+  background: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Navigation item cards - more specific targeting */
+.admin-content [data-rbd-draggable-id] > div {
+  background: var(--admin-gradient-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+  margin: 0 0 0.75rem 0 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  cursor: default !important;
+}
+
+.admin-content [data-rbd-draggable-id] > div:hover {
+  border-color: var(--admin-border-light) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Dragging state */
+.admin-content [data-rbd-draggable-id].shadow-lg > div {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+  transform: rotate(2deg) scale(1.02) !important;
+  border-color: var(--admin-accent-primary) !important;
+}
+
+/* Navigation item drag handle */
+.admin-content .cursor-grab {
+  color: var(--admin-text-muted) !important;
+  padding: 0.375rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
+  margin-right: 0.5rem !important;
+}
+
+.admin-content .cursor-grab:hover {
+  background: var(--admin-bg-hover) !important;
+  color: var(--admin-text-secondary) !important;
+}
+
+.admin-content .cursor-grab:active,
+.admin-content .active\\:cursor-grabbing {
+  cursor: grabbing !important;
+  background: var(--admin-bg-primary) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Navigation item content - more specific targeting */
+.admin-content [data-rbd-draggable-id] .flex.items-center.gap-3 .flex-1 h4,
+.admin-content [data-rbd-draggable-id] .flex.items-center.gap-3 .flex-1 .font-medium {
+  color: var(--admin-text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin: 0 0 0.25rem 0 !important;
+  line-height: 1.2 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.admin-content [data-rbd-draggable-id] .flex.items-center.gap-3 .flex-1 p,
+.admin-content [data-rbd-draggable-id] .flex.items-center.gap-3 .flex-1 .text-sm {
+  color: var(--admin-text-secondary) !important;
+  font-size: 0.875rem !important;
+  margin: 0 !important;
+  opacity: 0.9 !important;
+  line-height: 1.3 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Ensure the content container is visible */
+.admin-content [data-rbd-draggable-id] .flex.items-center.gap-3 .flex-1 {
+  display: block !important;
+  visibility: visible !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+/* Make sure the flex container for item content is visible */
+.admin-content [data-rbd-draggable-id] .flex.items-center.gap-2 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Force all text elements to be visible */
+.admin-content [data-rbd-draggable-id] h4,
+.admin-content [data-rbd-draggable-id] p,
+.admin-content [data-rbd-draggable-id] span {
+  color: var(--admin-text-primary) !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Navigation item action buttons */
+.admin-content .flex.items-center.gap-1 {
+  gap: 0.25rem !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-content .flex.items-center.gap-1 button {
+  background: var(--admin-bg-hover) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text-secondary) !important;
+  padding: 0.375rem !important;
+  border-radius: 0.25rem !important;
+  transition: all 0.2s ease !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-content .flex.items-center.gap-1 button:hover {
+  background: var(--admin-bg-primary) !important;
+  color: var(--admin-text-primary) !important;
+  border-color: var(--admin-border-light) !important;
+  transform: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-content .flex.items-center.gap-1 button.text-red-600 {
+  color: #ef4444 !important;
+}
+
+.admin-content .flex.items-center.gap-1 button.text-red-600:hover {
+  background: #ef4444 !important;
+  color: white !important;
+  border-color: #ef4444 !important;
+}
+
+/* Navigation item icons */
+.admin-content .flex.items-center.gap-3 svg,
+.admin-content .flex.items-center.gap-1 svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: inherit !important;
+  flex-shrink: 0 !important;
+}
+
+/* External link icon styling */
+.admin-content .flex.items-center.gap-2 svg {
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+  opacity: 0.6 !important;
+}
+
+/* Invisible navigation items */
+.admin-content .opacity-60 {
+  opacity: 0.5 !important;
+}
+
+.admin-content .opacity-60 h4 {
+  color: var(--admin-text-muted) !important;
+}
+
+.admin-content .opacity-60 p {
+  color: var(--admin-text-muted) !important;
+  opacity: 0.6 !important;
+}
+
+/* Navigation preview section */
+.admin-content .border.rounded-lg.p-4.bg-gray-50 {
+  background: var(--admin-bg-secondary) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+}
+
+.admin-content .border.rounded-lg.p-4.bg-gray-50 .text-sm.font-medium {
+  color: var(--admin-text-primary) !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Navigation preview items */
+.admin-content .flex.flex-wrap.gap-4 span {
+  background: var(--admin-gradient-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-content .flex.flex-wrap.gap-4 span:hover {
+  background: var(--admin-bg-hover) !important;
+  border-color: var(--admin-border-light) !important;
+}
+
+/* Navigation form styling improvements */
+.admin-content .space-y-4 label {
+  color: var(--admin-text-primary) !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  margin-bottom: 0.25rem !important;
+  display: block !important;
+}
+
+.admin-content .flex.items-center input[type="checkbox"] {
+  accent-color: var(--admin-accent-primary) !important;
+  background: var(--admin-bg-input) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.25rem !important;
+}
+
+.admin-content .flex.items-center label {
+  color: var(--admin-text-secondary) !important;
+  font-weight: 400 !important;
+}
+
+/* Form buttons */
+.admin-content .flex.items-center.gap-3.pt-4 button {
+  min-width: auto !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  border-radius: 0.375rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+/* Ensure drag and drop works - override any conflicting styles */
+.admin-content [data-rbd-droppable-id="navigation"] {
+  pointer-events: auto !important;
+  position: relative !important;
+}
+
+.admin-content [data-rbd-draggable-id] {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: auto !important;
+}
+
+.admin-content [data-rbd-drag-handle-draggable-id] {
+  pointer-events: auto !important;
+  cursor: grab !important;
+}
+
+.admin-content [data-rbd-drag-handle-draggable-id]:active {
+  cursor: grabbing !important;
+}
+
+/* Ensure proper spacing between navigation items */
+.admin-content [data-rbd-draggable-id]:not(:last-child) {
+  margin-bottom: 0.75rem !important;
+}
+
+/* Remove any transforms that might interfere with dragging */
+.admin-content [data-rbd-draggable-id]:not([data-rbd-draggable-context-id]) {
+  transform: none !important;
+}
+
+/* Ensure draggable items have proper layout */
+.admin-content [data-rbd-draggable-id] > div {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+/* Fix any layout issues with flex containers */
+.admin-content .flex.items-center.gap-3 {
+  flex: 1 !important;
+  min-width: 0 !important;
+  gap: 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.admin-content .flex.items-center.gap-1 {
+  flex-shrink: 0 !important;
+  gap: 0.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Override any global styles that might be hiding text */
+.admin-content [data-rbd-draggable-id] * {
+  color: inherit !important;
+  visibility: visible !important;
+  opacity: inherit !important;
+}
+
+/* Specific text color overrides */
+.admin-content [data-rbd-draggable-id] .text-gray-900,
+.admin-content [data-rbd-draggable-id] .text-gray-800,
+.admin-content [data-rbd-draggable-id] .text-gray-700,
+.admin-content [data-rbd-draggable-id] .text-gray-600 {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Ensure navigation item titles are always visible */
+.admin-content [data-rbd-draggable-id] h4,
+.admin-content [data-rbd-draggable-id] .font-medium {
+  color: var(--admin-text-primary) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  text-decoration: none !important;
+}
+
+/* Ensure navigation item descriptions are visible */
+.admin-content [data-rbd-draggable-id] .text-sm,
+.admin-content [data-rbd-draggable-id] p {
+  color: var(--admin-text-secondary) !important;
+  font-size: 0.875rem !important;
+  margin: 0.25rem 0 0 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  text-decoration: none !important;
+}
+
+/* ========================================
+   NAVIGATION COMPONENT - UNIQUE CLASSES
+   ======================================== */
+
+/* Navigation container - completely isolated */
+.nav-builder-container {
+  background: var(--admin-bg-secondary) !important;
+  border: 2px dashed var(--admin-border) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  min-height: 200px !important;
+  transition: all 0.2s ease !important;
+}
+
+.nav-builder-container.drag-over {
+  border-color: var(--admin-accent-primary) !important;
+  background: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Individual navigation item card */
+.nav-item-card {
+  background: linear-gradient(145deg, #1e293b 0%, #334155 100%) !important;
+  border: 1px solid #475569 !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+  margin: 0 0 12px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.nav-item-card:hover {
+  border-color: #64748b !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+.nav-item-card.dragging {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+  transform: rotate(2deg) scale(1.02) !important;
+  border-color: var(--admin-accent-primary) !important;
+}
+
+.nav-item-card.hidden {
+  opacity: 0.5 !important;
+}
+
+/* Navigation item content area */
+.nav-item-content {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* Drag handle */
+.nav-drag-handle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  margin-right: 8px !important;
+  cursor: grab !important;
+  transition: all 0.2s ease !important;
+  color: #94a3b8 !important;
+}
+
+.nav-drag-handle:hover {
+  background: rgba(71, 85, 105, 0.4) !important;
+  color: #cbd5e1 !important;
+}
+
+.nav-drag-handle:active {
+  cursor: grabbing !important;
+  background: rgba(71, 85, 105, 0.6) !important;
+  color: #f8fafc !important;
+}
+
+/* Navigation item text content */
+.nav-item-text {
+  display: block !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.nav-item-title {
+  color: #f8fafc !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  display: block !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.nav-item-description {
+  color: #cbd5e1 !important;
+  font-size: 14px !important;
+  margin: 4px 0 0 0 !important;
+  padding: 0 !important;
+  line-height: 1.3 !important;
+  opacity: 0.9 !important;
+  display: block !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Navigation item actions */
+.nav-item-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.nav-action-btn {
+  background: rgba(71, 85, 105, 0.4) !important;
+  border: 1px solid #475569 !important;
+  color: #cbd5e1 !important;
+  padding: 6px !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.nav-action-btn:hover {
+  background: rgba(100, 116, 139, 0.6) !important;
+  color: #f8fafc !important;
+  border-color: #64748b !important;
+  transform: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.nav-action-btn.delete {
+  color: #ef4444 !important;
+}
+
+.nav-action-btn.delete:hover {
+  background: #ef4444 !important;
+  color: white !important;
+  border-color: #ef4444 !important;
+}
+
+/* Empty state */
+.nav-empty-state {
+  text-align: center !important;
+  padding: 32px !important;
+  color: #94a3b8 !important;
+}
+
+.nav-empty-state svg {
+  color: #94a3b8 !important;
+  opacity: 0.6 !important;
+  margin: 0 auto 8px auto !important;
+}
+
+.nav-empty-state p {
+  color: #94a3b8 !important;
+  font-size: 14px !important;
+  margin: 4px 0 !important;
+}
+
+/* Specific targeting for navigation text elements */
+.admin-content div[data-rbd-draggable-id] div.flex-1 h4 {
+  color: #f8fafc !important; /* Direct color instead of variable */
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.admin-content div[data-rbd-draggable-id] div.flex-1 p {
+  color: #cbd5e1 !important; /* Direct color instead of variable */
+  font-size: 14px !important;
+  margin: 4px 0 0 0 !important;
+  padding: 0 !important;
+}
+
+/* Empty state styling */
+.admin-content .text-center.py-8 {
+  padding: 2rem !important;
+  color: var(--admin-text-muted) !important;
+}
+
+.admin-content .text-center.py-8 svg {
+  color: var(--admin-text-muted) !important;
+  opacity: 0.6 !important;
+  margin: 0 auto 0.5rem auto !important;
+}
+
+.admin-content .text-center.py-8 p {
+  color: var(--admin-text-muted) !important;
+  font-size: 0.875rem !important;
+  margin: 0.25rem 0 !important;
+}

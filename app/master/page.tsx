@@ -266,6 +266,14 @@ export default function MasterDashboard() {
                   Create New Website
                 </Button>
               </Link>
+              <Link href="/master/themes">
+                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg shadow-purple-500/25">
+                  <div className="h-4 w-4 mr-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">AI</span>
+                  </div>
+                  Generate Theme
+                </Button>
+              </Link>
               <Link href="/master/settings">
                 <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
                   <Settings className="h-4 w-4 mr-2" />

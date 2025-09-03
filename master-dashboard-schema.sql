@@ -34,7 +34,7 @@ CREATE TABLE cms_instances (
   
   -- Template and theme
   template_id TEXT DEFAULT 'default',
-  theme_id TEXT DEFAULT 'default',
+  theme_id TEXT DEFAULT 'base-theme',
   
   -- Deployment settings
   auto_deploy BOOLEAN DEFAULT true,
@@ -225,6 +225,7 @@ INSERT INTO cms_templates (id, name, description, category, git_repo, preview_im
 INSERT INTO master_settings (key, value, description) VALUES
 ('vercel_team_id', '"your-team-id"', 'Default Vercel team ID for deployments'),
 ('default_template', '"default"', 'Default template for new CMS instances'),
+('default_theme', '"base-theme"', 'Default theme for new CMS instances'),
 ('auto_setup_supabase', 'true', 'Automatically create Supabase projects for new instances'),
 ('notification_email', '"admin@yourdomain.com"', 'Email for system notifications'),
 ('max_instances_per_user', '10', 'Maximum CMS instances per user email'),

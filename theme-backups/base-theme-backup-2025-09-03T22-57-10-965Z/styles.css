@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Theme Primary Colors */
+  --theme-primary-50: 239 246 255;
+  --theme-primary-100: 219 234 254;
+  --theme-primary-200: 191 219 254;
+  --theme-primary-300: 147 197 253;
+  --theme-primary-400: 96 165 250;
+  --theme-primary-500: 59 130 246;
+  --theme-primary-600: 37 99 235;
+  --theme-primary-700: 29 78 216;
+  --theme-primary-800: 30 64 175;
+  --theme-primary-900: 30 58 138;
+
+  /* Theme Gray Colors */
+  --theme-gray-50: 248 250 252;
+  --theme-gray-100: 241 245 249;
+  --theme-gray-200: 226 232 240;
+  --theme-gray-300: 203 213 225;
+  --theme-gray-400: 148 163 184;
+  --theme-gray-500: 100 116 139;
+  --theme-gray-600: 71 85 105;
+  --theme-gray-700: 51 65 85;
+  --theme-gray-800: 30 41 59;
+  --theme-gray-900: 15 23 42;
+}
+
+/* Base theme custom styles */
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+}
+
+@layer components {
+  .theme-container {
+    @apply container mx-auto px-4 md:px-6;
+  }
+}

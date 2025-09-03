@@ -1,32 +1,24 @@
-import type { Metadata } from 'next'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
-import { ThemeProvider as CmsThemeProvider } from '@/lib/theme-context'
+import { Inter } from 'next/font/google'
+import { ThemeCSSLoader } from '@/components/theme-css-loader'
 
-export const metadata: Metadata = {
-  title: 'StreamLine - Page Builder CMS',
-  description: 'Streamline your workflow like never before',
-  generator: 'v0.dev',
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'CMS TailWinds',
+  description: 'Multi-tenant CMS with theme support',
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <CmsThemeProvider>
-              {children}
-          </CmsThemeProvider>
-        </ThemeProvider>
+    <html lang="en">
+      <body className={inter.className}>
+        <ThemeCSSLoader />
+        {children}
       </body>
     </html>
   )

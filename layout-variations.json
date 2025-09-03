@@ -1,0 +1,54 @@
+{
+  "header_layouts": {
+    "minimal": {
+      "description": "Clean, minimal header with just logo and essential nav",
+      "structure": "Simple horizontal layout, minimal styling"
+    },
+    "modern": {
+      "description": "Modern header with gradient background and enhanced styling", 
+      "structure": "Enhanced styling with gradients and modern elements"
+    },
+    "sidebar": {
+      "description": "Vertical sidebar navigation instead of top nav",
+      "structure": "Sidebar layout for desktop, collapsible mobile"
+    },
+    "centered": {
+      "description": "Centered logo with navigation below",
+      "structure": "Stacked layout with centered elements"
+    },
+    "creative": {
+      "description": "Bold, creative header with unique visual elements",
+      "structure": "Artistic layout with creative visual elements"
+    }
+  },
+  "hero_layouts": {
+    "split": {
+      "description": "Split-screen hero with content on left, visual on right",
+      "structure": "Two-column layout with content and visual elements"
+    },
+    "fullscreen": {
+      "description": "Full-height hero covering entire viewport",
+      "structure": "100vh height with centered content"
+    },
+    "cards": {
+      "description": "Hero content arranged in card format",
+      "structure": "Card-based layout with different sections"
+    },
+    "modern": {
+      "description": "Modern hero with advanced styling and animations",
+      "structure": "Enhanced with gradients, shadows, and modern design"
+    },
+    "minimal": {
+      "description": "Clean, minimal hero focusing on content",
+      "structure": "Simple, clean layout with minimal visual elements"
+    }
+  },
+  "industry_layout_preferences": {
+    "healthcare": ["minimal", "professional", "centered"],
+    "technology": ["modern", "split", "creative"],
+    "finance": ["professional", "minimal", "centered"],
+    "creative": ["creative", "modern", "fullscreen"],
+    "restaurant": ["warm", "cards", "split"],
+    "education": ["clean", "organized", "minimal"]
+  }
+}
