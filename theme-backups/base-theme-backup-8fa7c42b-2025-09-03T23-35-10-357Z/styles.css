@@ -4,16 +4,16 @@
 
 :root {
   /* Theme Primary Colors */
-  --theme-primary-50: 240 249 255;
-  --theme-primary-100: 224 242 254;
-  --theme-primary-200: 186 230 253;
-  --theme-primary-300: 125 211 252;
-  --theme-primary-400: 56 189 248;
-  --theme-primary-500: 14 165 233;
-  --theme-primary-600: 2 132 199;
-  --theme-primary-700: 3 105 161;
-  --theme-primary-800: 7 89 133;
-  --theme-primary-900: 12 74 110;
+  --theme-primary-50: 236 254 255;
+  --theme-primary-100: 207 250 254;
+  --theme-primary-200: 165 243 252;
+  --theme-primary-300: 103 232 249;
+  --theme-primary-400: 34 211 238;
+  --theme-primary-500: 6 182 212;
+  --theme-primary-600: 8 145 178;
+  --theme-primary-700: 14 116 144;
+  --theme-primary-800: 21 94 117;
+  --theme-primary-900: 22 78 99;
 
   /* Theme Gray Colors */
   --theme-gray-50: 248 250 252;

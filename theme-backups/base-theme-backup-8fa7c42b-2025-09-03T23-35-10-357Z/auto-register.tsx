@@ -14,8 +14,8 @@ import Hero, { metadata as HeroMetadata } from './ui/Hero'
 import Pricing, { metadata as PricingMetadata } from './ui/Pricing'
 import Testimonials, { metadata as TestimonialsMetadata } from './ui/Testimonials'
 
-export const themeName = 'Glassmorphic Tech Labs'
-export const themeDescription = 'Modern glassmorphism design with blur effects and transparency for innovative tech companies'
+export const themeName = 'Dark SaaS Automation'
+export const themeDescription = 'Sleek dark theme with neon accents for AI-powered developer tools'
 export const themeAuthor = 'CMS TailWinds'
 export const themeVersion = '1.0.0'
 

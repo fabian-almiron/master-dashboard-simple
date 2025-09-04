@@ -24,7 +24,7 @@ export default function Header() {
               <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center mr-3">
                 <Zap className="h-5 w-5 text-theme-primary-600" />
               </div>
-              <span className="text-xl font-bold text-white">Future Tech Labs</span>
+              <span className="text-xl font-bold text-white">TruKraft</span>
             </a>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
@@ -35,7 +35,7 @@ export default function Header() {
           </nav>
           <div className="hidden md:flex">
             <button className="px-6 py-3 bg-white text-theme-primary-700 rounded-lg font-medium hover:bg-theme-gray-100 transition-all shadow-md">
-              Join Us
+              Get Started
             </button>
           </div>
           <div className="md:hidden">
@@ -52,7 +52,7 @@ export default function Header() {
               <a href="/services" className="block py-3 px-4 text-white/90 hover:text-white hover:bg-white/10 rounded">Services</a>
               <a href="/contact" className="block py-3 px-4 text-white/90 hover:text-white hover:bg-white/10 rounded">Contact</a>
               <button className="w-full mt-4 px-6 py-3 bg-white text-theme-primary-700 rounded-lg font-medium">
-                Join Us
+                Get Started
               </button>
             </div>
           </div>
