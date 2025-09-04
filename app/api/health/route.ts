@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { masterSupabase } from '@/lib/master-supabase'
+import { getMasterSupabase } from '@/lib/master-supabase'
 import { getRailwayEnvironmentInfo, getMasterDashboardUrl } from '@/lib/railway-config'
 
 export async function GET(request: NextRequest) {
@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const startTime = Date.now()
     
     // Check database connection
+    const masterSupabase = getMasterSupabase()
     const { data, error } = await masterSupabase
       .from('cms_instances')
       .select('count')

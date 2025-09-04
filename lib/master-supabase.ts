@@ -2,13 +2,20 @@ import { createClient } from '@supabase/supabase-js'
 
 // Master Dashboard Supabase Configuration
 // This uses a separate Supabase project for managing CMS instances
-const masterSupabaseUrl = process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL
-const masterSupabaseAnonKey = process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY
-const masterSupabaseServiceKey = process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY
+
+// Helper function to get environment variables at runtime
+function getMasterSupabaseConfig() {
+  return {
+    url: process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL,
+    anonKey: process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY,
+    serviceKey: process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY
+  }
+}
 
 // Helper function to check if Master Supabase is configured
 export function isMasterSupabaseConfigured(): boolean {
-  return !!(masterSupabaseUrl && masterSupabaseAnonKey)
+  const config = getMasterSupabaseConfig()
+  return !!(config.url && config.anonKey)
 }
 
 // Create fallback client for build time when env vars are missing
@@ -16,20 +23,40 @@ function createFallbackClient() {
   return createClient('https://fallback.supabase.co', 'fallback-key')
 }
 
-// Public client for master dashboard (respects RLS)
-export const masterSupabase = masterSupabaseUrl && masterSupabaseAnonKey 
-  ? createClient(masterSupabaseUrl, masterSupabaseAnonKey)
-  : createFallbackClient()
+// Lazy-loaded clients to ensure they're created at runtime
+let _masterSupabase: ReturnType<typeof createClient> | null = null
+let _masterSupabaseAdmin: ReturnType<typeof createClient> | null = null
 
-// Admin client for master dashboard (bypasses RLS)
-export const masterSupabaseAdmin = masterSupabaseServiceKey && masterSupabaseUrl
-  ? createClient(masterSupabaseUrl, masterSupabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null
+// Public client for master dashboard (respects RLS) - lazy loaded
+export function getMasterSupabase() {
+  if (!_masterSupabase) {
+    const config = getMasterSupabaseConfig()
+    _masterSupabase = config.url && config.anonKey 
+      ? createClient(config.url, config.anonKey)
+      : createFallbackClient()
+  }
+  return _masterSupabase
+}
+
+// Admin client for master dashboard (bypasses RLS) - lazy loaded
+export function getMasterSupabaseAdmin() {
+  if (!_masterSupabaseAdmin) {
+    const config = getMasterSupabaseConfig()
+    _masterSupabaseAdmin = config.serviceKey && config.url
+      ? createClient(config.url, config.serviceKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })
+      : null
+  }
+  return _masterSupabaseAdmin
+}
+
+// Backward compatibility exports
+export const masterSupabase = getMasterSupabase()
+export const masterSupabaseAdmin = getMasterSupabaseAdmin()
 
 // =============================================
 // TYPE DEFINITIONS
