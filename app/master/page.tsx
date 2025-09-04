@@ -43,9 +43,12 @@ export default function MasterDashboard() {
     try {
       setIsLoading(true)
       
-      // Check if master Supabase is configured
-      if (!isMasterSupabaseConfigured()) {
-        setError('Master dashboard not configured')
+      // Check configuration via API endpoint (server-side check)
+      const configResponse = await fetch('/api/check-config')
+      const configData = await configResponse.json()
+      
+      if (!configData.configured || !configData.connected) {
+        setError(configData.error || 'Master dashboard not configured')
         return
       }
       

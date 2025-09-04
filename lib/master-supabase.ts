@@ -12,10 +12,18 @@ function getMasterSupabaseConfig() {
   }
 }
 
-// Helper function to check if Master Supabase is configured
+// Helper function to check if Master Supabase is configured (client-safe)
 export function isMasterSupabaseConfigured(): boolean {
+  // Only check NEXT_PUBLIC_ variables since this runs on client-side
+  const url = process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY
+  return !!(url && anonKey)
+}
+
+// Server-side configuration check (includes service key)
+export function isMasterSupabaseFullyConfigured(): boolean {
   const config = getMasterSupabaseConfig()
-  return !!(config.url && config.anonKey)
+  return !!(config.url && config.anonKey && config.serviceKey)
 }
 
 // Create fallback client for build time when env vars are missing
