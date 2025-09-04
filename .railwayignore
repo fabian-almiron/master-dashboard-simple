@@ -1,0 +1,49 @@
+# Railway ignore file
+# Files and directories to exclude from Railway deployment
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.log
+
+# Build artifacts (Railway will build fresh)
+.next/
+node_modules/
+.vercel/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation (optional, remove if you want docs in production)
+*.md
+!README.md
+!RAILWAY_DEPLOYMENT.md
+
+# Backup files
+theme-backups/
+*.backup
+*.bak
+
+# Development scripts
+scripts/test-*
+scripts/dev-*
+
+# Local configuration
+.env.example
+master-env.example

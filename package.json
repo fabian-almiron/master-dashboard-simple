@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "deploy:vercel": "vercel --prod",
-    "deploy:preview": "vercel"
+    "deploy:preview": "vercel",
+    "deploy:railway": "railway up",
+    "railway:login": "railway login",
+    "railway:link": "railway link",
+    "railway:logs": "railway logs",
+    "railway:status": "railway status"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.61.0",
@@ -68,6 +73,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@railway/cli": "^3.0.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
+  // Configure external packages for Railway deployment
+  serverExternalPackages: ['@anthropic-ai/sdk'],
   webpack: (config, { isServer }) => {
     // Suppress webpack warnings for our theme auto-discovery system
     config.ignoreWarnings = [
