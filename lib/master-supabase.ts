@@ -178,6 +178,7 @@ export async function createCMSInstance(instanceData: Omit<CMSInstance, 'id' | '
     throw new Error('Master Supabase is not configured. Please check your environment variables.')
   }
   
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('cms_instances')
     .insert([instanceData])
@@ -189,6 +190,7 @@ export async function createCMSInstance(instanceData: Omit<CMSInstance, 'id' | '
 }
 
 export async function getCMSInstances(limit?: number) {
+  const masterSupabase = getMasterSupabase()
   const query = masterSupabase
     .from('cms_instances')
     .select('*')
@@ -481,6 +483,7 @@ export async function testMasterConnection() {
 // Get dashboard statistics
 export async function getDashboardStats() {
   try {
+    const masterSupabase = getMasterSupabase()
     const [instancesResult, deploymentsResult, templatesResult] = await Promise.all([
       masterSupabase.from('cms_instances').select('count'),
       masterSupabase.from('deployment_logs').select('count'),
