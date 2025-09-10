@@ -1,4 +1,5 @@
 # Use Node.js 20 Alpine for better performance and security
+# Cache bust: Shared CMS removed 2025-09-10
 FROM node:20-alpine AS base
 
 # Install dependencies only when needed

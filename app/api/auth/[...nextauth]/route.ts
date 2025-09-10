@@ -16,6 +16,17 @@ const handler = NextAuth({
   pages: {
     signIn: '/auth/signin',
   },
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       // Add email whitelist for security

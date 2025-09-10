@@ -166,7 +166,11 @@ export function sanitizeError(error: unknown): string {
 export const schemas = {
   deploymentRequest: z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-    domain: z.string().url('Invalid domain').optional(),
+    domain: z.union([
+      z.string().url('Invalid domain'),
+      z.string().length(0),
+      z.undefined()
+    ]).optional(),
     subdomain: z.string().regex(/^[a-z0-9-]+$/, 'Invalid subdomain format').optional(),
     owner_name: z.string().min(1, 'Owner name is required').max(100),
     owner_email: z.string().email('Invalid email format'),
