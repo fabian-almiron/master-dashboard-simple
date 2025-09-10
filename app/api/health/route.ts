@@ -4,9 +4,9 @@ import { getRailwayEnvironmentInfo, getMasterDashboardUrl } from '@/lib/railway-
 import { securityMiddleware, sanitizeError } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
-  // Basic rate limiting for health checks
+  // Basic rate limiting for health checks (more lenient for Railway)
   const securityCheck = await securityMiddleware(request, {
-    rateLimit: { limit: 30, windowMs: 60000 } // 30 requests per minute
+    rateLimit: { limit: 100, windowMs: 60000 } // 100 requests per minute for Railway health checks
   })
   
   if (securityCheck) return securityCheck
