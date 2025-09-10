@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deleteCMSInstance, getCMSInstanceById } from '@/lib/master-supabase'
+import { deleteCMSInstance, getCMSInstanceById, getDeploymentLogs } from '@/lib/master-supabase'
+import { adminDeleteSite } from '@/lib/supabase'
+import { securityMiddleware, sanitizeError, logSecurityEvent } from '@/lib/security'
+import { z } from 'zod'
 
 // Environment variables
 const VERCEL_TOKEN = process.env.VERCEL_TOKEN
@@ -11,13 +14,25 @@ const BITBUCKET_APP_PASSWORD = process.env.BITBUCKET_APP_PASSWORD
 const BITBUCKET_AUTH_TOKEN = BITBUCKET_API_TOKEN || BITBUCKET_APP_PASSWORD
 const BITBUCKET_WORKSPACE = process.env.BITBUCKET_WORKSPACE
 
-export async function DELETE(request: NextRequest) {
-  try {
-    const { instanceId } = await request.json()
+const deleteSchema = z.object({
+  instanceId: z.string().uuid('Invalid instance ID')
+})
 
-    if (!instanceId) {
-      return NextResponse.json({ error: 'Instance ID is required' }, { status: 400 })
-    }
+export async function DELETE(request: NextRequest) {
+  // Security checks - admin only for deletions
+  const securityCheck = await securityMiddleware(request, {
+    requireAdmin: true,
+    rateLimit: { limit: 3, windowMs: 300000 } // 3 deletions per 5 minutes
+  })
+  
+  if (securityCheck) return securityCheck
+  
+  try {
+    const rawData = await request.json()
+    const { instanceId } = deleteSchema.parse(rawData)
+    
+    // Log deletion attempt
+    logSecurityEvent('INSTANCE_DELETION_INITIATED', { instanceId }, request)
 
     console.log(`🗑️ Starting full deletion of CMS instance: ${instanceId}`)
 
@@ -28,24 +43,52 @@ export async function DELETE(request: NextRequest) {
     }
 
     const results = {
-      database: false,
+      masterDatabase: false,
+      sharedDatabase: false,
       bitbucketRepo: false,
       vercelProject: false,
       errors: [] as string[]
     }
 
-    // Step 1: Delete from database first (to mark as deleting)
+    // Step 1: Get site_id from deployment logs before deletion
+    let siteId: string | null = null
+    try {
+      const deploymentLogs = await getDeploymentLogs(instanceId, 1)
+      if (deploymentLogs.length > 0 && deploymentLogs[0].log_data) {
+        siteId = deploymentLogs[0].log_data.site_id
+        console.log(`🔍 Found site_id: ${siteId}`)
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not retrieve site_id from deployment logs:', error)
+    }
+
+    // Step 2: Delete from shared CMS database first (if site_id found)
+    if (siteId) {
+      try {
+        await adminDeleteSite(siteId)
+        results.sharedDatabase = true
+        console.log(`✅ Deleted site data from shared database: ${siteId}`)
+      } catch (error) {
+        const errorMsg = `Failed to delete from shared database: ${error}`
+        console.error('❌', errorMsg)
+        results.errors.push(errorMsg)
+      }
+    } else {
+      results.errors.push('Could not find site_id - shared database cleanup skipped')
+    }
+
+    // Step 3: Delete from master database (to mark as deleting)
     try {
       await deleteCMSInstance(instanceId)
-      results.database = true
-      console.log('✅ Deleted from database')
+      results.masterDatabase = true
+      console.log('✅ Deleted from master database')
     } catch (error) {
-      const errorMsg = `Failed to delete from database: ${error}`
+      const errorMsg = `Failed to delete from master database: ${error}`
       console.error('❌', errorMsg)
       results.errors.push(errorMsg)
     }
 
-    // Step 2: Delete Bitbucket repository
+    // Step 4: Delete Bitbucket repository
     if (instance.vercel_git_repo && BITBUCKET_AUTH_TOKEN && BITBUCKET_WORKSPACE) {
       try {
         const repoName = extractRepoNameFromUrl(instance.vercel_git_repo)
@@ -61,7 +104,7 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    // Step 3: Delete Vercel project
+    // Step 5: Delete Vercel project
     if (instance.vercel_project_id && VERCEL_TOKEN) {
       try {
         await deleteVercelProject(instance.vercel_project_id)
@@ -75,7 +118,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const successCount = Object.values(results).filter(v => v === true).length
-    const totalSteps = 3
+    const totalSteps = 4 // masterDatabase, sharedDatabase, bitbucketRepo, vercelProject
 
     console.log(`🎯 Deletion completed: ${successCount}/${totalSteps} steps successful`)
 

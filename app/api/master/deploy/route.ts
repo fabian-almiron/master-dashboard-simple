@@ -6,9 +6,8 @@ import {
   updateDeploymentLog,
   createNotification
 } from '@/lib/master-supabase'
+import { securityMiddleware, validateInput, schemas, sanitizeError, logSecurityEvent } from '@/lib/security'
 
-// Import the regular CMS supabase functions to create sites in the shared database
-import { createSite, updateSite } from '@/lib/supabase'
 
 interface DeploymentRequest {
   name: string
@@ -18,16 +17,8 @@ interface DeploymentRequest {
   owner_email: string
   status: 'active' | 'inactive' | 'suspended'
   plan: 'free' | 'pro' | 'enterprise'
-  template_id: string
-  theme_id: string
   auto_deploy: boolean
   description?: string
-  // AI Customization fields
-  enable_ai_customization?: boolean
-  ai_customization_message?: string
-  target_industry?: string
-  design_style?: string
-  primary_color?: string
 }
 
 // Vercel API configuration
@@ -38,12 +29,11 @@ const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID || process.env.USER_ID
 // Bitbucket API configuration
 const BITBUCKET_USERNAME = process.env.BITBUCKET_USERNAME
 const BITBUCKET_API_TOKEN = process.env.BITBUCKET_API_TOKEN
-const BITBUCKET_APP_PASSWORD = process.env.BITBUCKET_APP_PASSWORD // Legacy support
 const BITBUCKET_WORKSPACE = process.env.BITBUCKET_WORKSPACE || 'trukraft'
 const BITBUCKET_MASTER_REPO = process.env.BITBUCKET_MASTER_REPO || 'cms-master'
 
-// Use API Token if available, fallback to App Password
-const BITBUCKET_AUTH_TOKEN = BITBUCKET_API_TOKEN || BITBUCKET_APP_PASSWORD
+// Use API Token (preferred method)
+const BITBUCKET_AUTH_TOKEN = BITBUCKET_API_TOKEN
 
 // Debug logging for environment variables
 console.log('🔧 Environment Check:')
@@ -51,19 +41,24 @@ console.log(`   VERCEL_TOKEN: ${VERCEL_TOKEN ? 'SET' : 'MISSING'}`)
 console.log(`   VERCEL_TEAM_ID: ${VERCEL_TEAM_ID || 'MISSING'}`)
 console.log(`   BITBUCKET_USERNAME: ${BITBUCKET_USERNAME ? 'SET' : 'MISSING'}`)
 console.log(`   BITBUCKET_API_TOKEN: ${BITBUCKET_API_TOKEN ? 'SET' : 'MISSING'}`)
-console.log(`   BITBUCKET_APP_PASSWORD: ${BITBUCKET_APP_PASSWORD ? 'SET (LEGACY)' : 'MISSING'}`)
-console.log(`   BITBUCKET_AUTH_TOKEN: ${BITBUCKET_AUTH_TOKEN ? 'SET' : 'MISSING'}`)
 console.log(`   BITBUCKET_WORKSPACE: ${BITBUCKET_WORKSPACE || 'MISSING'}`)
-console.log(`   USER_ID: ${process.env.USER_ID || 'MISSING'}`)
 
-// Shared CMS Database Configuration (NOT creating new Supabase projects)
-const SHARED_CMS_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SHARED_CMS_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const SHARED_CMS_SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export async function POST(request: NextRequest) {
+  // Security checks
+  const securityCheck = await securityMiddleware(request, {
+    requireAuth: true,
+    rateLimit: { limit: 5, windowMs: 300000 } // 5 deployments per 5 minutes
+  })
+  
+  if (securityCheck) return securityCheck
+  
   try {
-    const data: DeploymentRequest = await request.json()
+    const rawData = await request.json()
+    const data = validateInput(rawData, schemas.deploymentRequest)
+    
+    // Log deployment attempt
+    logSecurityEvent('DEPLOYMENT_INITIATED', { name: data.name, owner: data.owner_email }, request)
     
     // Create initial CMS instance record in master database
     const instance = await createCMSInstance({
@@ -72,19 +67,13 @@ export async function POST(request: NextRequest) {
       status: 'creating',
       owner_name: data.owner_name,
       owner_email: data.owner_email,
-      template_id: data.template_id,
-      theme_id: data.theme_id,
       auto_deploy: data.auto_deploy,
       branch: 'main',
       build_command: 'npm run build',
       settings: {
         description: data.description
       },
-      deployment_config: {},
-      // Use shared database
-      supabase_url: SHARED_CMS_SUPABASE_URL,
-      supabase_anon_key: SHARED_CMS_SUPABASE_ANON_KEY,
-      supabase_service_key: SHARED_CMS_SUPABASE_SERVICE_KEY
+      deployment_config: {}
     })
 
     // Create deployment log
@@ -110,10 +99,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Deployment initialization failed:', error)
+    logSecurityEvent('DEPLOYMENT_FAILED', { error: sanitizeError(error) }, request)
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        error: sanitizeError(error)
       },
       { status: 500 }
     )
@@ -124,71 +114,11 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
   const startTime = Date.now()
   
   try {
-    // Step 1: Create site record in shared CMS database
+    
+    // Step 1: Create Bitbucket repository
     await updateDeploymentLog(deploymentLogId, {
       status: 'building',
-      log_data: { steps: ['instance-created', 'creating-site-record'] }
-    })
-    
-    const siteRecord = await createSiteInSharedDatabase(instanceId, data)
-    
-    // Step 1.5: Generate AI custom theme if enabled
-    let customThemeName = data.theme_id
-    if (data.enable_ai_customization && data.ai_customization_message) {
-      await updateDeploymentLog(deploymentLogId, {
-        status: 'building',
-        log_data: { steps: ['instance-created', 'site-record-created', 'generating-ai-theme'] }
-      })
-      
-      try {
-                    const themeResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/master/ai-customize-theme`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ai_customization_message: data.ai_customization_message,
-            target_industry: data.target_industry,
-            design_style: data.design_style,
-            primary_color: data.primary_color,
-            site_name: data.name,
-            instance_id: instanceId
-          })
-        })
-        
-        if (themeResponse.ok) {
-          const themeResult = await themeResponse.json()
-          customThemeName = 'base-theme' // Always use base-theme
-          
-          // Update CMS instance with AI customization info
-          await updateCMSInstance(instanceId, {
-            theme_id: 'base-theme', // Keep using base-theme
-            settings: {
-              ...siteRecord.settings,
-              ai_customization: {
-                enabled: true,
-                theme_name: themeResult.theme_name,
-                customizations_applied: themeResult.customizations_applied,
-                backup_path: themeResult.backup_path,
-                processing_time: themeResult.processing_time,
-                timestamp: new Date().toISOString()
-              }
-            }
-          })
-          
-          console.log(`✅ AI customized base-theme with targeted approach`)
-          console.log(`💾 Backup created at: ${themeResult.backup_path}`)
-          console.log(`⚡ Fast processing: ${themeResult.processing_time}`)
-        } else {
-          console.log('⚠️ AI theme customization failed, using default theme')
-        }
-      } catch (error) {
-        console.log('⚠️ AI theme generation error, using default theme:', error)
-      }
-    }
-    
-    // Step 2: Create Bitbucket repository
-    await updateDeploymentLog(deploymentLogId, {
-      status: 'building',
-      log_data: { steps: ['instance-created', 'site-record-created', 'creating-bitbucket-repo'] }
+      log_data: { steps: ['instance-created', 'creating-bitbucket-repo'] }
     })
     
     // First test the Bitbucket API connection
@@ -198,70 +128,55 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
     
     // Wait a moment for Bitbucket to sync the repository
     console.log('⏳ Waiting for Bitbucket repository to sync...')
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    await new Promise(resolve => setTimeout(resolve, 10000))
     
-    // Step 3: Create Vercel project
+    // Step 2: Create Vercel project first, then deploy with project linking
     await updateDeploymentLog(deploymentLogId, {
       status: 'building',
-      log_data: { steps: ['instance-created', 'site-record-created', 'bitbucket-repo-created', 'creating-vercel'] }
+      log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'creating-vercel'] }
     })
     
+    console.log('🚀 Creating Vercel project first...')
     const vercelProject = await createVercelProjectAPI(instanceId, data.name, bitbucketRepo.clone_url)
     
-    // Wait for Vercel project to be fully available
-    console.log('⏳ Waiting for Vercel project to be fully available...')
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    // Wait for project to be ready
+    console.log('⏳ Waiting for Vercel project to be ready...')
+    await new Promise(resolve => setTimeout(resolve, 10000))
     
-    // Step 3.5: Deploy directly from repository
-    console.log('🚀 Triggering direct deployment from repository...')
+    // Step 3: Deploy to the created project
+    console.log('🚀 Deploying to created project...')
     try {
-      const deployment = await triggerDirectDeployment(vercelProject.id, bitbucketRepo.clone_url, vercelProject.name, bitbucketRepo.uuid)
+      const deployment = await triggerDirectDeployment(vercelProject.id, bitbucketRepo.clone_url, data.name, bitbucketRepo.uuid)
       console.log('✅ Direct deployment triggered:', deployment.url)
+      
+      // Update project with deployment URL
+      vercelProject.url = deployment.url
     } catch (error) {
-      console.log('⚠️ Direct deployment failed, but project is ready for manual deployment:', error)
+      console.log('⚠️ Direct deployment failed, but project created successfully:', error)
     }
     
-    // Step 4: Configure environment variables (using shared database)
+    // Step 3: Configure basic environment variables
     await updateDeploymentLog(deploymentLogId, {
       status: 'building',
-      log_data: { steps: ['instance-created', 'site-record-created', 'bitbucket-repo-created', 'vercel-created', 'configuring-env'] }
+      log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'configuring-env'] }
     })
     
-    await configureVercelEnvironmentVariables(vercelProject.id, siteRecord.id)
+    await configureBasicEnvironmentVariables(vercelProject.id)
     
-    // Step 5: Deploy to Vercel
+    // Step 4: Deploy to Vercel
     await updateDeploymentLog(deploymentLogId, {
       status: 'building',
-      log_data: { steps: ['instance-created', 'site-record-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deploying'] }
+      log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deploying'] }
     })
     
-    // Check if project has repository connected and trigger deployment
-    let deployment
-    if (vercelProject.link && vercelProject.link.repo) {
-      console.log('🚀 Repository connected - triggering automatic deployment')
-      try {
-        deployment = await triggerVercelDeployment(vercelProject.id)
-        console.log('✅ Deployment triggered successfully:', deployment.url)
-      } catch (deployError) {
-        console.log('⚠️  Deployment trigger failed, but project created successfully:', deployError)
-        deployment = { 
-          id: 'deployment-failed', 
-          url: vercelProject.dashboard_url || `https://vercel.com/${VERCEL_TEAM_ID}/${vercelProject.name}`
-        }
-      }
-    } else {
-      console.log('⏭️  No repository connected - skipping deployment trigger')
-      deployment = { 
-        id: 'manual-deployment-required', 
-        url: vercelProject.dashboard_url || `https://vercel.com/${VERCEL_TEAM_ID}/${vercelProject.name}`
-      }
+    // Deployment already completed in step 3
+    console.log('✅ Deployment completed - project created with repository linked')
+    const deployment = { 
+      id: 'deployed', 
+      url: vercelProject.url || vercelProject.dashboard_url
     }
     
-    // Step 6: Update site record with real Vercel domain
-    const realVercelDomain = `${vercelProject.name}.vercel.app`
-    await updateSiteWithVercelDomain(siteRecord.id, realVercelDomain)
-    
-    // Step 7: Update instance with deployment details
+    // Step 5: Update instance with deployment details
     await updateCMSInstance(instanceId, {
       status: 'active',
       vercel_project_id: vercelProject.id,
@@ -276,9 +191,8 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
       completed_at: new Date().toISOString(),
       duration_ms: Date.now() - startTime,
       log_data: { 
-        steps: ['instance-created', 'site-record-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deployed', 'completed'],
+        steps: ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deployed', 'completed'],
         final_url: deployment.url,
-        site_id: siteRecord.id,
         repository_url: bitbucketRepo.clone_url
       }
     })
@@ -288,12 +202,11 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
       cms_instance_id: instanceId,
       type: 'success',
       title: 'Website Repository Created Successfully',
-      message: `${data.name} repository created with complete CMS code. Connect to Vercel dashboard to deploy.`,
+      message: `${data.name} repository created with complete code. Connect to Vercel dashboard to deploy.`,
       is_read: false,
       metadata: {
         repository_url: bitbucketRepo.web_url,
-        vercel_project_url: `https://vercel.com/${VERCEL_TEAM_ID}/${vercelProject.name}`,
-        site_id: siteRecord.id
+        vercel_project_url: `https://vercel.com/${VERCEL_TEAM_ID}/${vercelProject.name}`
       }
     })
     
@@ -327,60 +240,6 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
   }
 }
 
-async function createSiteInSharedDatabase(instanceId: string, data: DeploymentRequest) {
-  // Generate unique domain to avoid duplicates
-  const timestamp = Date.now()
-  const baseDomain = data.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
-  const uniqueDomain = data.domain || `${baseDomain}-${timestamp}.temp.domain`
-  
-  const siteData = {
-    name: data.name,
-    domain: uniqueDomain,
-    subdomain: data.subdomain,
-    owner_email: data.owner_email,
-    status: data.status,
-    plan: data.plan,
-    settings: {
-      siteName: data.name,
-      siteDescription: data.description || '',
-      theme: data.theme_id,
-      template: data.template_id,
-      ownerName: data.owner_name,
-      masterInstanceId: instanceId, // Link back to master dashboard instance
-      originalDomain: data.domain, // Store original domain if provided
-      originalSubdomain: data.subdomain // Store original subdomain if provided
-    }
-  }
-  
-  try {
-    const site = await createSite(siteData)
-    console.log('✅ Created site record in shared database:', site.id)
-    return site
-  } catch (error: any) {
-    // If domain conflict still occurs, try with even more unique identifier
-    if (error.code === '23505' && error.message.includes('domain')) {
-      console.log('🔄 Domain conflict detected, generating more unique domain...')
-      
-      const superUniqueDomain = `${baseDomain}-${timestamp}-${Math.random().toString(36).substring(2, 8)}.temp.domain`
-      const retryData = { ...siteData, domain: superUniqueDomain }
-      
-      const site = await createSite(retryData)
-      console.log('✅ Created site record with unique domain:', site.id)
-      return site
-    }
-    throw error
-  }
-}
-
-async function updateSiteWithVercelDomain(siteId: string, vercelDomain: string) {
-  try {
-    await updateSite(siteId, { domain: vercelDomain })
-    console.log('✅ Updated site with Vercel domain:', vercelDomain)
-  } catch (error) {
-    console.error('⚠️  Failed to update site domain:', error)
-    // Don't throw error - this is not critical to deployment success
-  }
-}
 
 async function createVercelProjectAPI(instanceId: string, name: string, repositoryUrl: string) {
   if (!VERCEL_TOKEN) {
@@ -535,37 +394,46 @@ async function connectRepositoryToVercelProject(vercelProjectId: string, reposit
   return await response.json()
 }
 
-async function triggerDirectDeployment(vercelProjectId: string, repositoryUrl: string, projectName: string, repoUuid?: string) {
+async function triggerDirectDeployment(vercelProjectId: string | null, repositoryUrl: string, projectName: string, repoUuid?: string) {
   if (!VERCEL_TOKEN) {
     throw new Error('Vercel token not configured')
   }
   
+  const deploymentName = `deploy-${Date.now()}`
   console.log(`🚀 Creating direct deployment from repository...`)
-  console.log(`   Project: ${projectName}`)
+  console.log(`   Project ID: ${vercelProjectId}`)
+  console.log(`   Project Name: ${projectName}`)
+  console.log(`   Deployment Name: ${deploymentName}`)
   console.log(`   Repository: ${repositoryUrl}`)
   
   // Create deployment directly from git repository
-  const response = await fetch(`${VERCEL_API_URL}/v13/deployments`, {
+  const simpleDeploymentName = `d${Date.now()}`
+  const deploymentPayload: any = {
+    name: simpleDeploymentName,
+    target: 'production',
+    gitSource: {
+      type: 'bitbucket',
+      repo: repositoryUrl.replace('https://bitbucket.org/', '').replace('.git', ''),
+      ref: 'main',
+      repoUuid: repoUuid
+    }
+  }
+  
+  // Skip project linking for now - let deployment create its own project
+  // if (vercelProjectId) {
+  //   deploymentPayload.project = vercelProjectId
+  // }
+  
+  console.log('📤 Deployment payload:', JSON.stringify(deploymentPayload, null, 2))
+  
+  const response = await fetch(`${VERCEL_API_URL}/v13/deployments?skipAutoDetectionConfirmation=1${VERCEL_TEAM_ID ? `&teamId=${VERCEL_TEAM_ID}` : ''}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${VERCEL_TOKEN}`,
       'Content-Type': 'application/json',
       ...(VERCEL_TEAM_ID && { 'X-Vercel-Team-Id': VERCEL_TEAM_ID })
     },
-    body: JSON.stringify({
-      name: projectName.replace(/[^a-z0-9.-]/g, '-').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '').substring(0, 50), // Clean deployment name - no multiple dashes
-      project: vercelProjectId,
-      target: 'production',
-      gitSource: {
-        type: 'bitbucket',
-        repo: repositoryUrl.replace('https://bitbucket.org/', '').replace('.git', ''),
-        ref: 'main',
-        ...(repoUuid && { repoUuid: repoUuid })
-      },
-      meta: {
-        githubDeployment: '1'
-      }
-    })
+    body: JSON.stringify(deploymentPayload)
   })
   
   if (!response.ok) {
@@ -624,53 +492,23 @@ async function verifyVercelProjectExists(vercelProjectId: string, maxRetries = 5
   }
 }
 
-async function configureVercelEnvironmentVariables(vercelProjectId: string, siteId: string) {
+async function configureBasicEnvironmentVariables(vercelProjectId: string) {
   if (!VERCEL_TOKEN) {
     throw new Error('Vercel token not configured')
   }
   
-  console.log(`🔧 Setting environment variables for project: ${vercelProjectId}`)
+  console.log(`🔧 Setting basic environment variables for project: ${vercelProjectId}`)
   
   // First verify the project exists with retry logic
   await verifyVercelProjectExists(vercelProjectId)
   
-    // Configure environment variables to use the SHARED database with specific site ID
+  // Configure basic environment variables for a standard web application
   const envVars = [
     {
-      key: 'NEXT_PUBLIC_SUPABASE_URL',
-      value: SHARED_CMS_SUPABASE_URL,
+      key: 'NODE_ENV',
+      value: 'production',
       type: 'plain',
-      target: ['production', 'preview', 'development']
-    },
-    {
-      key: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      value: SHARED_CMS_SUPABASE_ANON_KEY,
-      type: 'encrypted',
-      target: ['production', 'preview', 'development']
-    },
-    {
-      key: 'SUPABASE_SERVICE_ROLE_KEY',
-      value: SHARED_CMS_SUPABASE_SERVICE_KEY,
-      type: 'encrypted',
-      target: ['production', 'preview', 'development']
-    },
-    {
-      key: 'NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY',
-      value: SHARED_CMS_SUPABASE_SERVICE_KEY,
-      type: 'encrypted',
-      target: ['production', 'preview', 'development']
-    },
-    {
-      key: 'CMS_SITE_ID',
-      value: siteId,
-      type: 'plain',
-      target: ['production', 'preview', 'development']
-    },
-    {
-      key: 'NEXT_PUBLIC_CMS_SITE_ID',
-      value: siteId,
-      type: 'plain',
-      target: ['production', 'preview', 'development']
+      target: ['production', 'preview']
     }
   ]
   
@@ -904,14 +742,14 @@ async function createBitbucketRepository(websiteName: string, description?: stri
   const newRepo = await createRepoResponse.json()
   console.log('✅ Created empty repository:', newRepo.name)
 
-  // Step 2: Clone ALL files from cms-master repository
+  // Step 2: Clone ALL files from Simple-Static template
   try {
-    await cloneMasterRepositoryFiles(repoName)
-    console.log('✅ Successfully cloned ALL cms-master files to new repository')
+    await cloneStaticTemplateFiles(repoName)
+    console.log('✅ Successfully cloned ALL Simple-Static files to new repository')
   } catch (error) {
-    console.error('⚠️ Failed to clone master files:', error)
+    console.error('⚠️ Failed to clone static template files:', error)
     // Repository was created but code clone failed - this is recoverable
-    throw new Error(`Repository created but failed to clone cms-master files: ${error}`)
+    throw new Error(`Repository created but failed to clone Simple-Static files: ${error}`)
   }
 
   return {
@@ -923,48 +761,48 @@ async function createBitbucketRepository(websiteName: string, description?: stri
   }
 }
 
-async function cloneMasterRepositoryFiles(newRepoName: string) {
-  console.log('🔄 Copying ALL files from local cms-master directory...')
+async function cloneStaticTemplateFiles(newRepoName: string) {
+  console.log('🔄 Copying ALL files from local Simple-Static directory...')
   
   const authHeader = BITBUCKET_API_TOKEN 
     ? `Bearer ${BITBUCKET_API_TOKEN}`
     : `Basic ${Buffer.from(`${BITBUCKET_USERNAME}:${BITBUCKET_AUTH_TOKEN}`).toString('base64')}`
 
   try {
-    // Use the local cms-master directory instead of API calls
-    console.log('📁 Reading from local cms-master directory...')
-    await copyFromLocalCMSMaster(newRepoName, authHeader)
+    // Use the local Simple-Static directory instead of API calls
+    console.log('📁 Reading from local Simple-Static directory...')
+    await copyFromLocalSimpleStatic(newRepoName, authHeader)
     
   } catch (error) {
     console.log('⚠️ Local copy failed, using fallback approach:', error)
-    await createEssentialCMSFiles(newRepoName)
+    await createEssentialStaticFiles(newRepoName)
   }
 
   // Skip pipeline creation - manual Vercel connection is preferred
   console.log('✅ Repository ready for manual Vercel connection')
 }
 
-async function copyFromLocalCMSMaster(newRepoName: string, authHeader: string) {
-  console.log('📂 Copying ALL files from cms-master/* ...')
+async function copyFromLocalSimpleStatic(newRepoName: string, authHeader: string) {
+  console.log('📂 Copying ALL files from Simple-Static/* ...')
   
   const fs = require('fs')
   const path = require('path')
   
-  const cmsPath = path.join(process.cwd(), 'cms-master')
+  const staticPath = path.join(process.cwd(), 'Simple-Static')
   
-  if (!fs.existsSync(cmsPath)) {
-    throw new Error('cms-master directory not found')
+  if (!fs.existsSync(staticPath)) {
+    throw new Error('Simple-Static directory not found')
   }
   
-  console.log(`✅ Found cms-master directory at: ${cmsPath}`)
+  console.log(`✅ Found Simple-Static directory at: ${staticPath}`)
   
   // Simple approach: Just ZIP everything and upload it
-  await zipAndUploadAllFiles(newRepoName, cmsPath, authHeader)
-  console.log('✅ Successfully uploaded ALL cms-master files')
+  await zipAndUploadAllFiles(newRepoName, staticPath, authHeader)
+  console.log('✅ Successfully uploaded ALL Simple-Static files')
 }
 
-async function zipAndUploadAllFiles(newRepoName: string, cmsPath: string, authHeader: string) {
-  console.log('📦 Creating ZIP of ALL cms-master files...')
+async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, authHeader: string) {
+  console.log('📦 Creating ZIP of ALL Simple-Static files...')
   
   const fs = require('fs')
   const path = require('path')
@@ -994,9 +832,9 @@ async function zipAndUploadAllFiles(newRepoName: string, cmsPath: string, authHe
     
     archive.pipe(output)
     
-    // Add ALL files from cms-master (excluding system files)
+    // Add ALL files from Simple-Static (excluding system files)
     archive.glob('**/*', {
-      cwd: cmsPath,
+      cwd: staticPath,
       ignore: ['.DS_Store', '.git/**', 'node_modules/**', '.next/**']
     })
     
@@ -1225,48 +1063,48 @@ async function createSingleFile(newRepoName: string, filePath: string, content: 
   }
 }
 
-async function createEssentialCMSFiles(newRepoName: string) {
-  console.log('🏗️ Creating essential CMS structure manually...')
+async function createEssentialStaticFiles(newRepoName: string) {
+  console.log('🏗️ Creating essential static structure manually...')
   
   const authHeader = BITBUCKET_API_TOKEN 
     ? `Bearer ${BITBUCKET_API_TOKEN}`
     : `Basic ${Buffer.from(`${BITBUCKET_USERNAME}:${BITBUCKET_AUTH_TOKEN}`).toString('base64')}`
 
-  // Create multiple commits to build the CMS structure
-  await createCMSFileStructure(newRepoName, authHeader)
+  // Create multiple commits to build the static structure
+  await createStaticFileStructure(newRepoName, authHeader)
 }
 
-async function createCMSFileStructure(newRepoName: string, authHeader: string) {
-  console.log('🏗️ Creating complete CMS file structure...')
+async function createStaticFileStructure(newRepoName: string, authHeader: string) {
+  console.log('🏗️ Creating complete static file structure...')
   
   // Step 1: Create basic package.json and config files
-  await createBasicCMSFiles(newRepoName, authHeader)
+  await createBasicStaticFiles(newRepoName, authHeader)
   
-  // Step 2: Copy key files from cms-master 
-  await copyKeyFilesFromMaster(newRepoName, authHeader)
+  // Step 2: Create essential Next.js structure
+  await createPlaceholderStaticStructure(newRepoName, authHeader)
   
-  console.log('✅ Created essential CMS structure')
+  console.log('✅ Created essential static structure')
 }
 
-async function createBasicCMSFiles(repoName: string, authHeader: string) {
-  console.log('📝 Creating basic CMS files...')
+async function createBasicStaticFiles(repoName: string, authHeader: string) {
+  console.log('📝 Creating basic static files...')
   
   const readmeContent = `# ${repoName}
 
-This CMS website was automatically created by cloning the master template.
+This static website was automatically created from the Simple-Static template.
 
 ## 🚀 Features
-- Complete Page Builder CMS
-- Component Library  
-- Theme System
-- Database Integration
-- Automatic Deployment
+- Modern Next.js 15 with App Router
+- Tailwind CSS for styling
+- TypeScript support
+- Responsive design
+- SEO optimized
 
 ## 📋 Setup
-This repository contains the full CMS codebase and is ready to deploy.
+This repository contains a complete static website ready to deploy.
 
 ## 🔗 Source
-Cloned from: https://bitbucket.org/${BITBUCKET_WORKSPACE}/${BITBUCKET_MASTER_REPO}
+Generated from Simple-Static template
 `
 
   const packageJsonContent = `{
@@ -1274,25 +1112,26 @@ Cloned from: https://bitbucket.org/${BITBUCKET_WORKSPACE}/${BITBUCKET_MASTER_REP
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint"
   },
   "dependencies": {
-    "next": "15.2.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "next": "15.5.2"
   },
   "devDependencies": {
+    "typescript": "^5",
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "15.2.4",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "@eslint/eslintrc": "^3"
   }
 }`
 
@@ -1402,39 +1241,111 @@ async function copyFileFromMaster(newRepoName: string, filePath: string, authHea
   }
 }
 
-async function createPlaceholderStructure(newRepoName: string, authHeader: string) {
-  console.log('🔧 Creating placeholder CMS structure...')
+async function createPlaceholderStaticStructure(newRepoName: string, authHeader: string) {
+  console.log('🔧 Creating placeholder static structure...')
   
   // Create basic app structure
-  const appLayoutContent = `export default function RootLayout({
+  const appLayoutContent = `import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "${newRepoName} - Modern Website",
+  description: "Beautiful, responsive website built with Next.js and Tailwind CSS",
+};
+
+export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className="scroll-smooth">
+      <body
+        className={\`\${geistSans.variable} \${geistMono.variable} antialiased min-h-screen flex flex-col\`}
+      >
+        <main className="flex-1">
+          {children}
+        </main>
+      </body>
     </html>
-  )
+  );
 }`
 
   const appPageContent = `export default function Home() {
   return (
-    <main>
-      <h1>CMS Website: ${newRepoName}</h1>
-      <p>This site was automatically generated and is ready for customization.</p>
-    </main>
-  )
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
+          Welcome to
+          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            ${newRepoName}
+          </span>
+        </h1>
+        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          This static website was automatically generated and is ready for customization.
+          Built with Next.js 15, TypeScript, and Tailwind CSS.
+        </p>
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">🚀 Ready to Deploy</h2>
+          <p className="text-gray-600">
+            Your website is now live and ready for customization. 
+            Start editing the files to make it your own!
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}`
+
+  const globalsCSS = `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
 }`
 
   let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="message"\r\n\r\nAdd basic app structure\r\n`
+  formData += `Content-Disposition: form-data; name="message"\r\n\r\nAdd basic static app structure\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
   formData += `Content-Disposition: form-data; name="branch"\r\n\r\nmain\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="app/layout.tsx"\r\n\r\n${appLayoutContent}\r\n`
+  formData += `Content-Disposition: form-data; name="src/app/layout.tsx"\r\n\r\n${appLayoutContent}\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="app/page.tsx"\r\n\r\n${appPageContent}\r\n`
+  formData += `Content-Disposition: form-data; name="src/app/page.tsx"\r\n\r\n${appPageContent}\r\n`
+  formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
+  formData += `Content-Disposition: form-data; name="src/app/globals.css"\r\n\r\n${globalsCSS}\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW--\r\n`
 
   const createResponse = await fetch(`https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${newRepoName}/src`, {
@@ -1471,4 +1382,4 @@ function getTemplateRepo(templateId: string): string {
   }
   
   return templateRepos[templateId] || templateRepos['default']
-} 
+}

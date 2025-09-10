@@ -79,16 +79,15 @@ CMS Master Dashboard/
 1. **Access Master Dashboard** → Click "Create New Website"
 2. **Fill in Details**: Website name, owner info, template selection
 3. **One-Click Deploy** → System automatically:
-   - Creates new site record in shared database
-   - Creates Vercel project with proper environment variables
-   - Deploys CMS instance with unique `CMS_SITE_ID`
-   - Initializes default content and templates
+   - Creates Bitbucket repository with complete code
+   - Creates Vercel project and deploys independently
+   - Each website is completely self-contained
 
-### Multi-Tenant Architecture
-- **Shared Database**: All CMS instances use one Supabase database
-- **Data Isolation**: Each site filters data by unique `site_id`
-- **Cost Effective**: No need for separate databases per site
-- **Scalable**: Handle hundreds of sites efficiently
+### Independent Architecture
+- **Standalone Websites**: Each deployment is completely independent
+- **No Shared Dependencies**: No complex multi-tenant database setup
+- **Simple & Reliable**: Each site has its own repository and deployment
+- **Easy to Manage**: Standard web deployment workflow
 
 ## 📦 Deployment
 
@@ -130,12 +129,11 @@ CMS Master Dashboard/
 - `cms_templates`: Available CMS templates
 - `notifications`: System alerts and messages
 
-### Shared CMS Tables (Multi-Tenant)
-- `sites`: Multi-tenant site management
-- `pages`: Page content and metadata (filtered by `site_id`)
-- `templates`: Reusable page templates (filtered by `site_id`)
-- `page_blocks` / `template_blocks`: Component data (filtered by `site_id`)
-- `navigation_items`: Site navigation (filtered by `site_id`)
+### Independent Website Architecture
+- Each website deployed is completely standalone
+- No shared database or multi-tenant complexity
+- Standard repository → Vercel deployment workflow
+- Each site manages its own data independently
 
 ## 🔧 Configuration
 

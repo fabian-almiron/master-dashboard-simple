@@ -1,44 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isMasterSupabaseConfigured, getMasterSupabase } from '@/lib/master-supabase'
+import { isMasterSupabaseFullyConfigured, testMasterConnection } from '@/lib/master-supabase'
+import { securityMiddleware, sanitizeError } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
+  // Security check - admin only for config details
+  const securityCheck = await securityMiddleware(request, {
+    requireAdmin: true,
+    rateLimit: { limit: 10, windowMs: 60000 } // 10 requests per minute
+  })
+  
+  if (securityCheck) return securityCheck
   try {
-    // Check configuration
-    const isConfigured = isMasterSupabaseConfigured()
+    const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY
+    const isMasterConfigured = isMasterSupabaseFullyConfigured()
     
-    if (!isConfigured) {
-      return NextResponse.json({
-        configured: false,
-        message: 'Master Supabase not configured'
-      })
-    }
-    
-    // Test actual database connection
-    const masterSupabase = getMasterSupabase()
-    const { data, error } = await masterSupabase
-      .from('cms_instances')
-      .select('count')
-      .limit(1)
-    
-    if (error) {
-      return NextResponse.json({
-        configured: true,
-        connected: false,
-        error: error.message
-      })
+    let connectionTest = { success: false, message: 'Not configured' }
+    if (isMasterConfigured) {
+      connectionTest = await testMasterConnection()
     }
     
     return NextResponse.json({
-      configured: true,
-      connected: true,
-      message: 'Master dashboard ready'
+      success: true,
+      configured: isMasterConfigured,
+      connected: connectionTest.success,
+      error: connectionTest.success ? null : connectionTest.message,
+      config: {
+        master_database_configured: isMasterConfigured,
+        master_database_connected: connectionTest.success,
+        anthropic_api_key_available: hasAnthropicKey,
+        api_key_source: hasAnthropicKey ? 'environment' : 'none'
+      }
     })
-    
   } catch (error) {
-    return NextResponse.json({
-      configured: false,
-      connected: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    })
+    console.error('Config check error:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        configured: false,
+        connected: false,
+        error: 'Failed to check configuration',
+        details: sanitizeError(error)
+      },
+      { status: 500 }
+    )
   }
 }

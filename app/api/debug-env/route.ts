@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isMasterSupabaseConfigured } from '@/lib/master-supabase'
+import { securityMiddleware, logSecurityEvent } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
+  // Security check - admin only
+  const securityCheck = await securityMiddleware(request, {
+    requireAdmin: true,
+    rateLimit: { limit: 5, windowMs: 60000 } // 5 requests per minute
+  })
+  
+  if (securityCheck) return securityCheck
+  
+  // Log access to debug endpoint
+  logSecurityEvent('DEBUG_ENDPOINT_ACCESS', {}, request)
   try {
     // Check what environment variables are actually available
     const envCheck = {

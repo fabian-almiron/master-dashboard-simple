@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import path from 'path'
 import fs from 'fs/promises'
+import { securityMiddleware, validateInput, schemas, sanitizeError } from '@/lib/security'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -69,6 +70,14 @@ interface ThemeCustomization {
 }
 
 export async function POST(request: NextRequest) {
+  // Security checks
+  const securityCheck = await securityMiddleware(request, {
+    requireAuth: true,
+    rateLimit: { limit: 10, windowMs: 300000 } // 10 requests per 5 minutes
+  })
+  
+  if (securityCheck) return securityCheck
+  
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -77,14 +86,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body: ThemeCustomizationRequest = await request.json()
-    
-    if (!body.ai_customization_message) {
-      return NextResponse.json(
-        { error: 'AI customization message is required' },
-        { status: 400 }
-      )
-    }
+    const rawBody = await request.json()
+    const body = validateInput(rawBody, schemas.themeCustomization)
 
     console.log(`🎨 Starting targeted theme customization for: ${body.site_name}`)
 
@@ -117,7 +120,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Theme customization error:', error)
     return NextResponse.json(
-      { error: `Theme customization failed: ${(error as Error).message}` },
+      { error: `Theme customization failed: ${sanitizeError(error)}` },
       { status: 500 }
     )
   }
@@ -473,19 +476,21 @@ async function updateThemeMetadata(baseThemePath: string, themeInfo: ThemeCustom
   const autoRegisterPath = path.join(baseThemePath, 'auto-register.tsx')
   let autoRegisterCode = await fs.readFile(autoRegisterPath, 'utf-8')
   
-  // Update theme name and description
-  autoRegisterCode = autoRegisterCode.replace(
-    /export const themeName = '[^']*'/,
-    `export const themeName = '${themeInfo.name}'`
-  )
-  
+  // 🚨 PRESERVE base-theme name - DO NOT change theme name to maintain CMS database relationships
+  // Only update the description, keep theme name as 'base-theme'
   autoRegisterCode = autoRegisterCode.replace(
     /export const themeDescription = '[^']*'/,
-    `export const themeDescription = '${themeInfo.description}'`
+    `export const themeDescription = 'Base theme for CMS TailWinds - customizable foundation theme'`
+  )
+  
+  // Ensure theme name stays as 'base-theme' (in case it was changed)
+  autoRegisterCode = autoRegisterCode.replace(
+    /export const themeName = '[^']*'/,
+    `export const themeName = 'base-theme'`
   )
   
   await fs.writeFile(autoRegisterPath, autoRegisterCode, 'utf-8')
-  console.log(`✏️ Updated theme metadata`)
+  console.log(`✏️ Updated theme metadata (preserved base-theme name)`)
 }
 
 // Utility functions

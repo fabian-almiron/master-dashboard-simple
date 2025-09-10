@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMasterSupabase } from '@/lib/master-supabase'
 import { getRailwayEnvironmentInfo, getMasterDashboardUrl } from '@/lib/railway-config'
+import { securityMiddleware, sanitizeError } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
+  // Basic rate limiting for health checks
+  const securityCheck = await securityMiddleware(request, {
+    rateLimit: { limit: 30, windowMs: 60000 } // 30 requests per minute
+  })
+  
+  if (securityCheck) return securityCheck
   try {
     // Basic health check
     const startTime = Date.now()
@@ -36,10 +43,7 @@ export async function GET(request: NextRequest) {
       responseTime: `${responseTime}ms`,
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || '1.0.0',
-      environment: railwayInfo,
-      masterDashboardUrl: getMasterDashboardUrl(),
-      nodeEnv: process.env.NODE_ENV,
-      port: process.env.PORT || '3000'
+      environment: process.env.NODE_ENV || 'unknown'
     })
     
   } catch (error) {
@@ -47,9 +51,8 @@ export async function GET(request: NextRequest) {
       {
         status: 'unhealthy',
         error: 'Health check failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-        environment: getRailwayEnvironmentInfo()
+        details: sanitizeError(error),
+        timestamp: new Date().toISOString()
       },
       { status: 503 }
     )

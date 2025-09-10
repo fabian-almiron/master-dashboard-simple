@@ -92,9 +92,6 @@ export interface CMSInstance {
   owner_name: string
   owner_email: string
   
-  // Template and theme
-  template_id: string
-  theme_id: string
   
   // Deployment settings
   auto_deploy: boolean
@@ -121,19 +118,6 @@ export interface DeploymentLog {
   duration_ms?: number
 }
 
-export interface CMSTemplate {
-  id: string
-  name: string
-  description?: string
-  category: string
-  git_repo: string
-  git_branch: string
-  preview_image_url?: string
-  config: Record<string, any>
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
 
 export interface SupabaseProject {
   id: string
@@ -286,30 +270,6 @@ export async function getDeploymentLogs(instanceId: string, limit: number = 10) 
   return data as DeploymentLog[]
 }
 
-// =============================================
-// TEMPLATE FUNCTIONS
-// =============================================
-export async function getCMSTemplates() {
-  const { data, error } = await masterSupabase
-    .from('cms_templates')
-    .select('*')
-    .eq('is_active', true)
-    .order('category', { ascending: true })
-
-  if (error) throw error
-  return data as CMSTemplate[]
-}
-
-export async function getCMSTemplateById(templateId: string) {
-  const { data, error } = await masterSupabase
-    .from('cms_templates')
-    .select('*')
-    .eq('id', templateId)
-    .single()
-
-  if (error) throw error
-  return data as CMSTemplate
-}
 
 // =============================================
 // SUPABASE PROJECT FUNCTIONS

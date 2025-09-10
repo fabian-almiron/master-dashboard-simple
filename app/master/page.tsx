@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Globe, Server, Activity, Users, ExternalLink, Settings, Layers, Trash2 } from 'lucide-react'
+import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { 
   getCMSInstances, 
@@ -19,7 +19,6 @@ interface DashboardStats {
   activeInstances: number
   totalDeployments: number
   successfulDeployments: number
-  availableTemplates: number
 }
 
 export default function MasterDashboard() {
@@ -28,8 +27,7 @@ export default function MasterDashboard() {
     totalInstances: 0,
     activeInstances: 0,
     totalDeployments: 0,
-    successfulDeployments: 0,
-    availableTemplates: 0
+    successfulDeployments: 0
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -121,7 +119,8 @@ export default function MasterDashboard() {
       const { results, message } = result
       let alertMessage = `${message}\n\n`
       
-      if (results.database) alertMessage += '✅ Database record deleted\n'
+      if (results.masterDatabase) alertMessage += '✅ Master database record deleted\n'
+      if (results.sharedDatabase) alertMessage += '✅ Website data deleted from shared database\n'
       if (results.bitbucketRepo) alertMessage += '✅ Bitbucket repository deleted\n'
       if (results.vercelProject) alertMessage += '✅ Vercel project deleted\n'
       
@@ -269,20 +268,6 @@ export default function MasterDashboard() {
                   Create New Website
                 </Button>
               </Link>
-              <Link href="/master/themes">
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg shadow-purple-500/25">
-                  <div className="h-4 w-4 mr-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">AI</span>
-                  </div>
-                  Generate Theme
-                </Button>
-              </Link>
-              <Link href="/master/settings">
-                <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -309,7 +294,7 @@ export default function MasterDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-green-500/20 rounded-xl border border-green-500/30">
-                  <Activity className="h-6 w-6 text-green-400" />
+                  <Globe className="h-6 w-6 text-green-400" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Active Sites</p>
@@ -351,19 +336,6 @@ export default function MasterDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 group">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
-                  <Layers className="h-6 w-6 text-indigo-400" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Templates</p>
-                  <p className="text-2xl font-bold text-white">{stats.availableTemplates}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* CMS Instances */}
@@ -411,7 +383,7 @@ export default function MasterDashboard() {
                               {instance.domain}
                             </span>
                           )}
-                          <span>Template: {instance.template_id}</span>
+                          <span>Repository: {instance.vercel_git_repo ? new URL(instance.vercel_git_repo).pathname.split('/').pop()?.replace('.git', '') : 'Not set'}</span>
                         </div>
                       </div>
                     </div>
@@ -486,31 +458,7 @@ export default function MasterDashboard() {
             </Link>
           </Card>
 
-          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 cursor-pointer group">
-            <Link href="/master/templates">
-              <CardContent className="p-6 text-center">
-                <div className="relative mb-4">
-                  <Globe className="h-12 w-12 text-purple-400 mx-auto" />
-                  <div className="absolute inset-0 h-12 w-12 bg-purple-400/20 rounded-full blur-md mx-auto group-hover:bg-purple-400/30 transition-all duration-200"></div>
-                </div>
-                <h3 className="font-semibold text-white mb-2">Browse Templates</h3>
-                <p className="text-gray-400 text-sm">Explore available CMS templates and themes</p>
-              </CardContent>
-            </Link>
-          </Card>
 
-          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 cursor-pointer group">
-            <Link href="/master/analytics">
-              <CardContent className="p-6 text-center">
-                <div className="relative mb-4">
-                  <Activity className="h-12 w-12 text-green-400 mx-auto" />
-                  <div className="absolute inset-0 h-12 w-12 bg-green-400/20 rounded-full blur-md mx-auto group-hover:bg-green-400/30 transition-all duration-200"></div>
-                </div>
-                <h3 className="font-semibold text-white mb-2">View Analytics</h3>
-                <p className="text-gray-400 text-sm">Monitor performance across all instances</p>
-              </CardContent>
-            </Link>
-          </Card>
         </div>
       </div>
     </div>

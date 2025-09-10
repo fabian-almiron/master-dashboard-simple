@@ -8,7 +8,16 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "*.{js,ts,jsx,tsx,mdx}"
+    "./cms-master/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./cms-master/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./cms-master/themes/**/*.{js,ts,jsx,tsx,mdx}",
+    "*.{js,ts,jsx,tsx,mdx}",
+    "!./theme-backups/**/*",
+    "!./node_modules/**/*"
+  ],
+  blocklist: [
+    'bg-[url(...)]',
+    'bg-[url(\'data:image/svg+xml...\')]'
   ],
   theme: {
   	extend: {

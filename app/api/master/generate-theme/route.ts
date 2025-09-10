@@ -240,7 +240,7 @@ Each color should have the full RGB triplet (three values) for proper CSS variab
   })
 
   const response = await anthropic.messages.create({
-    model: 'claude-3-sonnet-20240229',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 1000,
     temperature: 0.7,
     messages: [
@@ -432,7 +432,7 @@ async function generateHeaderComponent(websiteName: string, style: string, mood:
   })
 
   const response = await anthropic.messages.create({
-    model: 'claude-3-sonnet-20240229',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2000,
     temperature: 0.7,
     messages: [
@@ -849,8 +849,8 @@ async function generateHeroComponent(websiteName: string, description: string, s
 
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 1500,
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 20000,
       temperature: 0.7,
       messages: [
         {
@@ -910,8 +910,8 @@ async function generateFeaturesComponent(websiteName: string, industry: string, 
 
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 1500,
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 20000,
       temperature: 0.7,
       messages: [
         {
