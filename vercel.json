@@ -21,7 +21,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://localhost:3000,https://yourdomain.com"
+          "value": "https://localhost:3000,https://yourdomain.com,https://*.railway.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
