@@ -12,7 +12,12 @@ export function isSupabaseConfigured(): boolean {
 
 // Create fallback client for build time when env vars are missing
 function createFallbackClient() {
-  // Create a minimal client that throws helpful errors when used
+  console.error('🚨 SHARED CMS SUPABASE CONFIG ERROR: Using fallback client - environment variables not configured!')
+  console.error('Required variables:', {
+    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+  })
   return createClient('https://fallback.supabase.co', 'fallback-key')
 }
 
