@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteCMSInstance, getCMSInstanceById, getDeploymentLogs } from '@/lib/master-supabase'
-import { adminDeleteSite } from '@/lib/supabase'
 import { securityMiddleware, sanitizeError, logSecurityEvent } from '@/lib/security'
 import { z } from 'zod'
 
@@ -62,20 +61,8 @@ export async function DELETE(request: NextRequest) {
       console.warn('⚠️ Could not retrieve site_id from deployment logs:', error)
     }
 
-    // Step 2: Delete from shared CMS database first (if site_id found)
-    if (siteId) {
-      try {
-        await adminDeleteSite(siteId)
-        results.sharedDatabase = true
-        console.log(`✅ Deleted site data from shared database: ${siteId}`)
-      } catch (error) {
-        const errorMsg = `Failed to delete from shared database: ${error}`
-        console.error('❌', errorMsg)
-        results.errors.push(errorMsg)
-      }
-    } else {
-      results.errors.push('Could not find site_id - shared database cleanup skipped')
-    }
+    // Step 2: Shared CMS database deletion removed (no longer used)
+    console.log('ℹ️ Shared CMS database functionality removed - skipping database cleanup')
 
     // Step 3: Delete from master database (to mark as deleting)
     try {

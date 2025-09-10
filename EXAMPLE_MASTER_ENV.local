@@ -12,12 +12,10 @@ NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY=your_master_anon_key_here
 MASTER_SUPABASE_SERVICE_ROLE_KEY=your_master_service_key_here
 
 # =============================================
-# SHARED CMS DATABASE  
+# NOTE: SHARED CMS DATABASE REMOVED
 # =============================================
-# Use your EXISTING CMS Supabase project - all instances will share this
-NEXT_PUBLIC_SUPABASE_URL=https://zezmamvmmlaojaixymhz.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_existing_cms_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_existing_cms_service_key
+# This application now only uses the Master Dashboard Database
+# The shared CMS functionality has been removed for simplicity
 
 # =============================================
 # VERCEL API (Required for auto-deployment)

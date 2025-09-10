@@ -10,20 +10,15 @@ export async function GET(request: NextRequest) {
     NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY,
     MASTER_SUPABASE_SERVICE_ROLE_KEY: !!process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY,
     
-    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    
     // Show partial URLs for debugging (first 30 chars + ...)
     masterUrlPreview: process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL?.substring(0, 30) + '...',
-    sharedUrlPreview: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
     
     // Railway specific
     RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
     NODE_ENV: process.env.NODE_ENV,
     
     // Check if we're using fallback
-    usingFallback: !process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_URL
+    usingFallback: !process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL
   }
   
   return NextResponse.json({
@@ -31,7 +26,7 @@ export async function GET(request: NextRequest) {
     environment: 'railway-debug',
     variables: envCheck,
     message: envCheck.usingFallback 
-      ? 'ISSUE: Missing Supabase environment variables - using fallback client'
-      : 'SUCCESS: All required environment variables are present'
+      ? 'ISSUE: Missing Master Supabase environment variables - using fallback client'
+      : 'SUCCESS: All required Master database environment variables are present'
   })
 }

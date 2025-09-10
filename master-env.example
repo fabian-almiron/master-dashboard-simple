@@ -10,15 +10,10 @@ NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 MASTER_SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # =============================================
-# SHARED CMS DATABASE CONFIGURATION
+# NOTE: SHARED CMS DATABASE REMOVED
 # =============================================
-# This is the SHARED database that all CMS instances will use (multi-tenant)
-# This should be your EXISTING CMS Supabase project
-
-# Shared CMS Database (where all sites will be created)
-NEXT_PUBLIC_SUPABASE_URL=https://your-cms-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# This application now only uses the Master Dashboard Database
+# The shared CMS functionality has been removed for simplicity
 
 # =============================================
 # API CONFIGURATION

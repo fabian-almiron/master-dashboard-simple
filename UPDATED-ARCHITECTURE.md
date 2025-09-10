@@ -63,11 +63,10 @@ SELECT * FROM page_blocks WHERE site_id = 'current-site-uuid';
 -- Stores: cms_instances, deployment_logs, templates, notifications
 ```
 
-### 2. Shared CMS Database  
+### 2. ~~Shared CMS Database~~ **REMOVED**
 ```sql
--- Run database-schema.sql (existing CMS schema)
--- Stores: sites, pages, templates, page_blocks, navigation_items
--- Each record has site_id for multi-tenant isolation
+-- REMOVED: Shared CMS database functionality has been removed
+-- This application now only uses the Master Dashboard Database
 ```
 
 ## 🚀 Deployment Process
@@ -99,24 +98,18 @@ Each CMS instance only sees its own data because:
 NEXT_PUBLIC_MASTER_SUPABASE_URL=https://master-project.supabase.co
 MASTER_SUPABASE_SERVICE_ROLE_KEY=master-service-key
 
-# Shared CMS database (used by all instances)
-NEXT_PUBLIC_SUPABASE_URL=https://shared-cms.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=shared-service-key
+# NOTE: Shared CMS database removed - only using Master Dashboard Database
 
 # API tokens
 VERCEL_TOKEN=your-vercel-token
 GITHUB_TOKEN=your-github-token
 ```
 
-### Each CMS Instance (Set automatically)
+### ~~Each CMS Instance~~ **REMOVED**
 ```bash
-# Shared database (same for all)
-NEXT_PUBLIC_SUPABASE_URL=https://shared-cms.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=shared-anon-key
-SUPABASE_SERVICE_ROLE_KEY=shared-service-key
-
-# Unique site identifier (different for each)
-CMS_SITE_ID=uuid-for-this-site
+# REMOVED: CMS instance deployment functionality has been removed
+# This application now only manages the master dashboard
+```
 NEXT_PUBLIC_CMS_SITE_ID=uuid-for-this-site
 ```
 
