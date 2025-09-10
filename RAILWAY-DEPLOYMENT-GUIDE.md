@@ -6,7 +6,9 @@ Set these in your Railway project dashboard under **Variables** tab:
 
 ### 🔐 Authentication & Security
 ```bash
-NEXTAUTH_SECRET=your-super-long-random-secret-min-32-chars
+# CRITICAL: Must be 32+ characters long
+NEXTAUTH_SECRET=your-super-long-random-secret-min-32-chars-make-it-really-long
+# CRITICAL: Must match your Railway app URL exactly
 NEXTAUTH_URL=https://your-app-name.up.railway.app
 ALLOWED_EMAILS=your-email@domain.com,admin@domain.com
 ```

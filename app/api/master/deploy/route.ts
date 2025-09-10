@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
   
   try {
     const rawData = await request.json()
+    console.log('🔍 Raw deployment data received:', JSON.stringify(rawData, null, 2))
     const data = validateInput(rawData, schemas.deploymentRequest)
     
     // Log deployment attempt
