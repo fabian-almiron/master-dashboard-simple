@@ -1,6 +1,6 @@
-# Sterling & Associates Law Firm
+# Serenity Spa & Wellness
 
-Professional law firm website showcasing credentials, practice areas, and attorney expertise
+Luxury spa and wellness center offering signature treatments and holistic relaxation services
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: Professional Services Header
-- Hero: Professional Services Hero
-- Footer: Professional Services Footer
+- Header: Beauty & Wellness Header
+- Hero: Beauty & Wellness Hero
+- Footer: Beauty & Wellness Footer
 
 Generated using the Hybrid Component System.

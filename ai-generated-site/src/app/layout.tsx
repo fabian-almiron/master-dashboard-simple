@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sterling & Associates Law Firm',
-  description: 'Professional law firm website showcasing credentials, practice areas, and attorney expertise',
+  title: 'Serenity Spa & Wellness',
+  description: 'Luxury spa and wellness center offering signature treatments and holistic relaxation services',
 }
 
 export default function RootLayout({

@@ -2,49 +2,59 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Menu, X, Phone, Mail, MapPin } from 'lucide-react'
+import { Menu, X, Calendar, Clock, Instagram, Facebook, Phone } from 'lucide-react'
 
 interface HeaderProps {
   logo: string
   navigation: Array<{ label: string; href: string }>
   ctaText: string
   ctaHref: string
+  socialLinks: Array<{ platform: string; href: string }>
   contactInfo: {
     phone: string
-    email: string
-    address?: string
+    hours: string
   }
 }
 
-export default function Header({ logo, navigation, ctaText, ctaHref, contactInfo }: HeaderProps) {
+export default function Header({ logo, navigation, ctaText, ctaHref, socialLinks, contactInfo }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const getSocialIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'instagram': return <Instagram className="h-4 w-4" />
+      case 'facebook': return <Facebook className="h-4 w-4" />
+      default: return null
+    }
+  }
 
   return (
     <>
-      {/* Top Contact Bar */}
-      <div className="bg-gray-50 border-b border-gray-200">
+      {/* Top Info Bar */}
+      <div className="bg-rose-50 border-b border-rose-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-2 text-sm">
             <div className="flex items-center space-x-6">
-              <div className="flex items-center text-gray-600">
+              <div className="flex items-center text-rose-700">
+                <Clock className="h-4 w-4 mr-2" />
+                <span>{contactInfo.hours}</span>
+              </div>
+              <div className="flex items-center text-rose-700">
                 <Phone className="h-4 w-4 mr-2" />
                 <span>{contactInfo.phone}</span>
               </div>
-              <div className="flex items-center text-gray-600">
-                <Mail className="h-4 w-4 mr-2" />
-                <span>{contactInfo.email}</span>
-              </div>
-              {contactInfo.address && (
-                <div className="hidden md:flex items-center text-gray-600">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <span>{contactInfo.address}</span>
-                </div>
-              )}
             </div>
-            <div className="hidden md:block">
-              <Link href={ctaHref} className="text-blue-600 hover:text-blue-700 font-medium">
-                {ctaText}
-              </Link>
+            <div className="flex items-center space-x-3">
+              {socialLinks.map((social) => (
+                <Link
+                  key={social.platform}
+                  href={social.href}
+                  className="text-rose-600 hover:text-rose-700 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {getSocialIcon(social.platform)}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -65,7 +75,7 @@ export default function Header({ logo, navigation, ctaText, ctaHref, contactInfo
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-700 hover:text-rose-600 px-3 py-2 text-sm font-medium transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -75,8 +85,9 @@ export default function Header({ logo, navigation, ctaText, ctaHref, contactInfo
             <div className="hidden md:flex items-center space-x-4">
               <Link
                 href={ctaHref}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                className="bg-rose-600 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-rose-700 transition-colors flex items-center"
               >
+                <Calendar className="h-4 w-4 mr-2" />
                 {ctaText}
               </Link>
             </div>
@@ -98,7 +109,7 @@ export default function Header({ logo, navigation, ctaText, ctaHref, contactInfo
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium"
+                    className="text-gray-700 hover:text-rose-600 block px-3 py-2 text-base font-medium"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
@@ -106,9 +117,10 @@ export default function Header({ logo, navigation, ctaText, ctaHref, contactInfo
                 ))}
                 <Link
                   href={ctaHref}
-                  className="bg-blue-600 text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 mt-4"
+                  className="bg-rose-600 text-white block px-3 py-2 rounded-full text-base font-medium hover:bg-rose-700 mt-4 flex items-center"
                   onClick={() => setIsMenuOpen(false)}
                 >
+                  <Calendar className="h-4 w-4 mr-2" />
                   {ctaText}
                 </Link>
               </div>

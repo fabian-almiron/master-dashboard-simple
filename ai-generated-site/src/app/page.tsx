@@ -1,278 +1,372 @@
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
+import Features from '@/components/Features'
 import Footer from '@/components/Footer'
 
 export default function Home() {
   const headerProps = {
-  "logo": "Sterling & Associates Law Firm",
+  "logo": "Serenity Spa & Wellness",
   "navigation": [
     {
       "label": "Home",
       "href": "/"
     },
     {
-      "label": "Practice Areas",
-      "href": "/practice-areas"
+      "label": "Treatments",
+      "href": "/treatments"
     },
     {
-      "label": "Our Attorneys",
-      "href": "/attorneys"
+      "label": "Wellness",
+      "href": "/wellness"
     },
     {
-      "label": "Case Results",
-      "href": "/results"
+      "label": "About",
+      "href": "/about"
     },
     {
-      "label": "Resources",
-      "href": "/resources"
-    },
-    {
-      "label": "Contact",
-      "href": "/contact"
+      "label": "Gift Cards",
+      "href": "/gift-cards"
     }
   ],
-  "ctaText": "Free Consultation",
-  "ctaHref": "/contact",
+  "ctaText": "Book Appointment",
+  "ctaHref": "/booking",
   "socialLinks": [
     {
-      "platform": "linkedin",
-      "href": "#"
+      "platform": "instagram",
+      "href": "https://instagram.com/serenityspa"
     },
     {
-      "platform": "twitter",
-      "href": "#"
+      "platform": "facebook",
+      "href": "https://facebook.com/serenityspa"
+    },
+    {
+      "platform": "pinterest",
+      "href": "https://pinterest.com/serenityspa"
     }
   ],
   "contactInfo": {
-    "phone": "+1 (555) 123-4567",
-    "email": "info@sterlinglaw.com",
-    "address": "100 Financial Plaza, Suite 1500, New York, NY 10005",
-    "hours": "Mon-Fri 8:30AM-6:00PM"
+    "phone": "+1 (555) 234-7890",
+    "email": "relax@serenityspa.com",
+    "address": "456 Tranquil Lane, Wellness District, CA 90210",
+    "hours": "Mon-Sat 9AM-8PM, Sun 10AM-6PM"
   },
-  "emergencyPhone": "+1 (555) 911-HELP",
-  "serviceAreas": "New York, New Jersey, Connecticut",
+  "emergencyPhone": "+1 (555) 234-7890",
+  "serviceAreas": "Wellness District & Beverly Hills",
   "patientPortalHref": "/client-portal",
   "agentInfo": {
-    "name": "Michael Sterling, Esq.",
-    "phone": "+1 (555) 123-4567",
-    "email": "msterling@sterlinglaw.com"
+    "name": "Sarah Chen",
+    "phone": "+1 (555) 234-7890",
+    "email": "sarah@serenityspa.com"
   },
   "searchHref": "/search"
 }
   const heroProps = {
-  "headline": "Experienced Legal Representation You Can Trust",
-  "description": "With over 30 years of combined experience, Sterling & Associates delivers results-driven legal solutions for businesses and individuals across New York.",
+  "headline": "Escape to Tranquility",
+  "description": "Discover pure relaxation with our signature spa treatments and holistic wellness services in a serene, luxurious environment",
   "primaryCta": {
-    "text": "Schedule Free Consultation",
-    "href": "/contact"
+    "text": "Book Your Escape",
+    "href": "/booking"
   },
   "secondaryCta": {
-    "text": "View Our Practice Areas",
-    "href": "/practice-areas"
+    "text": "View Treatments",
+    "href": "/treatments"
   },
-  "ctaText": "Get Started Today",
-  "ctaHref": "/contact",
+  "ctaText": "Book Now",
+  "ctaHref": "/booking",
   "features": [
-    "30+ Years Combined Experience",
-    "500+ Cases Won",
-    "24/7 Client Support"
+    "Award-Winning Spa",
+    "Expert Therapists",
+    "Organic Products"
   ],
-  "heroImage": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=600&fit=crop",
-  "backgroundImage": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=600&fit=crop",
+  "heroImage": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=600&fit=crop",
+  "backgroundImage": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&h=900&fit=crop",
   "credentials": [
-    "AV Preeminent® Rated by Martindale-Hubbell®",
-    "Super Lawyers® Recognition 2020-2024",
-    "American Bar Association Member",
-    "New York State Bar Association"
+    "ISPA Member",
+    "Forbes 5-Star Spa",
+    "Certified Organic"
   ],
-  "testimonialQuote": "Sterling & Associates secured a $2.5M settlement for our company. Their expertise and dedication were exceptional throughout the entire process.",
-  "testimonialAuthor": "Sarah Johnson, CEO of TechCorp Industries",
-  "emergencyPhone": "+1 (555) 911-LEGAL",
-  "officeHours": "Mon-Fri 8:30AM-6:00PM, Sat by appointment",
+  "testimonialQuote": "The most relaxing experience I've ever had. The therapists are true healing artists!",
+  "testimonialAuthor": "Michelle Roberts, Regular Client",
+  "emergencyPhone": "+1 (555) 234-7890",
+  "officeHours": "Mon-Sat 9AM-8PM, Sun 10AM-6PM",
   "patientStats": {
-    "yearsExperience": "30+",
-    "patientsServed": "2,500+",
-    "satisfactionRate": "98%"
+    "yearsExperience": "12+",
+    "patientsServed": "15,000+",
+    "satisfactionRate": "99%"
   },
-  "specialOffer": "Free initial consultation for all new clients",
-  "hours": "Mon-Fri 8:30AM-6:00PM",
-  "location": "Financial District, New York",
+  "specialOffer": "New Client Special: 20% off your first signature treatment",
+  "hours": "Mon-Sat 9AM-8PM, Sun 10AM-6PM",
+  "location": "Wellness District",
   "menuHighlights": [
-    "Corporate Law",
-    "Personal Injury",
-    "Real Estate Law"
+    "90-Min Signature Massage",
+    "Himalayan Salt Stone Therapy",
+    "24K Gold Facial"
   ],
-  "serviceAreas": "New York, New Jersey, Connecticut",
+  "serviceAreas": "Wellness District & Beverly Hills",
   "guarantees": [
-    "No Win, No Fee",
-    "100% Confidential",
-    "Free Case Evaluation"
+    "100% Satisfaction",
+    "Licensed Therapists",
+    "Organic Products"
   ],
-  "responseTime": "24 hours",
+  "responseTime": "Same day booking available",
   "serviceHighlights": [
-    "Business Litigation",
-    "Estate Planning",
-    "Employment Law"
+    "Signature Serenity Massage",
+    "Detox Body Wrap",
+    "Aromatherapy Journey"
   ],
-  "agentName": "Michael Sterling, Esq.",
+  "agentName": "Sarah Chen",
   "agentCredentials": [
-    "Harvard Law School, J.D.",
-    "Former Federal Prosecutor",
-    "Board Certified Trial Attorney"
+    "Master Esthetician",
+    "Holistic Wellness Coach",
+    "15 Years Experience"
   ],
   "marketStats": {
-    "propertiesSold": "500+",
-    "avgDaysOnMarket": "45",
-    "clientSatisfaction": "98%"
+    "propertiesSold": "N/A",
+    "avgDaysOnMarket": "N/A",
+    "clientSatisfaction": "99%"
+  }
+}
+  const featuresProps = {
+  "headline": "Signature Treatments",
+  "description": "Indulge in our carefully curated selection of spa treatments designed to rejuvenate your body, mind, and spirit",
+  "features": [
+    {
+      "icon": "sparkles",
+      "title": "Serenity Signature Massage",
+      "description": "Our award-winning 90-minute full-body massage combining Swedish, deep tissue, and hot stone techniques",
+      "metric": "90 min",
+      "guarantee": "Most Popular",
+      "badge": "Signature",
+      "highlight": "$180",
+      "duration": "90 minutes",
+      "specialty": "Award Winner"
+    },
+    {
+      "icon": "heart",
+      "title": "24K Gold Rejuvenation Facial",
+      "description": "Luxurious anti-aging facial with 24-karat gold infusion for radiant, youthful skin",
+      "metric": "75 min",
+      "guarantee": "Anti-Aging",
+      "badge": "Luxury",
+      "highlight": "$250",
+      "duration": "75 minutes",
+      "specialty": "Celebrity Favorite"
+    },
+    {
+      "icon": "shield",
+      "title": "Himalayan Salt Stone Therapy",
+      "description": "Detoxifying body treatment using warm Himalayan salt stones to restore balance and energy",
+      "metric": "60 min",
+      "guarantee": "Detoxifying",
+      "badge": "Healing",
+      "highlight": "$160",
+      "duration": "60 minutes",
+      "specialty": "Energy Balancing"
+    },
+    {
+      "icon": "star",
+      "title": "Aromatherapy Journey",
+      "description": "Personalized essential oil therapy combined with lymphatic massage for deep relaxation",
+      "metric": "75 min",
+      "guarantee": "Customized",
+      "badge": "Holistic",
+      "highlight": "$190",
+      "duration": "75 minutes",
+      "specialty": "Stress Relief"
+    }
+  ],
+  "credentials": [
+    "ISPA Certified",
+    "Forbes 5-Star",
+    "Green Spa Certified"
+  ],
+  "patientStats": {
+    "yearsExperience": "12+",
+    "patientsServed": "15,000+",
+    "satisfactionRate": "99%"
+  },
+  "highlights": {
+    "rating": "4.9",
+    "reviews": "850+",
+    "specialties": [
+      "Massage Therapy",
+      "Facial Treatments",
+      "Body Wraps",
+      "Aromatherapy"
+    ]
+  },
+  "serviceInfo": {
+    "responseTime": "Same day",
+    "serviceAreas": "Wellness District",
+    "yearsExperience": "12+",
+    "jobsCompleted": "45,000+"
+  },
+  "wellness": {
+    "treatments": "35+",
+    "experience": "12+",
+    "satisfaction": "99%",
+    "awards": [
+      "Best Spa 2024",
+      "Excellence in Wellness",
+      "Green Spa Award"
+    ]
+  },
+  "marketData": {
+    "propertiesSold": "N/A",
+    "avgDaysOnMarket": "N/A",
+    "clientSatisfaction": "99%",
+    "marketAreas": [
+      "Wellness District",
+      "Beverly Hills",
+      "West Hollywood"
+    ]
   }
 }
   const footerProps = {
-  "companyName": "Sterling & Associates Law Firm",
-  "tagline": "Excellence in Legal Representation Since 1994",
-  "description": "Sterling & Associates is a full-service law firm dedicated to providing exceptional legal representation to businesses and individuals throughout the tri-state area.",
+  "companyName": "Serenity Spa & Wellness",
+  "tagline": "Where Tranquility Meets Transformation",
+  "description": "Your sanctuary for relaxation and rejuvenation in the heart of the Wellness District",
   "navigation": [
     {
       "label": "Home",
       "href": "/"
     },
     {
-      "label": "Practice Areas",
-      "href": "/practice-areas"
+      "label": "Treatments",
+      "href": "/treatments"
     },
     {
-      "label": "Our Attorneys",
-      "href": "/attorneys"
+      "label": "Wellness",
+      "href": "/wellness"
     },
     {
-      "label": "Case Results",
-      "href": "/results"
+      "label": "About",
+      "href": "/about"
     },
     {
-      "label": "Client Portal",
-      "href": "/client-portal"
+      "label": "Gift Cards",
+      "href": "/gift-cards"
     },
     {
-      "label": "Contact",
-      "href": "/contact"
+      "label": "Membership",
+      "href": "/membership"
     }
   ],
   "socialLinks": [
     {
-      "platform": "linkedin",
-      "href": "#"
-    },
-    {
-      "platform": "twitter",
-      "href": "#"
+      "platform": "instagram",
+      "href": "https://instagram.com/serenityspa"
     },
     {
       "platform": "facebook",
-      "href": "#"
+      "href": "https://facebook.com/serenityspa"
+    },
+    {
+      "platform": "pinterest",
+      "href": "https://pinterest.com/serenityspa"
+    },
+    {
+      "platform": "youtube",
+      "href": "https://youtube.com/serenityspa"
     }
   ],
-  "copyright": "© 2024 Sterling & Associates Law Firm. All rights reserved. Attorney Advertising.",
+  "copyright": "© 2024 Serenity Spa & Wellness. All rights reserved.",
   "columns": [
     {
-      "title": "Practice Areas",
+      "title": "Spa Services",
       "links": [
         {
-          "label": "Corporate Law",
-          "href": "/practice-areas/corporate"
+          "label": "Massage Therapy",
+          "href": "/treatments/massage"
         },
         {
-          "label": "Personal Injury",
-          "href": "/practice-areas/personal-injury"
+          "label": "Facial Treatments",
+          "href": "/treatments/facials"
         },
         {
-          "label": "Real Estate",
-          "href": "/practice-areas/real-estate"
+          "label": "Body Treatments",
+          "href": "/treatments/body"
         },
         {
-          "label": "Employment Law",
-          "href": "/practice-areas/employment"
-        },
-        {
-          "label": "Estate Planning",
-          "href": "/practice-areas/estate-planning"
+          "label": "Wellness Packages",
+          "href": "/packages"
         }
       ]
     },
     {
-      "title": "Resources",
+      "title": "Quick Links",
       "links": [
         {
-          "label": "Legal Blog",
-          "href": "/blog"
+          "label": "Book Appointment",
+          "href": "/booking"
         },
         {
-          "label": "FAQs",
-          "href": "/faqs"
+          "label": "Gift Cards",
+          "href": "/gift-cards"
         },
         {
-          "label": "Legal Forms",
-          "href": "/forms"
+          "label": "Spa Membership",
+          "href": "/membership"
         },
         {
-          "label": "Case Studies",
-          "href": "/case-studies"
-        },
-        {
-          "label": "News & Updates",
-          "href": "/news"
+          "label": "Special Offers",
+          "href": "/offers"
         }
       ]
     }
   ],
   "contactInfo": {
-    "email": "info@sterlinglaw.com",
-    "phone": "+1 (555) 123-4567",
-    "address": "100 Financial Plaza, Suite 1500, New York, NY 10005",
-    "hours": "Mon-Fri 8:30AM-6:00PM, Sat by appointment"
+    "email": "relax@serenityspa.com",
+    "phone": "+1 (555) 234-7890",
+    "address": "456 Tranquil Lane, Wellness District, CA 90210",
+    "hours": "Mon-Sat 9AM-8PM, Sun 10AM-6PM"
   },
   "credentials": [
-    "AV Preeminent® Rated",
-    "Super Lawyers® 2020-2024",
-    "American Bar Association",
-    "NY State Bar Association"
+    "Licensed Spa Facility",
+    "ISPA Member",
+    "Forbes 5-Star Spa"
   ],
-  "emergencyPhone": "+1 (555) 911-LEGAL",
+  "emergencyPhone": "+1 (555) 234-7890",
   "patientResources": [
     {
       "label": "Client Portal",
       "href": "/client-portal"
     },
     {
-      "label": "Payment Options",
-      "href": "/payments"
+      "label": "Intake Forms",
+      "href": "/forms"
     },
     {
-      "label": "Document Upload",
-      "href": "/upload"
+      "label": "FAQs",
+      "href": "/faqs"
     }
   ],
-  "specialHours": "24/7 Emergency Legal Hotline Available",
-  "serviceAreas": "New York, New Jersey, Connecticut",
+  "specialHours": "Holiday hours vary. Closed Thanksgiving & Christmas",
+  "serviceAreas": "Wellness District & Beverly Hills",
   "licenses": [
-    "NY Bar License #123456",
-    "NJ Bar License #789012",
-    "CT Bar License #345678"
+    "CA Spa License #SPA2024",
+    "Business License #BUS789"
   ],
   "specialOffers": [
     {
-      "title": "Free Consultation",
-      "description": "No-obligation case evaluation for all new clients"
+      "title": "New Client Special",
+      "description": "20% off your first signature treatment"
+    },
+    {
+      "title": "Couples Package",
+      "description": "Book two treatments and save 15%"
     }
   ],
   "agentInfo": {
-    "name": "Michael Sterling, Esq.",
-    "phone": "+1 (555) 123-4567",
-    "email": "msterling@sterlinglaw.com",
-    "license": "NY Bar #123456"
+    "name": "Sarah Chen",
+    "phone": "+1 (555) 234-7890",
+    "email": "sarah@serenityspa.com",
+    "license": "CMT #12345"
   },
   "marketStats": {
-    "propertiesSold": "$150M+",
-    "avgDaysOnMarket": "45",
-    "clientSatisfaction": "98%"
+    "propertiesSold": "N/A",
+    "avgDaysOnMarket": "N/A",
+    "clientSatisfaction": "99%"
   }
 }
 
@@ -280,6 +374,7 @@ export default function Home() {
     <>
       <Header {...headerProps} />
       <Hero {...heroProps} />
+      <Features {...featuresProps} />
       <Footer {...footerProps} />
     </>
   )

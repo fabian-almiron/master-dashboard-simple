@@ -22,6 +22,8 @@ interface ComponentBlock {
 interface ComponentBlocks {
   headers: ComponentBlock[]
   heroes: ComponentBlock[]
+  features: ComponentBlock[]
+  testimonials: ComponentBlock[]
   footers: ComponentBlock[]
 }
 
@@ -29,6 +31,8 @@ interface AISelection {
   selectedComponents: {
     header: string
     hero: string
+    features: string
+    testimonials: string
     footer: string
   }
   sitemap: Array<{
@@ -39,6 +43,8 @@ interface AISelection {
   content: {
     header: any
     hero: any
+    features: any
+    testimonials: any
     footer: any
   }
   projectConfig: {
@@ -53,15 +59,19 @@ interface AISelection {
 }
 
 async function loadComponentBlocks(): Promise<ComponentBlocks> {
-  const [headersData, heroesData, footersData] = await Promise.all([
+  const [headersData, heroesData, featuresData, testimonialsData, footersData] = await Promise.all([
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-header-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-hero-blocks.json'), 'utf-8'),
+    fs.readFile(path.join(process.cwd(), 'component-blocks/available-features-blocks.json'), 'utf-8'),
+    fs.readFile(path.join(process.cwd(), 'component-blocks/available-testimonials-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-footer-blocks.json'), 'utf-8')
   ])
 
   return {
     headers: JSON.parse(headersData).headers,
     heroes: JSON.parse(heroesData).heroes,
+    features: JSON.parse(featuresData).features,
+    testimonials: JSON.parse(testimonialsData).testimonials,
     footers: JSON.parse(footersData).footers
   }
 }
@@ -77,12 +87,20 @@ ${componentBlocks.headers.map(h => `- ${h.id}: ${h.name} (${h.tags.join(', ')}) 
 HEROES:
 ${componentBlocks.heroes.map(h => `- ${h.id}: ${h.name} (${h.tags.join(', ')}) - ${h.description}`).join('\n')}
 
+FEATURES:
+${componentBlocks.features.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
+
+TESTIMONIALS:
+${componentBlocks.testimonials.map(t => `- ${t.id}: ${t.name} (${t.tags.join(', ')}) - ${t.description}`).join('\n')}
+
 FOOTERS:
 ${componentBlocks.footers.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
 
 IMPORTANT: Always provide ALL possible props for each component type. Different components may need different props:
 - Header components may need: ctaText, ctaHref, socialLinks, contactInfo (phone, email, address, hours), emergencyPhone, serviceAreas, patientPortalHref, agentInfo (name, phone, email), searchHref
 - Hero components may need: primaryCta, secondaryCta, ctaText, ctaHref, features, heroImage, backgroundImage, credentials, testimonialQuote, testimonialAuthor, emergencyPhone, officeHours, patientStats (yearsExperience, patientsServed, satisfactionRate), specialOffer, hours, location, menuHighlights, serviceAreas, guarantees, responseTime, serviceHighlights, agentName, agentCredentials, marketStats (propertiesSold, avgDaysOnMarket, clientSatisfaction)
+- Features components may need: features (icon, title, description, metric, guarantee, badge, highlight, duration, specialty), credentials, patientStats, highlights, serviceInfo, wellness, marketData
+- Testimonials components may need: testimonials (quote, author, role, company, rating, image, age, location, condition, outcome, treatmentType, caseResult, resultMetric, favoritedish, visitType, serviceType, projectResult, completionTime, transformation, wellnessGoal, transactionType, propertyType, salePrice, timeOnMarket), trustIndicators, patientStats, restaurantStats, serviceStats, wellnessStats, marketStats
 - Footer components may need: tagline, description, columns, contactInfo (email, phone, address, hours), socialLinks, credentials, emergencyPhone, patientResources, specialHours, serviceAreas, licenses, specialOffers, agentInfo (name, phone, email, license), marketStats (propertiesSold, avgDaysOnMarket, clientSatisfaction)
 Include all of them even if some are optional for the selected component. Generate realistic, industry-appropriate content for service businesses.
 
@@ -90,7 +108,9 @@ Return ONLY a JSON object with realistic content:
 {
   "selectedComponents": {
     "header": "header-id",
-    "hero": "hero-id", 
+    "hero": "hero-id",
+    "features": "features-id",
+    "testimonials": "testimonials-id",
     "footer": "footer-id"
   },
   "sitemap": [
@@ -148,6 +168,33 @@ Return ONLY a JSON object with realistic content:
       "agentCredentials": ["Licensed Realtor", "MLS Member", "Top Producer"],
       "marketStats": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%"}
     },
+    "features": {
+      "headline": "Why Choose Us",
+      "description": "Discover what makes us the preferred choice for your needs",
+      "features": [
+        {"icon": "check", "title": "Feature Title", "description": "Feature description", "metric": "100%", "guarantee": "Satisfaction Guaranteed", "badge": "Popular", "highlight": "Best Value", "duration": "60 minutes", "specialty": "Award Winner"}
+      ],
+      "credentials": ["Licensed Professional", "Certified Expert", "Award Winner"],
+      "patientStats": {"yearsExperience": "15+", "patientsServed": "5000+", "satisfactionRate": "98%"},
+      "highlights": {"rating": "4.9", "reviews": "500+", "specialties": ["Specialty 1", "Specialty 2"]},
+      "serviceInfo": {"responseTime": "30 minutes", "serviceAreas": "City & Surrounding Areas", "yearsExperience": "15+", "jobsCompleted": "1000+"},
+      "wellness": {"treatments": "25+", "experience": "15+", "satisfaction": "98%", "awards": ["Best Spa 2024", "Excellence Award"]},
+      "marketData": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%", "marketAreas": ["Downtown", "Suburbs", "Waterfront"]}
+    },
+    "testimonials": {
+      "headline": "What Our Clients Say",
+      "description": "Real experiences from satisfied customers who trust our services",
+      "testimonials": [
+        {"quote": "Outstanding service and results!", "author": "John Smith", "role": "Business Owner", "company": "ABC Corp", "rating": 5, "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"},
+        {"quote": "Exceeded all expectations!", "author": "Jane Doe", "role": "Manager", "company": "XYZ Inc", "rating": 5, "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"}
+      ],
+      "trustIndicators": {"totalClients": "500+", "successRate": "98%", "yearsExperience": "15+"},
+      "patientStats": {"patientsServed": "2000+", "satisfactionRate": "99%", "yearsExperience": "12+"},
+      "restaurantStats": {"totalReviews": "1000+", "averageRating": "4.8", "repeatCustomers": "85%"},
+      "serviceStats": {"jobsCompleted": "500+", "customerSatisfaction": "98%", "responseTime": "30 min"},
+      "wellnessStats": {"clientsServed": "800+", "satisfactionRate": "99%", "treatmentsOffered": "25+"},
+      "marketStats": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%"}
+    },
     "footer": {
       "companyName": "Company Name",
       "tagline": "Optional tagline for dark minimal footer",
@@ -181,7 +228,7 @@ Return ONLY a JSON object with realistic content:
 
   const stream = await anthropic.messages.create({
     model: 'claude-opus-4-20250514',
-    max_tokens: 4000,
+    max_tokens: 32000,
     temperature: 0.7,
     stream: true,
     system: systemPrompt,
@@ -216,9 +263,11 @@ Return ONLY a JSON object with realistic content:
 function generateProjectFiles(selection: AISelection, componentBlocks: ComponentBlocks): { [key: string]: string } {
   const selectedHeader = componentBlocks.headers.find(h => h.id === selection.selectedComponents.header)
   const selectedHero = componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)
+  const selectedFeatures = componentBlocks.features.find(f => f.id === selection.selectedComponents.features)
+  const selectedTestimonials = componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)
   const selectedFooter = componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)
 
-  if (!selectedHeader || !selectedHero || !selectedFooter) {
+  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedFooter) {
     throw new Error('Selected components not found')
   }
 
@@ -375,6 +424,8 @@ export default function RootLayout({
   // Components
   files['src/components/Header.tsx'] = selectedHeader.template
   files['src/components/Hero.tsx'] = selectedHero.template
+  files['src/components/Features.tsx'] = selectedFeatures.template
+  files['src/components/Testimonials.tsx'] = selectedTestimonials.template
   files['src/components/Footer.tsx'] = selectedFooter.template
 
   // Home page with proper props
@@ -384,17 +435,23 @@ export default function RootLayout({
 
   files['src/app/page.tsx'] = `import Header from '@/components/Header'
 import Hero from '@/components/Hero'
+import Features from '@/components/Features'
+import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 
 export default function Home() {
   const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
   const heroProps = ${JSON.stringify(selection.content.hero, null, 2)}
+  const featuresProps = ${JSON.stringify(selection.content.features, null, 2)}
+  const testimonialsProps = ${JSON.stringify(selection.content.testimonials, null, 2)}
   const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
 
   return (
     <>
       <Header {...headerProps} />
       <Hero {...heroProps} />
+      <Features {...featuresProps} />
+      <Testimonials {...testimonialsProps} />
       <Footer {...footerProps} />
     </>
   )
@@ -519,6 +576,8 @@ export async function POST(request: NextRequest) {
       selectedComponents: {
         header: componentBlocks.headers.find(h => h.id === selection.selectedComponents.header)?.name,
         hero: componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)?.name,
+        features: componentBlocks.features.find(f => f.id === selection.selectedComponents.features)?.name,
+        testimonials: componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)?.name,
         footer: componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)?.name
       },
       sitemap: selection.sitemap,
