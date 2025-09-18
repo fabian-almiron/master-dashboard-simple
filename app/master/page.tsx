@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2 } from 'lucide-react'
+import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { 
   getCMSInstances, 
@@ -262,6 +262,12 @@ export default function MasterDashboard() {
               <p className="text-gray-400">Manage all your CMS instances from one place</p>
             </div>
             <div className="flex space-x-3">
+              <Link href="/master/playground">
+                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg shadow-purple-500/25">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Playground
+                </Button>
+              </Link>
               <Link href="/master/create">
                 <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg shadow-blue-500/25">
                   <Plus className="h-4 w-4 mr-2" />
@@ -446,6 +452,19 @@ export default function MasterDashboard() {
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 cursor-pointer group">
+            <Link href="/master/playground">
+              <CardContent className="p-6 text-center">
+                <div className="relative mb-4">
+                  <Sparkles className="h-12 w-12 text-purple-400 mx-auto" />
+                  <div className="absolute inset-0 h-12 w-12 bg-purple-400/20 rounded-full blur-md mx-auto group-hover:bg-purple-400/30 transition-all duration-200"></div>
+                </div>
+                <h3 className="font-semibold text-white mb-2">AI Playground</h3>
+                <p className="text-gray-400 text-sm">Let AI create your dream website with natural language</p>
+              </CardContent>
+            </Link>
+          </Card>
+
+          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 cursor-pointer group">
             <Link href="/master/create">
               <CardContent className="p-6 text-center">
                 <div className="relative mb-4">
@@ -458,7 +477,18 @@ export default function MasterDashboard() {
             </Link>
           </Card>
 
-
+          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 cursor-pointer group">
+            <Link href="/master/themes">
+              <CardContent className="p-6 text-center">
+                <div className="relative mb-4">
+                  <Globe className="h-12 w-12 text-green-400 mx-auto" />
+                  <div className="absolute inset-0 h-12 w-12 bg-green-400/20 rounded-full blur-md mx-auto group-hover:bg-green-400/30 transition-all duration-200"></div>
+                </div>
+                <h3 className="font-semibold text-white mb-2">Browse Themes</h3>
+                <p className="text-gray-400 text-sm">Explore pre-built themes and templates</p>
+              </CardContent>
+            </Link>
+          </Card>
         </div>
       </div>
     </div>

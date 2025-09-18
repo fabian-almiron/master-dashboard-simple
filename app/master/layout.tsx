@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   LogOut,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react'
 import { getNotifications, type Notification } from '@/lib/master-supabase'
 
@@ -52,6 +53,12 @@ export default function MasterLayout({
       href: '/master',
       icon: Globe,
       current: pathname === '/master'
+    },
+    {
+      name: 'AI Playground',
+      href: '/master/playground',
+      icon: Sparkles,
+      current: pathname === '/master/playground'
     },
     {
       name: 'Create Website',

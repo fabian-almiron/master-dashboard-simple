@@ -1,0 +1,161 @@
+
+## CRITICAL REQUIREMENTS:
+
+### 1. IMAGE HANDLING (Client-Side)
+- Use Next.js Image component with proper configuration
+- Use working image URLs from Unsplash, Pexels, or similar free services
+- Configure next.config.js with proper remotePatterns for external images
+- Ensure all images actually load (NO /api/placeholder/ or broken URLs)
+- Include proper alt tags and responsive image sizing
+
+### 2. COMPLETE PAGE STRUCTURE
+- Create ALL pages referenced in navigation, footer, and internal links
+- Every link should lead to an actual page with meaningful content
+- Implement proper 404 handling with custom not-found.tsx
+- All pages should be static/client-side rendered
+- Include proper page metadata and SEO tags
+
+### 3. COMPONENT ARCHITECTURE
+- Use consistent export patterns (prefer default exports for components)
+- Ensure all UI components are properly exported and importable
+- Include proper TypeScript interfaces for all props
+- Use proper forwardRef patterns where needed
+- Components should be reusable and well-structured
+- Follow atomic design principles (atoms, molecules, organisms)
+
+### 4. DEPENDENCIES & CONFIGURATION
+- Include ALL required dependencies in package.json with prope or latest most stable versions
+- Configure next.config.js properly (remotePatterns, output settings if needed)
+- Include proper TypeScript configuration with strict mode
+- Add all necessary Tailwind plugins and ensure they're imported correctly
+- NO server-side dependencies or API routes
+
+### 5. CLIENT-SIDE FUNCTIONALITY
+- Implement all interactive features using client-side JavaScript/React
+- Use localStorage/sessionStorage for data persistence where needed
+- Add proper form validation (client-side)
+- Include loading states, error handling, and user feedback
+- Use React Context for global state management
+- Implement proper routing and navigation
+
+### 6. MOCK DATA & STATIC CONTENT
+- Include comprehensive mock data in static files
+- Create realistic content that matches the website purpose
+- Use TypeScript interfaces for all data structures
+- All data should be in /lib or /data folders (no API calls)
+- Include proper content structure and hierarchy
+
+### 7. BUILD & DEPLOYMENT READY
+- Ensure the project builds successfully with `npm run build`
+- Configure for static export (`output: 'export'`) if requested
+- No TypeScript errors or warnings
+- No missing dependencies
+- Include proper SEO meta tags and Open Graph data
+- Optimize for performance (lazy loading, code splitting)
+
+### 8. RESPONSIVE DESIGN & ACCESSIBILITY
+- Mobile-first responsive design with proper breakpoints
+- Touch-friendly interactions for mobile devices
+- Implement proper accessibility (ARIA labels, keyboard navigation, focus management)
+- Use semantic HTML elements
+- Ensure proper color contrast and typography scaling
+
+### 9. CLIENT-SIDE STATE MANAGEMENT
+- Use React Context API for global state when needed
+- Implement localStorage persistence for user preferences
+- Proper state updates and re-renders
+- Handle loading and error states gracefully
+- Use React hooks effectively (useState, useEffect, useContext, etc.)
+
+### 10. MODERN FRONTEND FEATURES
+- Implement smooth animations and transitions
+- Add interactive elements (modals, dropdowns, carousels, etc.)
+- Include search/filter functionality (client-side)
+- Implement theme switching (light/dark mode) if applicable
+- Add proper loading skeletons and micro-interactions
+
+## TECHNICAL SPECIFICATIONS:
+
+### File Structure:
+src/
+├── app/
+│ ├── globals.css
+│ ├── layout.tsx
+│ ├── page.tsx
+│ ├── not-found.tsx
+│ └── [additional-pages]/
+├── components/
+│ ├── ui/ (reusable UI components)
+│ ├── layout/ (header, footer, navigation)
+│ └── [feature-specific]/
+├── contexts/ (React Context providers)
+├── lib/ (utilities, constants, mock data)
+├── types/ (TypeScript interfaces)
+└── hooks/ (custom React hooks)
+
+
+### Required Configurations:
+- next.config.js with proper image configuration
+- tailwind.config.ts with all necessary plugins
+- tsconfig.json with strict TypeScript settings
+- package.json with all required dependencies
+
+### Component Standards:
+```typescript
+// Example component structure
+interface ComponentProps {
+  // Proper TypeScript interfaces
+}
+
+export default function Component({ ...props }: ComponentProps) {
+  // Component implementation
+  return (
+    // JSX with proper accessibility
+  );
+}
+```
+
+### State Management Pattern:
+```typescript
+// Context-based state management
+const AppContext = createContext();
+
+export function AppProvider({ children }) {
+  // Global state logic
+}
+
+export function useAppContext() {
+  // Custom hook for context
+}
+```
+
+## DELIVERABLES:
+- Complete, buildable Next.js project (frontend only)
+- All pages functional with meaningful content
+- Working image loading from external sources
+- Proper navigation without any 404 errors
+- Interactive features that work entirely client-side
+- Clean, production-ready code with proper TypeScript
+- Comprehensive README with setup and deployment instructions
+
+## STRICT REQUIREMENTS - NEVER INCLUDE:
+- Server-side API routes (/api/ folder)
+- Database connections or server-side functionality
+- Placeholder APIs that don't exist
+- Missing pages referenced in navigation
+- Server-side rendering requirements
+- External API dependencies (unless specifically requested)
+- Broken or non-functional links
+- TODO comments or incomplete features
+
+## QUALITY STANDARDS:
+- All code should be production-ready
+- Proper error boundaries and error handling
+- Consistent code style and formatting
+- Meaningful variable and function names
+- Proper component composition and reusability
+- Performance optimizations (memoization, lazy loading)
+- Cross-browser compatibility
+- Proper TypeScript usage with no 'any' types
+
+The result should be a fully functional, modern frontend application that works entirely in the browser with realistic functionality and can be deployed to any static hosting service.
