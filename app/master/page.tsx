@@ -7,8 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { 
-  getCMSInstances, 
-  getDashboardStats, 
   deleteCMSInstance,
   isMasterSupabaseConfigured,
   type CMSInstance 
@@ -50,13 +48,25 @@ export default function MasterDashboard() {
         return
       }
       
-      const [instancesData, statsData] = await Promise.all([
-        getCMSInstances(10), // Get latest 10 instances
-        getDashboardStats()
+      // Load data via API endpoints instead of direct Supabase calls
+      const [instancesResponse, statsResponse] = await Promise.all([
+        fetch('/api/dashboard/instances?limit=10'),
+        fetch('/api/dashboard/stats')
       ])
       
-      setInstances(instancesData)
-      setStats(statsData)
+      const instancesData = await instancesResponse.json()
+      const statsData = await statsResponse.json()
+      
+      if (!instancesData.success) {
+        throw new Error(instancesData.error || 'Failed to load instances')
+      }
+      
+      if (!statsData.success) {
+        throw new Error(statsData.error || 'Failed to load stats')
+      }
+      
+      setInstances(instancesData.data)
+      setStats(statsData.data)
     } catch (error) {
       console.error('Error loading dashboard data:', error)
       setError('Failed to load dashboard data')
