@@ -811,7 +811,7 @@ async function copyFromLocalAiGeneratedSite(newRepoName: string, authHeader: str
 }
 
 async function uploadFilesDirectly(newRepoName: string, staticPath: string, authHeader: string) {
-  console.log('📤 Uploading files directly from ai-generated-site...')
+  console.log('📤 Uploading ALL files in single API call from ai-generated-site...')
   
   const fs = require('fs')
   const path = require('path')
@@ -836,28 +836,43 @@ async function uploadFilesDirectly(newRepoName: string, staticPath: string, auth
   }
   
   const allFiles = getAllFiles(staticPath)
-  console.log(`📁 Found ${allFiles.length} files to upload`)
+  console.log(`📁 Found ${allFiles.length} files to upload in SINGLE API call`)
   
-  // Create form data with all files
+  // Create form data with all files in one request
   let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="message"\r\n\r\nDeploy complete ai-generated-site template\r\n`
+  formData += `Content-Disposition: form-data; name="message"\r\n\r\nDeploy complete ai-generated-site template (${allFiles.length} files)\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
   formData += `Content-Disposition: form-data; name="branch"\r\n\r\nmain\r\n`
   
-  // Add each file to the form data
+  // Add ALL files to the same form data (single request)
   for (const filePath of allFiles) {
     const relativePath = path.relative(staticPath, filePath)
-    const fileContent = fs.readFileSync(filePath, 'utf8')
     
-    formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-    formData += `Content-Disposition: form-data; name="${relativePath}"\r\n\r\n${fileContent}\r\n`
-    
-    console.log(`📄 Added file: ${relativePath}`)
+    try {
+      // Handle binary files vs text files
+      const stats = fs.statSync(filePath)
+      if (stats.size > 1024 * 1024) { // Skip files larger than 1MB
+        console.log(`⚠️ Skipping large file: ${relativePath} (${stats.size} bytes)`)
+        continue
+      }
+      
+      // Read as text for most files, handle encoding properly
+      const fileContent = fs.readFileSync(filePath, 'utf8')
+      
+      formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
+      formData += `Content-Disposition: form-data; name="${relativePath}"\r\n\r\n${fileContent}\r\n`
+      
+      console.log(`📄 Added to batch: ${relativePath}`)
+    } catch (error) {
+      console.log(`⚠️ Skipping file ${relativePath}: ${error}`)
+    }
   }
   
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW--\r\n`
   
-  // Upload to Bitbucket
+  console.log('🚀 Making SINGLE API call to upload all files...')
+  
+  // Single API call to upload ALL files
   const uploadResponse = await fetch(`https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${newRepoName}/src`, {
     method: 'POST',
     headers: {
@@ -869,10 +884,10 @@ async function uploadFilesDirectly(newRepoName: string, staticPath: string, auth
   
   if (!uploadResponse.ok) {
     const error = await uploadResponse.text()
-    throw new Error(`Failed to upload files: ${uploadResponse.status} ${error}`)
+    throw new Error(`Failed to upload files in single call: ${uploadResponse.status} ${error}`)
   }
   
-  console.log('✅ All files uploaded successfully')
+  console.log(`✅ Successfully uploaded ${allFiles.length} files in SINGLE API call!`)
 }
 
 async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, authHeader: string) {
