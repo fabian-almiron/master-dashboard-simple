@@ -1155,7 +1155,7 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig`
+export default nextConfig`
 
   let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
   formData += `Content-Disposition: form-data; name="message"\r\n\r\nInitial commit: Basic CMS structure with package.json and configs\r\n`
