@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   // Security checks
   const securityCheck = await securityMiddleware(request, {
     requireAuth: true,
-    rateLimit: { limit: 5, windowMs: 300000 } // 5 deployments per 5 minutes
+    rateLimit: { limit: 10, windowMs: 300000 } // 10 deployments per 5 minutes
   })
   
   if (securityCheck) return securityCheck
