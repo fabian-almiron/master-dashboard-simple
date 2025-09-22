@@ -805,9 +805,74 @@ async function copyFromLocalAiGeneratedSite(newRepoName: string, authHeader: str
   
   console.log(`✅ Found ai-generated-site directory at: ${staticPath}`)
   
-  // Simple approach: Just ZIP everything and upload it
-  await zipAndUploadAllFiles(newRepoName, staticPath, authHeader)
+  // Use simpler file-by-file upload instead of ZIP
+  await uploadFilesDirectly(newRepoName, staticPath, authHeader)
   console.log('✅ Successfully uploaded ALL ai-generated-site files')
+}
+
+async function uploadFilesDirectly(newRepoName: string, staticPath: string, authHeader: string) {
+  console.log('📤 Uploading files directly from ai-generated-site...')
+  
+  const fs = require('fs')
+  const path = require('path')
+  
+  // Read all files recursively
+  function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
+    const files = fs.readdirSync(dirPath)
+    
+    files.forEach((file: string) => {
+      const fullPath = path.join(dirPath, file)
+      if (fs.statSync(fullPath).isDirectory()) {
+        arrayOfFiles = getAllFiles(fullPath, arrayOfFiles)
+      } else {
+        // Skip system files
+        if (!file.startsWith('.') && !file.includes('node_modules')) {
+          arrayOfFiles.push(fullPath)
+        }
+      }
+    })
+    
+    return arrayOfFiles
+  }
+  
+  const allFiles = getAllFiles(staticPath)
+  console.log(`📁 Found ${allFiles.length} files to upload`)
+  
+  // Create form data with all files
+  let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
+  formData += `Content-Disposition: form-data; name="message"\r\n\r\nDeploy complete ai-generated-site template\r\n`
+  formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
+  formData += `Content-Disposition: form-data; name="branch"\r\n\r\nmain\r\n`
+  
+  // Add each file to the form data
+  for (const filePath of allFiles) {
+    const relativePath = path.relative(staticPath, filePath)
+    const fileContent = fs.readFileSync(filePath, 'utf8')
+    
+    formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
+    formData += `Content-Disposition: form-data; name="${relativePath}"\r\n\r\n${fileContent}\r\n`
+    
+    console.log(`📄 Added file: ${relativePath}`)
+  }
+  
+  formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW--\r\n`
+  
+  // Upload to Bitbucket
+  const uploadResponse = await fetch(`https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${newRepoName}/src`, {
+    method: 'POST',
+    headers: {
+      'Authorization': authHeader,
+      'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
+    },
+    body: formData
+  })
+  
+  if (!uploadResponse.ok) {
+    const error = await uploadResponse.text()
+    throw new Error(`Failed to upload files: ${uploadResponse.status} ${error}`)
+  }
+  
+  console.log('✅ All files uploaded successfully')
 }
 
 async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, authHeader: string) {
