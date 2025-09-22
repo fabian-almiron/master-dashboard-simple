@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest) {
   // Security checks - admin only for deletions
   const securityCheck = await securityMiddleware(request, {
     requireAdmin: true,
-    rateLimit: { limit: 3, windowMs: 300000 } // 3 deletions per 5 minutes
+    rateLimit: { limit: 10, windowMs: 300000 } // 10 deletions per 5 minutes
   })
   
   if (securityCheck) return securityCheck

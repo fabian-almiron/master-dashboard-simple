@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   // Security check - admin only for config details in production
   const securityCheck = await securityMiddleware(request, {
     requireAdmin: process.env.NODE_ENV === 'production',
-    rateLimit: { limit: 10, windowMs: 60000 } // 10 requests per minute
+    rateLimit: { limit: 30, windowMs: 60000 } // 30 requests per minute
   })
   
   if (securityCheck) return securityCheck
