@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Serenity Spa & Wellness',
-  description: 'Luxury spa and wellness center offering signature treatments and holistic relaxation services',
+  title: 'AutoFlow',
+  description: 'Modern tech startup landing page for AutoFlow - an AI-powered business automation platform with dark theme and animated elements',
 }
 
 export default function RootLayout({

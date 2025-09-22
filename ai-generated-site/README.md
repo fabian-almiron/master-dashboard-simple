@@ -1,6 +1,6 @@
-# Serenity Spa & Wellness
+# AutoFlow
 
-Luxury spa and wellness center offering signature treatments and holistic relaxation services
+Modern tech startup landing page for AutoFlow - an AI-powered business automation platform with dark theme and animated elements
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: Beauty & Wellness Header
-- Hero: Beauty & Wellness Hero
-- Footer: Beauty & Wellness Footer
+- Header: Dark Modern Header
+- Hero: Dark Gradient Hero
+- Footer: Dark Minimal Footer
 
 Generated using the Hybrid Component System.

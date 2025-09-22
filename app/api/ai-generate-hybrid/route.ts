@@ -24,6 +24,7 @@ interface ComponentBlocks {
   heroes: ComponentBlock[]
   features: ComponentBlock[]
   testimonials: ComponentBlock[]
+  pricing: ComponentBlock[]
   footers: ComponentBlock[]
 }
 
@@ -33,6 +34,7 @@ interface AISelection {
     hero: string
     features: string
     testimonials: string
+    pricing: string
     footer: string
   }
   sitemap: Array<{
@@ -45,6 +47,7 @@ interface AISelection {
     hero: any
     features: any
     testimonials: any
+    pricing: any
     footer: any
   }
   projectConfig: {
@@ -59,11 +62,12 @@ interface AISelection {
 }
 
 async function loadComponentBlocks(): Promise<ComponentBlocks> {
-  const [headersData, heroesData, featuresData, testimonialsData, footersData] = await Promise.all([
+  const [headersData, heroesData, featuresData, testimonialsData, pricingData, footersData] = await Promise.all([
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-header-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-hero-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-features-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-testimonials-blocks.json'), 'utf-8'),
+    fs.readFile(path.join(process.cwd(), 'component-blocks/available-pricing-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-footer-blocks.json'), 'utf-8')
   ])
 
@@ -72,6 +76,7 @@ async function loadComponentBlocks(): Promise<ComponentBlocks> {
     heroes: JSON.parse(heroesData).heroes,
     features: JSON.parse(featuresData).features,
     testimonials: JSON.parse(testimonialsData).testimonials,
+    pricing: JSON.parse(pricingData).pricing,
     footers: JSON.parse(footersData).footers
   }
 }
@@ -93,6 +98,9 @@ ${componentBlocks.features.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')})
 TESTIMONIALS:
 ${componentBlocks.testimonials.map(t => `- ${t.id}: ${t.name} (${t.tags.join(', ')}) - ${t.description}`).join('\n')}
 
+PRICING:
+${componentBlocks.pricing.map(p => `- ${p.id}: ${p.name} (${p.tags.join(', ')}) - ${p.description}`).join('\n')}
+
 FOOTERS:
 ${componentBlocks.footers.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
 
@@ -101,6 +109,7 @@ IMPORTANT: Always provide ALL possible props for each component type. Different 
 - Hero components may need: primaryCta, secondaryCta, ctaText, ctaHref, features, heroImage, backgroundImage, credentials, testimonialQuote, testimonialAuthor, emergencyPhone, officeHours, patientStats (yearsExperience, patientsServed, satisfactionRate), specialOffer, hours, location, menuHighlights, serviceAreas, guarantees, responseTime, serviceHighlights, agentName, agentCredentials, marketStats (propertiesSold, avgDaysOnMarket, clientSatisfaction)
 - Features components may need: features (icon, title, description, metric, guarantee, badge, highlight, duration, specialty), credentials, patientStats, highlights, serviceInfo, wellness, marketData
 - Testimonials components may need: testimonials (quote, author, role, company, rating, image, age, location, condition, outcome, treatmentType, caseResult, resultMetric, favoritedish, visitType, serviceType, projectResult, completionTime, transformation, wellnessGoal, transactionType, propertyType, salePrice, timeOnMarket), trustIndicators, patientStats, restaurantStats, serviceStats, wellnessStats, marketStats
+- Pricing components may need: pricingTiers (name, price, period, commission, description, features, notIncluded, ctaText, ctaHref, popular, badge, monthlyPrice, yearlyPrice, servingSize, eventType, minimumOrder, serviceType, responseTime, guarantee, emergencyRate, duration, treatmentType, membershipBenefit, savings, marketingBudget, guarantees, specialties), yearlyDiscount, guarantee, trustMetrics, insuranceInfo, paymentOptions, specialOffers, cateringInfo, serviceAreas, emergencyInfo, membershipPerks, addOnServices, marketStats
 - Footer components may need: tagline, description, columns, contactInfo (email, phone, address, hours), socialLinks, credentials, emergencyPhone, patientResources, specialHours, serviceAreas, licenses, specialOffers, agentInfo (name, phone, email, license), marketStats (propertiesSold, avgDaysOnMarket, clientSatisfaction)
 Include all of them even if some are optional for the selected component. Generate realistic, industry-appropriate content for service businesses.
 
@@ -111,6 +120,7 @@ Return ONLY a JSON object with realistic content:
     "hero": "hero-id",
     "features": "features-id",
     "testimonials": "testimonials-id",
+    "pricing": "pricing-id",
     "footer": "footer-id"
   },
   "sitemap": [
@@ -195,6 +205,27 @@ Return ONLY a JSON object with realistic content:
       "wellnessStats": {"clientsServed": "800+", "satisfactionRate": "99%", "treatmentsOffered": "25+"},
       "marketStats": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%"}
     },
+    "pricing": {
+      "headline": "Our Pricing",
+      "description": "Choose the perfect plan for your needs with transparent, competitive pricing",
+      "pricingTiers": [
+        {"name": "Basic", "price": "$99", "period": "month", "description": "Perfect for getting started", "features": ["Feature 1", "Feature 2", "Feature 3"], "ctaText": "Get Started", "ctaHref": "/contact", "popular": false},
+        {"name": "Professional", "price": "$199", "period": "month", "description": "Best for growing businesses", "features": ["Everything in Basic", "Advanced Feature", "Priority Support"], "ctaText": "Choose Plan", "ctaHref": "/contact", "popular": true},
+        {"name": "Enterprise", "price": "$399", "period": "month", "description": "For large organizations", "features": ["Everything in Professional", "Custom Integration", "Dedicated Support"], "ctaText": "Contact Sales", "ctaHref": "/contact", "popular": false}
+      ],
+      "yearlyDiscount": "20%",
+      "guarantee": "30-day money-back guarantee",
+      "trustMetrics": {"clientsServed": "500+", "successRate": "98%", "yearsExperience": "15+"},
+      "insuranceInfo": {"accepted": ["Blue Cross", "Aetna", "Cigna"], "note": "We accept most major insurance plans"},
+      "paymentOptions": ["Credit Card", "PayPal", "Bank Transfer", "Payment Plans"],
+      "specialOffers": [{"title": "New Client Special", "description": "20% off first service", "discount": "20%"}],
+      "cateringInfo": {"minimumGuests": "10", "advanceNotice": "48 hours", "deliveryRadius": "15 miles"},
+      "serviceAreas": ["Downtown", "Midtown", "Suburbs"],
+      "emergencyInfo": {"available": "24/7", "surcharge": "50%", "responseTime": "30 minutes"},
+      "membershipPerks": ["Priority Booking", "Member Discounts", "Exclusive Events"],
+      "addOnServices": [{"name": "Express Service", "price": "$25", "duration": "15 min"}],
+      "marketStats": {"avgSalePrice": "$450K", "avgDaysOnMarket": "18", "successRate": "98%"}
+    },
     "footer": {
       "companyName": "Company Name",
       "tagline": "Optional tagline for dark minimal footer",
@@ -227,7 +258,7 @@ Return ONLY a JSON object with realistic content:
 }`
 
   const stream = await anthropic.messages.create({
-    model: 'claude-opus-4-20250514',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 32000,
     temperature: 0.7,
     stream: true,
@@ -265,9 +296,10 @@ function generateProjectFiles(selection: AISelection, componentBlocks: Component
   const selectedHero = componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)
   const selectedFeatures = componentBlocks.features.find(f => f.id === selection.selectedComponents.features)
   const selectedTestimonials = componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)
+  const selectedPricing = componentBlocks.pricing.find(p => p.id === selection.selectedComponents.pricing)
   const selectedFooter = componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)
 
-  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedFooter) {
+  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedPricing || !selectedFooter) {
     throw new Error('Selected components not found')
   }
 
@@ -426,6 +458,7 @@ export default function RootLayout({
   files['src/components/Hero.tsx'] = selectedHero.template
   files['src/components/Features.tsx'] = selectedFeatures.template
   files['src/components/Testimonials.tsx'] = selectedTestimonials.template
+  files['src/components/Pricing.tsx'] = selectedPricing.template
   files['src/components/Footer.tsx'] = selectedFooter.template
 
   // Home page with proper props
@@ -437,6 +470,7 @@ export default function RootLayout({
 import Hero from '@/components/Hero'
 import Features from '@/components/Features'
 import Testimonials from '@/components/Testimonials'
+import Pricing from '@/components/Pricing'
 import Footer from '@/components/Footer'
 
 export default function Home() {
@@ -444,6 +478,7 @@ export default function Home() {
   const heroProps = ${JSON.stringify(selection.content.hero, null, 2)}
   const featuresProps = ${JSON.stringify(selection.content.features, null, 2)}
   const testimonialsProps = ${JSON.stringify(selection.content.testimonials, null, 2)}
+  const pricingProps = ${JSON.stringify(selection.content.pricing, null, 2)}
   const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
 
   return (
@@ -452,6 +487,7 @@ export default function Home() {
       <Hero {...heroProps} />
       <Features {...featuresProps} />
       <Testimonials {...testimonialsProps} />
+      <Pricing {...pricingProps} />
       <Footer {...footerProps} />
     </>
   )
@@ -578,6 +614,7 @@ export async function POST(request: NextRequest) {
         hero: componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)?.name,
         features: componentBlocks.features.find(f => f.id === selection.selectedComponents.features)?.name,
         testimonials: componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)?.name,
+        pricing: componentBlocks.pricing.find(p => p.id === selection.selectedComponents.pricing)?.name,
         footer: componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)?.name
       },
       sitemap: selection.sitemap,
