@@ -3,9 +3,9 @@ import { isMasterSupabaseFullyConfigured, testMasterConnection } from '@/lib/mas
 import { securityMiddleware, sanitizeError } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
-  // Security check - admin only for config details
+  // Security check - admin only for config details in production
   const securityCheck = await securityMiddleware(request, {
-    requireAdmin: true,
+    requireAdmin: process.env.NODE_ENV === 'production',
     rateLimit: { limit: 10, windowMs: 60000 } // 10 requests per minute
   })
   
