@@ -34,7 +34,8 @@ const handler = NextAuth({
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === "production"
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
       }
     },
     callbackUrl: {
@@ -42,7 +43,8 @@ const handler = NextAuth({
       options: {
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === "production"
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
       }
     },
     csrfToken: {
@@ -51,7 +53,8 @@ const handler = NextAuth({
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === "production"
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
       }
     },
     pkceCodeVerifier: {
@@ -61,7 +64,8 @@ const handler = NextAuth({
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === "production",
-        maxAge: 900
+        maxAge: 900,
+        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
       }
     },
     state: {
@@ -71,10 +75,12 @@ const handler = NextAuth({
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === "production",
-        maxAge: 900
+        maxAge: 900,
+        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
       }
     }
   },
+  trustHost: true,
   debug: process.env.NODE_ENV === "development",
   callbacks: {
     async signIn({ user, account, profile }) {
