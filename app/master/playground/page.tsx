@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   Sparkles, 
   Wand2, 
@@ -19,7 +20,6 @@ import {
   Zap,
   Brain
 } from 'lucide-react'
-// Removed Select and Tabs imports as we're going freeform only
 
 // Removed websiteTypes and designStyles arrays - going pure freeform
 
@@ -53,7 +53,7 @@ const examplePrompts = [
 export default function AIPlayground() {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generationMode, setGenerationMode] = useState("single") // "single", "multi", "hybrid"
+  const [generationMode, setGenerationMode] = useState("hybrid") // Only hybrid mode available
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
@@ -63,9 +63,8 @@ export default function AIPlayground() {
     try {
       console.log('🚀 Starting AI website generation...')
       
-      let apiEndpoint = "/api/ai-generate-website"
-      if (generationMode === "multi") apiEndpoint = "/api/ai-generate-website-multi"
-      if (generationMode === "hybrid") apiEndpoint = "/api/ai-generate-hybrid"
+      // Always use hybrid generation
+      const apiEndpoint = "/api/ai-generate-hybrid"
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
@@ -168,66 +167,43 @@ export default function AIPlayground() {
                     <span>Pro tip: Include business type, colors, features, and style preferences</span>
                   </div>
                   
-                  
-                  <div className="space-y-3">
-                    <label className="text-sm text-gray-300 font-medium">Generation Mode:</label>
-                    <div className="flex flex-col space-y-2">
-                      <label className="flex items-center space-x-2 text-sm text-gray-300">
-                        <input
-                          type="radio"
-                          name="generationMode"
-                          value="single"
-                          checked={generationMode === "single"}
-                          onChange={(e) => setGenerationMode(e.target.value)}
-                          className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 focus:ring-blue-500"
-                        />
-                        <span>Single Stage</span>
-                        <span className="text-xs text-gray-500">(Fast, simple sites)</span>
-                      </label>
-                      <label className="flex items-center space-x-2 text-sm text-gray-300">
-                        <input
-                          type="radio"
-                          name="generationMode"
-                          value="hybrid"
-                          checked={generationMode === "hybrid"}
-                          onChange={(e) => setGenerationMode(e.target.value)}
-                          className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-600 focus:ring-purple-500"
-                        />
-                        <span>Hybrid Components</span>
-                        <span className="text-xs text-gray-500">(Recommended - Fast & efficient)</span>
-                      </label>
-                      <label className="flex items-center space-x-2 text-sm text-gray-300">
-                        <input
-                          type="radio"
-                          name="generationMode"
-                          value="multi"
-                          checked={generationMode === "multi"}
-                          onChange={(e) => setGenerationMode(e.target.value)}
-                          className="w-4 h-4 text-green-600 bg-gray-800 border-gray-600 focus:ring-green-500"
-                        />
-                        <span>Multi-Stage</span>
-                        <span className="text-xs text-gray-500">(Complex, comprehensive sites)</span>
-                      </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-300 font-medium">Generation Mode:</Label>
+                      <Select value={generationMode} onValueChange={setGenerationMode}>
+                        <SelectTrigger className="w-48 bg-gray-800/50 border-gray-700/50 text-white">
+                          <SelectValue placeholder="Select generation mode" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          <SelectItem value="hybrid" className="text-white hover:bg-gray-700">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                              <span>Hybrid Components</span>
+                              <span className="text-xs text-gray-400 ml-2">(Fast & efficient)</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+                    
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={isGenerating || !prompt.trim()}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-8 py-3 text-lg font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Generating Magic...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-5 w-5 mr-2" />
+                          Generate Website
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={isGenerating || !prompt.trim()}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-8 py-3 text-lg font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        Generating Magic...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-5 w-5 mr-2" />
-                        Generate Website
-                      </>
-                    )}
-                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -3,12 +3,8 @@ import Footer from '@/components/Footer'
 
 export default function Features() {
   const headerProps = {
-  "logo": "AutoFlow",
+  "logo": "FlowSync",
   "navigation": [
-    {
-      "label": "Home",
-      "href": "/"
-    },
     {
       "label": "Features",
       "href": "/features"
@@ -20,10 +16,6 @@ export default function Features() {
     {
       "label": "About",
       "href": "/about"
-    },
-    {
-      "label": "Blog",
-      "href": "/blog"
     },
     {
       "label": "Contact",
@@ -35,42 +27,38 @@ export default function Features() {
   "socialLinks": [
     {
       "platform": "twitter",
-      "href": "https://twitter.com/autoflow"
+      "href": "https://twitter.com/flowsync"
     },
     {
       "platform": "linkedin",
-      "href": "https://linkedin.com/company/autoflow"
+      "href": "https://linkedin.com/company/flowsync"
     },
     {
       "platform": "github",
-      "href": "https://github.com/autoflow"
+      "href": "https://github.com/flowsync"
     }
   ],
   "contactInfo": {
-    "phone": "+1 (555) 234-5678",
-    "email": "hello@autoflow.com",
-    "address": "123 Innovation Drive, San Francisco, CA 94105",
-    "hours": "Mon-Fri 9AM-6PM PST"
+    "phone": "+1 (555) 789-FLOW",
+    "email": "hello@flowsync.io",
+    "address": "123 Innovation Drive, Tech Valley, CA 94025",
+    "hours": "24/7 Support Available"
   },
   "emergencyPhone": "+1 (555) 911-TECH",
-  "serviceAreas": "Global - All Time Zones",
+  "serviceAreas": "Global Cloud Platform",
   "patientPortalHref": "/dashboard",
   "agentInfo": {
-    "name": "Sarah Chen",
-    "phone": "+1 (555) 234-5678",
-    "email": "sarah@autoflow.com"
+    "name": "Alex Chen",
+    "phone": "+1 (555) 789-FLOW",
+    "email": "alex@flowsync.io"
   },
   "searchHref": "/search"
 }
   const footerProps = {
-  "companyName": "AutoFlow",
-  "tagline": "Automate Your Success",
-  "description": "Empowering businesses worldwide with intelligent automation solutions",
+  "companyName": "FlowSync",
+  "tagline": "Automate. Collaborate. Accelerate.",
+  "description": "Empowering teams worldwide with intelligent workflow automation and seamless collaboration tools.",
   "navigation": [
-    {
-      "label": "Home",
-      "href": "/"
-    },
     {
       "label": "Features",
       "href": "/features"
@@ -84,33 +72,37 @@ export default function Features() {
       "href": "/about"
     },
     {
+      "label": "Contact",
+      "href": "/contact"
+    },
+    {
       "label": "Blog",
       "href": "/blog"
     },
     {
-      "label": "Contact",
-      "href": "/contact"
+      "label": "Help Center",
+      "href": "/help"
     }
   ],
   "socialLinks": [
     {
       "platform": "twitter",
-      "href": "https://twitter.com/autoflow"
+      "href": "https://twitter.com/flowsync"
     },
     {
       "platform": "linkedin",
-      "href": "https://linkedin.com/company/autoflow"
+      "href": "https://linkedin.com/company/flowsync"
     },
     {
       "platform": "github",
-      "href": "https://github.com/autoflow"
+      "href": "https://github.com/flowsync"
     },
     {
       "platform": "youtube",
-      "href": "https://youtube.com/autoflow"
+      "href": "https://youtube.com/flowsync"
     }
   ],
-  "copyright": "© 2024 AutoFlow. All rights reserved.",
+  "copyright": "© 2024 FlowSync Technologies Inc. All rights reserved.",
   "columns": [
     {
       "title": "Product",
@@ -130,27 +122,10 @@ export default function Features() {
         {
           "label": "Security",
           "href": "/security"
-        }
-      ]
-    },
-    {
-      "title": "Company",
-      "links": [
-        {
-          "label": "About",
-          "href": "/about"
         },
         {
-          "label": "Careers",
-          "href": "/careers"
-        },
-        {
-          "label": "Press",
-          "href": "/press"
-        },
-        {
-          "label": "Partners",
-          "href": "/partners"
+          "label": "Roadmap",
+          "href": "/roadmap"
         }
       ]
     },
@@ -166,68 +141,87 @@ export default function Features() {
           "href": "/help"
         },
         {
-          "label": "Community",
-          "href": "/community"
-        },
-        {
           "label": "Blog",
           "href": "/blog"
+        },
+        {
+          "label": "Webinars",
+          "href": "/webinars"
+        },
+        {
+          "label": "Case Studies",
+          "href": "/case-studies"
+        }
+      ]
+    },
+    {
+      "title": "Company",
+      "links": [
+        {
+          "label": "About Us",
+          "href": "/about"
+        },
+        {
+          "label": "Careers",
+          "href": "/careers"
+        },
+        {
+          "label": "Press",
+          "href": "/press"
+        },
+        {
+          "label": "Partners",
+          "href": "/partners"
+        },
+        {
+          "label": "Contact",
+          "href": "/contact"
         }
       ]
     }
   ],
   "contactInfo": {
-    "email": "hello@autoflow.com",
-    "phone": "+1 (555) 234-5678",
-    "address": "123 Innovation Drive, San Francisco, CA 94105",
-    "hours": "24/7 Platform - Support: Mon-Fri 9AM-6PM PST"
+    "email": "hello@flowsync.io",
+    "phone": "+1 (555) 789-FLOW",
+    "address": "123 Innovation Drive, Tech Valley, CA 94025",
+    "hours": "24/7 Support Available"
   },
   "credentials": [
-    "SOC 2 Type II Certified",
-    "GDPR Compliant",
+    "SOC 2 Type II",
     "ISO 27001",
-    "99.9% Uptime SLA"
+    "GDPR Compliant"
   ],
   "emergencyPhone": "+1 (555) 911-TECH",
   "patientResources": [
     {
-      "label": "Help Center",
-      "href": "/help"
+      "label": "Status Page",
+      "href": "/status"
     },
     {
-      "label": "API Documentation",
-      "href": "/docs"
-    },
-    {
-      "label": "Community Forum",
-      "href": "/community"
+      "label": "System Health",
+      "href": "/health"
     }
   ],
-  "specialHours": "Enterprise support available 24/7",
-  "serviceAreas": "Global Platform - All Time Zones Supported",
+  "specialHours": "Global support across all time zones",
+  "serviceAreas": "Global Cloud Infrastructure",
   "licenses": [
-    "Business License #SF-2024-001",
-    "SOC 2 Certified",
-    "GDPR Compliant"
+    "Business License #CA-2024-001",
+    "SOC 2 Certified"
   ],
   "specialOffers": [
     {
       "title": "Free Migration",
-      "description": "Switch from any competitor for free"
-    },
-    {
-      "title": "Startup Program",
-      "description": "50% off for qualifying startups"
+      "description": "We'll help you migrate from your current tool at no cost"
     }
   ],
   "agentInfo": {
-    "name": "AutoFlow Support Team",
-    "phone": "+1 (555) 234-5678",
-    "email": "support@autoflow.com",
-    "license": "24/7 Technical Support"
+    "name": "FlowSync Support",
+    "phone": "+1 (555) 789-FLOW",
+    "email": "support@flowsync.io",
+    "license": "24/7 Global Support"
   },
   "marketStats": {
-    "propertiesSold": "50,000+",
+    "propertiesSold": "10K+ Teams",
     "avgDaysOnMarket": "Instant Setup",
     "clientSatisfaction": "98%"
   }
@@ -239,7 +233,7 @@ export default function Features() {
       <main className="min-h-screen py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">Features</h1>
-          <p className="text-xl text-gray-600">Explore our comprehensive suite of automation tools</p>
+          <p className="text-xl text-gray-600">Comprehensive feature overview and capabilities</p>
         </div>
       </main>
       <Footer {...footerProps} />

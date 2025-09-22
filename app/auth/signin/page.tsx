@@ -4,7 +4,7 @@ import { signIn, getProviders } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AltiraLogo } from '@/components/ui/altira-logo'
+import { AltiraIcon } from '@/components/ui/altira-logo'
 import { Sparkles, Lock, Zap } from 'lucide-react'
 
 interface Particle {
@@ -76,19 +76,16 @@ export default function SignIn() {
         <Card className="border-gray-800/50 bg-gray-900/80 backdrop-blur-xl shadow-2xl shadow-black/50 animate-fade-in-up">
           <CardHeader className="text-center space-y-6 pb-8">
             {/* Logo with animation */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-6">
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-lg opacity-75 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-                <div className="relative bg-gray-900 rounded-full p-4 border border-gray-700/50">
-                  <AltiraLogo size={32} className="animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <div className="relative bg-gray-900/50 rounded-lg p-6 border border-gray-700/50 backdrop-blur-sm">
+                  <AltiraIcon size={160} className="text-blue-400" />
                 </div>
               </div>
             </div>
             
             <div className="space-y-2">
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-                Altira
-              </CardTitle>
               <CardDescription className="text-gray-400 text-base">
                 Sign in to access the CMS management platform
               </CardDescription>

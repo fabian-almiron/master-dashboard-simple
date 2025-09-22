@@ -7,12 +7,8 @@ import Footer from '@/components/Footer'
 
 export default function Home() {
   const headerProps = {
-  "logo": "AutoFlow",
+  "logo": "FlowSync",
   "navigation": [
-    {
-      "label": "Home",
-      "href": "/"
-    },
     {
       "label": "Features",
       "href": "/features"
@@ -24,10 +20,6 @@ export default function Home() {
     {
       "label": "About",
       "href": "/about"
-    },
-    {
-      "label": "Blog",
-      "href": "/blog"
     },
     {
       "label": "Contact",
@@ -39,36 +31,36 @@ export default function Home() {
   "socialLinks": [
     {
       "platform": "twitter",
-      "href": "https://twitter.com/autoflow"
+      "href": "https://twitter.com/flowsync"
     },
     {
       "platform": "linkedin",
-      "href": "https://linkedin.com/company/autoflow"
+      "href": "https://linkedin.com/company/flowsync"
     },
     {
       "platform": "github",
-      "href": "https://github.com/autoflow"
+      "href": "https://github.com/flowsync"
     }
   ],
   "contactInfo": {
-    "phone": "+1 (555) 234-5678",
-    "email": "hello@autoflow.com",
-    "address": "123 Innovation Drive, San Francisco, CA 94105",
-    "hours": "Mon-Fri 9AM-6PM PST"
+    "phone": "+1 (555) 789-FLOW",
+    "email": "hello@flowsync.io",
+    "address": "123 Innovation Drive, Tech Valley, CA 94025",
+    "hours": "24/7 Support Available"
   },
   "emergencyPhone": "+1 (555) 911-TECH",
-  "serviceAreas": "Global - All Time Zones",
+  "serviceAreas": "Global Cloud Platform",
   "patientPortalHref": "/dashboard",
   "agentInfo": {
-    "name": "Sarah Chen",
-    "phone": "+1 (555) 234-5678",
-    "email": "sarah@autoflow.com"
+    "name": "Alex Chen",
+    "phone": "+1 (555) 789-FLOW",
+    "email": "alex@flowsync.io"
   },
   "searchHref": "/search"
 }
   const heroProps = {
-  "headline": "Automate Your Business, Amplify Your Success",
-  "description": "Transform your workflow with our AI-powered automation platform. Streamline operations, boost productivity, and scale faster than ever before.",
+  "headline": "Automate Your Workflow, Amplify Your Success",
+  "description": "FlowSync revolutionizes team productivity with AI-powered automation, seamless integrations, and real-time collaboration tools. Join 10,000+ teams already scaling their operations.",
   "primaryCta": {
     "text": "Start Free Trial",
     "href": "/signup"
@@ -77,13 +69,13 @@ export default function Home() {
     "text": "Watch Demo",
     "href": "/demo"
   },
-  "ctaText": "Get Started Now",
+  "ctaText": "Get Started Free",
   "ctaHref": "/signup",
   "features": [
-    "No-Code Automation",
-    "AI-Powered Insights",
-    "Enterprise Security",
-    "24/7 Support"
+    "AI-Powered Automation",
+    "Real-time Collaboration",
+    "Advanced Analytics",
+    "Enterprise Security"
   ],
   "heroImage": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=600&fit=crop",
   "backgroundImage": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1920&h=1080&fit=crop",
@@ -92,24 +84,24 @@ export default function Home() {
     "GDPR Compliant",
     "99.9% Uptime SLA"
   ],
-  "testimonialQuote": "AutoFlow transformed our operations overnight. We've saved 40 hours per week!",
-  "testimonialAuthor": "Michael Rodriguez, CTO at TechCorp",
+  "testimonialQuote": "FlowSync transformed our productivity by 300%. Game-changer for our startup!",
+  "testimonialAuthor": "Sarah Martinez, CTO at InnovateTech",
   "emergencyPhone": "+1 (555) 911-TECH",
-  "officeHours": "24/7 Support Available",
+  "officeHours": "24/7 Global Support",
   "patientStats": {
     "yearsExperience": "5+",
-    "patientsServed": "10,000+",
-    "satisfactionRate": "99%"
+    "patientsServed": "10K+",
+    "satisfactionRate": "98%"
   },
-  "specialOffer": "Get 3 months free with annual plans - Limited time!",
+  "specialOffer": "50% off Pro plan for first 3 months",
   "hours": "24/7 Platform Availability",
-  "location": "Cloud-Based Global Platform",
+  "location": "Global Cloud Infrastructure",
   "menuHighlights": [
     "Workflow Builder",
-    "Analytics Dashboard",
-    "API Integrations"
+    "Team Collaboration",
+    "Analytics Dashboard"
   ],
-  "serviceAreas": "Global Coverage - All Industries",
+  "serviceAreas": "Worldwide Cloud Coverage",
   "guarantees": [
     "99.9% Uptime",
     "30-Day Money Back",
@@ -118,101 +110,100 @@ export default function Home() {
   "responseTime": "< 2 seconds",
   "serviceHighlights": [
     "AI Automation",
-    "Custom Workflows",
-    "Real-time Analytics"
+    "Real-time Sync",
+    "Custom Integrations"
   ],
-  "agentName": "AutoFlow AI Assistant",
+  "agentName": "FlowSync AI Assistant",
   "agentCredentials": [
-    "24/7 Availability",
-    "Multi-language Support",
-    "Expert Knowledge"
+    "24/7 Available",
+    "Multi-language",
+    "Context Aware"
   ],
   "marketStats": {
-    "propertiesSold": "10,000+",
+    "propertiesSold": "10K+",
     "avgDaysOnMarket": "Instant",
     "clientSatisfaction": "98%"
   }
 }
   const featuresProps = {
-  "headline": "Powerful Features for Modern Businesses",
-  "description": "Everything you need to automate, optimize, and scale your operations with cutting-edge technology",
+  "headline": "Powerful Features for Modern Teams",
+  "description": "Everything you need to streamline workflows, boost productivity, and scale your business with cutting-edge automation technology.",
   "features": [
     {
       "icon": "zap",
-      "title": "Lightning-Fast Automation",
-      "description": "Create complex workflows in minutes with our drag-and-drop builder. No coding required.",
-      "metric": "10x Faster",
-      "guarantee": "Performance Guaranteed",
+      "title": "AI-Powered Automation",
+      "description": "Intelligent workflows that adapt and optimize based on your team's patterns and preferences.",
+      "metric": "300%",
+      "guarantee": "Productivity Boost",
       "badge": "Most Popular",
-      "highlight": "Zero Code Required",
-      "duration": "Setup in 5 minutes",
-      "specialty": "Industry Leader"
+      "highlight": "AI-Driven",
+      "duration": "Real-time",
+      "specialty": "Machine Learning"
     },
     {
-      "icon": "brain",
-      "title": "AI-Powered Intelligence",
-      "description": "Leverage machine learning to optimize your processes and predict business outcomes.",
-      "metric": "40% More Efficient",
-      "guarantee": "Continuous Learning",
-      "badge": "Advanced",
-      "highlight": "Smart Predictions",
-      "duration": "Real-time Processing",
-      "specialty": "Cutting-Edge AI"
+      "icon": "users",
+      "title": "Real-time Collaboration",
+      "description": "Seamless team coordination with live updates, shared workspaces, and instant communication.",
+      "metric": "Zero",
+      "guarantee": "Latency",
+      "badge": "Team Favorite",
+      "highlight": "Live Updates",
+      "duration": "Instant",
+      "specialty": "Global Sync"
+    },
+    {
+      "icon": "bar-chart",
+      "title": "Advanced Analytics",
+      "description": "Deep insights into team performance, workflow efficiency, and productivity metrics.",
+      "metric": "100+",
+      "guarantee": "Data Points",
+      "badge": "Enterprise",
+      "highlight": "Actionable Insights",
+      "duration": "Real-time",
+      "specialty": "Predictive Analytics"
     },
     {
       "icon": "shield",
       "title": "Enterprise Security",
-      "description": "Bank-level encryption and compliance with SOC 2, GDPR, and HIPAA standards.",
-      "metric": "99.99% Secure",
-      "guarantee": "SOC 2 Certified",
-      "badge": "Enterprise",
-      "highlight": "Military-Grade Encryption",
-      "duration": "24/7 Monitoring",
-      "specialty": "Security First"
+      "description": "Bank-level encryption, SSO integration, and compliance with global security standards.",
+      "metric": "99.99%",
+      "guarantee": "Security Uptime",
+      "badge": "Certified",
+      "highlight": "SOC 2 Type II",
+      "duration": "24/7",
+      "specialty": "Zero Trust"
     },
     {
-      "icon": "chart",
-      "title": "Advanced Analytics",
-      "description": "Get deep insights into your operations with customizable dashboards and reports.",
-      "metric": "360° Visibility",
-      "guarantee": "Real-time Data",
-      "badge": "Pro Feature",
-      "highlight": "Custom Dashboards",
-      "duration": "Live Updates",
-      "specialty": "Data-Driven"
+      "icon": "puzzle",
+      "title": "Custom Integrations",
+      "description": "Connect with 500+ tools and services through our robust API and pre-built connectors.",
+      "metric": "500+",
+      "guarantee": "Integrations",
+      "badge": "Extensible",
+      "highlight": "Open API",
+      "duration": "Plug & Play",
+      "specialty": "Universal Compatibility"
     },
     {
-      "icon": "plug",
-      "title": "Seamless Integrations",
-      "description": "Connect with 500+ apps and services including Slack, Salesforce, and Google Workspace.",
-      "metric": "500+ Apps",
-      "guarantee": "Easy Setup",
-      "badge": "Universal",
-      "highlight": "One-Click Connect",
-      "duration": "Instant Sync",
-      "specialty": "Integration Expert"
-    },
-    {
-      "icon": "users",
-      "title": "Team Collaboration",
-      "description": "Work together seamlessly with role-based permissions and real-time collaboration tools.",
-      "metric": "Unlimited Users",
-      "guarantee": "Team-Friendly",
-      "badge": "Collaborative",
-      "highlight": "Real-time Sync",
-      "duration": "Always Connected",
-      "specialty": "Team-First Design"
+      "icon": "smartphone",
+      "title": "Mobile-First Design",
+      "description": "Native mobile apps with offline capabilities and push notifications for on-the-go productivity.",
+      "metric": "Offline",
+      "guarantee": "Capability",
+      "badge": "Mobile Ready",
+      "highlight": "Native Apps",
+      "duration": "Always On",
+      "specialty": "Cross-Platform"
     }
   ],
   "credentials": [
-    "SOC 2 Type II",
+    "SOC 2 Certified",
     "ISO 27001",
-    "GDPR Compliant",
-    "HIPAA Ready"
+    "GDPR Compliant"
   ],
   "patientStats": {
     "yearsExperience": "5+",
-    "patientsServed": "50,000+",
+    "patientsServed": "10K+",
     "satisfactionRate": "98%"
   },
   "highlights": {
@@ -220,15 +211,15 @@ export default function Home() {
     "reviews": "2,500+",
     "specialties": [
       "Workflow Automation",
-      "AI Integration",
-      "Enterprise Solutions"
+      "Team Collaboration",
+      "Data Analytics"
     ]
   },
   "serviceInfo": {
     "responseTime": "< 2 seconds",
-    "serviceAreas": "Global Platform",
+    "serviceAreas": "Global Cloud",
     "yearsExperience": "5+",
-    "jobsCompleted": "1M+ Workflows"
+    "jobsCompleted": "1M+"
   },
   "wellness": {
     "treatments": "50+",
@@ -236,112 +227,110 @@ export default function Home() {
     "satisfaction": "98%",
     "awards": [
       "Best SaaS 2024",
-      "Innovation Award",
-      "Customer Choice"
+      "Innovation Award"
     ]
   },
   "marketData": {
-    "propertiesSold": "50,000+",
+    "propertiesSold": "10K+",
     "avgDaysOnMarket": "Instant",
     "clientSatisfaction": "98%",
     "marketAreas": [
       "North America",
       "Europe",
-      "Asia-Pacific",
-      "Global"
+      "Asia-Pacific"
     ]
   }
 }
   const testimonialsProps = {
   "headline": "Trusted by Industry Leaders",
-  "description": "See how companies worldwide are transforming their operations with AutoFlow",
+  "description": "See how teams worldwide are transforming their productivity with FlowSync's powerful automation platform.",
   "testimonials": [
     {
-      "quote": "AutoFlow has revolutionized our workflow management. We've reduced manual tasks by 80% and improved team productivity dramatically. The AI insights have been game-changing for our decision-making process.",
-      "author": "Sarah Johnson",
+      "quote": "FlowSync eliminated 80% of our manual processes. Our team now focuses on innovation instead of repetitive tasks. The ROI was evident within the first month.",
+      "author": "Marcus Johnson",
       "role": "VP of Operations",
-      "company": "TechVision Inc",
+      "company": "TechCorp Solutions",
       "rating": 5,
-      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
       "age": "35",
       "location": "San Francisco, CA",
-      "condition": "Complex Workflows",
-      "outcome": "80% Task Reduction",
-      "treatmentType": "Full Platform Implementation",
-      "caseResult": "Productivity Increased 3x",
-      "resultMetric": "ROI: 400%",
-      "favoritedish": "Workflow Automation",
+      "condition": "Manual Workflows",
+      "outcome": "80% Process Automation",
+      "treatmentType": "Enterprise Plan",
+      "caseResult": "300% Productivity Increase",
+      "resultMetric": "ROI in 30 days",
+      "favoritedish": "Workflow Builder",
       "visitType": "Enterprise Client",
-      "serviceType": "Complete Automation Suite",
-      "projectResult": "Streamlined Operations",
+      "serviceType": "Full Implementation",
+      "projectResult": "Complete Digital Transformation",
       "completionTime": "2 weeks",
       "transformation": "From Manual to Automated",
       "wellnessGoal": "Operational Excellence",
-      "transactionType": "Enterprise License",
+      "transactionType": "Enterprise Subscription",
       "propertyType": "SaaS Platform",
-      "salePrice": "$50K Annual",
-      "timeOnMarket": "Immediate ROI"
+      "salePrice": "$50K ARR",
+      "timeOnMarket": "Immediate"
     },
     {
-      "quote": "The customer support is exceptional, and the platform is incredibly intuitive. Our team was up and running in just days, not months. AutoFlow has become an essential part of our daily operations.",
-      "author": "Marcus Chen",
-      "role": "CTO",
-      "company": "DataFlow Solutions",
+      "quote": "The AI automation features are incredible. FlowSync learns our patterns and suggests optimizations we never would have thought of. It's like having a productivity consultant built into our workflow.",
+      "author": "Elena Rodriguez",
+      "role": "Product Manager",
+      "company": "InnovateLabs",
+      "rating": 5,
+      "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "age": "29",
+      "location": "Austin, TX",
+      "condition": "Inefficient Processes",
+      "outcome": "AI-Optimized Workflows",
+      "treatmentType": "Pro Plan",
+      "caseResult": "250% Efficiency Gain",
+      "resultMetric": "50% Time Saved",
+      "favoritedish": "AI Recommendations",
+      "visitType": "Growth Company",
+      "serviceType": "AI Implementation",
+      "projectResult": "Smart Process Optimization",
+      "completionTime": "1 week",
+      "transformation": "Manual to AI-Powered",
+      "wellnessGoal": "Peak Productivity",
+      "transactionType": "Pro Subscription",
+      "propertyType": "Growth Platform",
+      "salePrice": "$15K ARR",
+      "timeOnMarket": "Same Day"
+    },
+    {
+      "quote": "Security was our biggest concern, but FlowSync exceeded all expectations. SOC 2 compliance, enterprise SSO, and granular permissions give us complete peace of mind.",
+      "author": "David Kim",
+      "role": "CISO",
+      "company": "SecureBank",
       "rating": 5,
       "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
       "age": "42",
-      "location": "Austin, TX",
-      "condition": "Legacy System Integration",
-      "outcome": "Seamless Migration",
-      "treatmentType": "Custom Integration",
-      "caseResult": "Zero Downtime Migration",
-      "resultMetric": "99.9% Uptime",
-      "favoritedish": "API Integrations",
-      "visitType": "Strategic Partnership",
-      "serviceType": "Enterprise Migration",
-      "projectResult": "Modern Infrastructure",
-      "completionTime": "1 week",
-      "transformation": "Legacy to Modern",
-      "wellnessGoal": "System Modernization",
-      "transactionType": "Multi-year Contract",
-      "propertyType": "Cloud Platform",
-      "salePrice": "$75K Annual",
-      "timeOnMarket": "Fast Implementation"
-    },
-    {
-      "quote": "AutoFlow's AI capabilities have given us insights we never had before. We can now predict bottlenecks and optimize our processes proactively. It's like having a crystal ball for our operations.",
-      "author": "Emily Rodriguez",
-      "role": "Director of Analytics",
-      "company": "InnovateCorp",
-      "rating": 5,
-      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      "age": "38",
       "location": "New York, NY",
-      "condition": "Data Silos",
-      "outcome": "Unified Analytics",
-      "treatmentType": "AI Implementation",
-      "caseResult": "Predictive Insights",
-      "resultMetric": "30% Cost Reduction",
-      "favoritedish": "Predictive Analytics",
-      "visitType": "Analytics Focused",
-      "serviceType": "AI-Powered Insights",
-      "projectResult": "Data-Driven Decisions",
+      "condition": "Security Concerns",
+      "outcome": "Enterprise-Grade Security",
+      "treatmentType": "Enterprise Security",
+      "caseResult": "100% Compliance",
+      "resultMetric": "Zero Security Issues",
+      "favoritedish": "Security Controls",
+      "visitType": "Financial Services",
+      "serviceType": "Security Implementation",
+      "projectResult": "Full Compliance Achievement",
       "completionTime": "3 weeks",
-      "transformation": "Reactive to Predictive",
-      "wellnessGoal": "Operational Intelligence",
-      "transactionType": "Premium License",
-      "propertyType": "Analytics Platform",
-      "salePrice": "$60K Annual",
-      "timeOnMarket": "Quick Wins"
+      "transformation": "Basic to Bank-Grade Security",
+      "wellnessGoal": "Complete Data Protection",
+      "transactionType": "Enterprise Security",
+      "propertyType": "Secure Platform",
+      "salePrice": "$100K ARR",
+      "timeOnMarket": "Immediate"
     }
   ],
   "trustIndicators": {
-    "totalClients": "50,000+",
+    "totalClients": "10,000+",
     "successRate": "98%",
     "yearsExperience": "5+"
   },
   "patientStats": {
-    "patientsServed": "50,000+",
+    "patientsServed": "10,000+",
     "satisfactionRate": "98%",
     "yearsExperience": "5+"
   },
@@ -351,165 +340,167 @@ export default function Home() {
     "repeatCustomers": "92%"
   },
   "serviceStats": {
-    "jobsCompleted": "1M+ Workflows",
+    "jobsCompleted": "1M+",
     "customerSatisfaction": "98%",
-    "responseTime": "< 2 seconds"
+    "responseTime": "< 2 sec"
   },
   "wellnessStats": {
-    "clientsServed": "50,000+",
+    "clientsServed": "10,000+",
     "satisfactionRate": "98%",
     "treatmentsOffered": "50+"
   },
   "marketStats": {
-    "propertiesSold": "50,000+",
+    "propertiesSold": "10K+",
     "avgDaysOnMarket": "Instant",
     "clientSatisfaction": "98%"
   }
 }
   const pricingProps = {
   "headline": "Simple, Transparent Pricing",
-  "description": "Choose the perfect plan for your business. Start free, scale as you grow. No hidden fees, no surprises.",
+  "description": "Choose the perfect plan for your team size and needs. All plans include our core features with no hidden fees or surprise charges.",
   "pricingTiers": [
     {
       "name": "Starter",
       "price": "$29",
-      "period": "month",
       "monthlyPrice": "$29",
       "yearlyPrice": "$290",
+      "period": "month",
       "commission": "N/A",
       "description": "Perfect for small teams getting started with automation",
       "features": [
-        "Up to 1,000 tasks/month",
-        "5 active workflows",
-        "Basic integrations (50+ apps)",
+        "Up to 5 team members",
+        "Basic workflow automation",
+        "10 integrations included",
         "Email support",
-        "Standard templates",
-        "Basic analytics"
+        "Mobile apps",
+        "2GB storage per user"
       ],
       "notIncluded": [
         "Advanced AI features",
         "Custom integrations",
-        "Priority support"
+        "Priority support",
+        "Advanced analytics"
       ],
       "ctaText": "Start Free Trial",
       "ctaHref": "/signup?plan=starter",
       "popular": false,
-      "badge": "Most Popular",
-      "servingSize": "Small Teams",
-      "eventType": "Getting Started",
-      "minimumOrder": "1 user",
+      "badge": "Great for Startups",
+      "servingSize": "5 users",
+      "eventType": "Small Team",
+      "minimumOrder": "1 month",
       "serviceType": "Basic Automation",
       "responseTime": "24 hours",
       "guarantee": "14-day free trial",
       "emergencyRate": "N/A",
-      "duration": "Monthly/Annual",
-      "treatmentType": "Standard Support",
+      "duration": "Monthly/Yearly",
+      "treatmentType": "Starter Package",
       "membershipBenefit": "Community Access",
-      "savings": "Save 17% annually",
-      "marketingBudget": "N/A",
+      "savings": "Save 17% yearly",
+      "marketingBudget": "Basic Analytics",
       "guarantees": [
         "14-day trial",
         "Cancel anytime"
       ],
       "specialties": [
-        "Workflow Automation",
-        "Basic Integrations"
+        "Workflow Building",
+        "Team Collaboration"
       ]
     },
     {
       "name": "Professional",
-      "price": "$99",
+      "price": "$79",
+      "monthlyPrice": "$79",
+      "yearlyPrice": "$790",
       "period": "month",
-      "monthlyPrice": "$99",
-      "yearlyPrice": "$990",
       "commission": "N/A",
-      "description": "Best for growing businesses that need advanced features",
+      "description": "Advanced features for growing teams and businesses",
       "features": [
-        "Up to 10,000 tasks/month",
-        "Unlimited workflows",
-        "Advanced integrations (500+ apps)",
+        "Up to 25 team members",
+        "Advanced AI automation",
+        "Unlimited integrations",
         "Priority support",
-        "Custom templates",
-        "Advanced analytics & reporting",
-        "AI-powered insights",
-        "Team collaboration tools",
+        "Advanced analytics",
+        "10GB storage per user",
+        "Custom workflows",
         "API access"
       ],
       "notIncluded": [
-        "White-label options",
-        "Dedicated account manager"
+        "Enterprise SSO",
+        "Dedicated support",
+        "Custom onboarding",
+        "SLA guarantees"
       ],
       "ctaText": "Start Free Trial",
       "ctaHref": "/signup?plan=professional",
       "popular": true,
-      "badge": "Best Value",
-      "servingSize": "Growing Teams",
-      "eventType": "Scaling Business",
-      "minimumOrder": "5 users",
+      "badge": "Most Popular",
+      "servingSize": "25 users",
+      "eventType": "Growing Business",
+      "minimumOrder": "1 month",
       "serviceType": "Advanced Automation",
       "responseTime": "4 hours",
       "guarantee": "30-day money back",
-      "emergencyRate": "2-hour response",
-      "duration": "Monthly/Annual",
-      "treatmentType": "Priority Support",
-      "membershipBenefit": "Expert Webinars",
-      "savings": "Save 17% annually",
-      "marketingBudget": "Included Analytics",
+      "emergencyRate": "Priority Queue",
+      "duration": "Monthly/Yearly",
+      "treatmentType": "Professional Package",
+      "membershipBenefit": "Priority Support",
+      "savings": "Save 17% yearly",
+      "marketingBudget": "Advanced Analytics",
       "guarantees": [
         "30-day guarantee",
-        "SLA included"
+        "Priority support"
       ],
       "specialties": [
-        "AI Insights",
+        "AI Automation",
         "Advanced Analytics",
-        "Priority Support"
+        "API Integration"
       ]
     },
     {
       "name": "Enterprise",
-      "price": "Custom",
+      "price": "$199",
+      "monthlyPrice": "$199",
+      "yearlyPrice": "$1990",
       "period": "month",
-      "monthlyPrice": "Custom",
-      "yearlyPrice": "Custom",
-      "commission": "Volume Discounts",
-      "description": "For large organizations with complex automation needs",
+      "commission": "Custom",
+      "description": "Full-scale solution for large organizations with custom needs",
       "features": [
-        "Unlimited tasks & workflows",
+        "Unlimited team members",
+        "Enterprise AI & automation",
         "Custom integrations",
-        "Dedicated account manager",
-        "24/7 phone support",
-        "Custom templates & workflows",
+        "Dedicated success manager",
         "Advanced security & compliance",
+        "Unlimited storage",
+        "Custom onboarding",
+        "99.9% uptime SLA",
         "White-label options",
-        "On-premise deployment",
-        "Custom training & onboarding",
-        "SLA guarantees"
+        "Advanced reporting"
       ],
       "notIncluded": [],
       "ctaText": "Contact Sales",
-      "ctaHref": "/contact-sales",
+      "ctaHref": "/contact?plan=enterprise",
       "popular": false,
-      "badge": "Enterprise",
-      "servingSize": "Large Organizations",
-      "eventType": "Enterprise Deployment",
-      "minimumOrder": "100 users",
-      "serviceType": "Custom Solutions",
+      "badge": "Enterprise Ready",
+      "servingSize": "Unlimited",
+      "eventType": "Large Organization",
+      "minimumOrder": "12 months",
+      "serviceType": "Enterprise Solution",
       "responseTime": "1 hour",
       "guarantee": "Custom SLA",
-      "emergencyRate": "24/7 support",
-      "duration": "Annual contracts",
-      "treatmentType": "Dedicated Support",
-      "membershipBenefit": "Executive Access",
-      "savings": "Volume discounts",
-      "marketingBudget": "Custom ROI Analysis",
+      "emergencyRate": "Dedicated Support",
+      "duration": "Annual Contract",
+      "treatmentType": "Enterprise Package",
+      "membershipBenefit": "Dedicated Manager",
+      "savings": "Save 17% yearly",
+      "marketingBudget": "Custom Analytics",
       "guarantees": [
-        "Custom SLA",
+        "99.9% uptime SLA",
         "Dedicated support",
-        "Security compliance"
+        "Custom onboarding"
       ],
       "specialties": [
-        "Custom Development",
         "Enterprise Security",
+        "Custom Integration",
         "Dedicated Support"
       ]
     }
@@ -517,58 +508,58 @@ export default function Home() {
   "yearlyDiscount": "17%",
   "guarantee": "30-day money-back guarantee on all paid plans",
   "trustMetrics": {
-    "clientsServed": "50,000+",
+    "clientsServed": "10,000+",
     "successRate": "98%",
     "yearsExperience": "5+"
   },
   "insuranceInfo": {
     "accepted": [
-      "Enterprise Contracts",
-      "Government Approved",
-      "SOC 2 Compliant"
+      "Enterprise Procurement",
+      "Purchase Orders",
+      "Net-30 Terms"
     ],
-    "note": "We meet all enterprise security and compliance requirements"
+    "note": "Flexible payment terms for enterprise customers"
   },
   "paymentOptions": [
     "Credit Card",
-    "ACH Transfer",
+    "PayPal",
     "Wire Transfer",
     "Purchase Orders",
-    "Multi-year Contracts"
+    "ACH"
   ],
   "specialOffers": [
     {
-      "title": "New Customer Special",
-      "description": "3 months free with annual Professional plan",
-      "discount": "25%"
+      "title": "Startup Special",
+      "description": "50% off Pro plan for first 6 months",
+      "discount": "50%"
     },
     {
-      "title": "Migration Assistance",
-      "description": "Free migration from competing platforms",
-      "discount": "100%"
+      "title": "Non-Profit Discount",
+      "description": "30% off all plans for qualified organizations",
+      "discount": "30%"
     }
   ],
   "cateringInfo": {
     "minimumGuests": "5 users",
-    "advanceNotice": "24 hours setup",
-    "deliveryRadius": "Global deployment"
+    "advanceNotice": "Instant setup",
+    "deliveryRadius": "Global"
   },
   "serviceAreas": [
     "North America",
     "Europe",
     "Asia-Pacific",
-    "Global Coverage"
+    "Global Cloud"
   ],
   "emergencyInfo": {
-    "available": "24/7 Enterprise Support",
-    "surcharge": "Included in Enterprise",
-    "responseTime": "1 hour SLA"
+    "available": "24/7",
+    "surcharge": "Included",
+    "responseTime": "< 1 hour"
   },
   "membershipPerks": [
     "Priority Support",
+    "Early Access",
     "Exclusive Webinars",
-    "Early Feature Access",
-    "Dedicated Success Manager"
+    "Beta Features"
   ],
   "addOnServices": [
     {
@@ -577,31 +568,27 @@ export default function Home() {
       "duration": "1-2 weeks"
     },
     {
-      "name": "Advanced Training",
-      "price": "$200/hour",
-      "duration": "Customized"
+      "name": "Dedicated Onboarding",
+      "price": "$1,000",
+      "duration": "1 week"
     },
     {
-      "name": "Priority Support",
-      "price": "$50/month",
-      "duration": "Ongoing"
+      "name": "Advanced Training",
+      "price": "$2,000",
+      "duration": "2 days"
     }
   ],
   "marketStats": {
-    "avgSalePrice": "$50K",
-    "avgDaysOnMarket": "30 days",
+    "avgSalePrice": "$50K ARR",
+    "avgDaysOnMarket": "Immediate",
     "successRate": "98%"
   }
 }
   const footerProps = {
-  "companyName": "AutoFlow",
-  "tagline": "Automate Your Success",
-  "description": "Empowering businesses worldwide with intelligent automation solutions",
+  "companyName": "FlowSync",
+  "tagline": "Automate. Collaborate. Accelerate.",
+  "description": "Empowering teams worldwide with intelligent workflow automation and seamless collaboration tools.",
   "navigation": [
-    {
-      "label": "Home",
-      "href": "/"
-    },
     {
       "label": "Features",
       "href": "/features"
@@ -615,33 +602,37 @@ export default function Home() {
       "href": "/about"
     },
     {
+      "label": "Contact",
+      "href": "/contact"
+    },
+    {
       "label": "Blog",
       "href": "/blog"
     },
     {
-      "label": "Contact",
-      "href": "/contact"
+      "label": "Help Center",
+      "href": "/help"
     }
   ],
   "socialLinks": [
     {
       "platform": "twitter",
-      "href": "https://twitter.com/autoflow"
+      "href": "https://twitter.com/flowsync"
     },
     {
       "platform": "linkedin",
-      "href": "https://linkedin.com/company/autoflow"
+      "href": "https://linkedin.com/company/flowsync"
     },
     {
       "platform": "github",
-      "href": "https://github.com/autoflow"
+      "href": "https://github.com/flowsync"
     },
     {
       "platform": "youtube",
-      "href": "https://youtube.com/autoflow"
+      "href": "https://youtube.com/flowsync"
     }
   ],
-  "copyright": "© 2024 AutoFlow. All rights reserved.",
+  "copyright": "© 2024 FlowSync Technologies Inc. All rights reserved.",
   "columns": [
     {
       "title": "Product",
@@ -661,27 +652,10 @@ export default function Home() {
         {
           "label": "Security",
           "href": "/security"
-        }
-      ]
-    },
-    {
-      "title": "Company",
-      "links": [
-        {
-          "label": "About",
-          "href": "/about"
         },
         {
-          "label": "Careers",
-          "href": "/careers"
-        },
-        {
-          "label": "Press",
-          "href": "/press"
-        },
-        {
-          "label": "Partners",
-          "href": "/partners"
+          "label": "Roadmap",
+          "href": "/roadmap"
         }
       ]
     },
@@ -697,68 +671,87 @@ export default function Home() {
           "href": "/help"
         },
         {
-          "label": "Community",
-          "href": "/community"
-        },
-        {
           "label": "Blog",
           "href": "/blog"
+        },
+        {
+          "label": "Webinars",
+          "href": "/webinars"
+        },
+        {
+          "label": "Case Studies",
+          "href": "/case-studies"
+        }
+      ]
+    },
+    {
+      "title": "Company",
+      "links": [
+        {
+          "label": "About Us",
+          "href": "/about"
+        },
+        {
+          "label": "Careers",
+          "href": "/careers"
+        },
+        {
+          "label": "Press",
+          "href": "/press"
+        },
+        {
+          "label": "Partners",
+          "href": "/partners"
+        },
+        {
+          "label": "Contact",
+          "href": "/contact"
         }
       ]
     }
   ],
   "contactInfo": {
-    "email": "hello@autoflow.com",
-    "phone": "+1 (555) 234-5678",
-    "address": "123 Innovation Drive, San Francisco, CA 94105",
-    "hours": "24/7 Platform - Support: Mon-Fri 9AM-6PM PST"
+    "email": "hello@flowsync.io",
+    "phone": "+1 (555) 789-FLOW",
+    "address": "123 Innovation Drive, Tech Valley, CA 94025",
+    "hours": "24/7 Support Available"
   },
   "credentials": [
-    "SOC 2 Type II Certified",
-    "GDPR Compliant",
+    "SOC 2 Type II",
     "ISO 27001",
-    "99.9% Uptime SLA"
+    "GDPR Compliant"
   ],
   "emergencyPhone": "+1 (555) 911-TECH",
   "patientResources": [
     {
-      "label": "Help Center",
-      "href": "/help"
+      "label": "Status Page",
+      "href": "/status"
     },
     {
-      "label": "API Documentation",
-      "href": "/docs"
-    },
-    {
-      "label": "Community Forum",
-      "href": "/community"
+      "label": "System Health",
+      "href": "/health"
     }
   ],
-  "specialHours": "Enterprise support available 24/7",
-  "serviceAreas": "Global Platform - All Time Zones Supported",
+  "specialHours": "Global support across all time zones",
+  "serviceAreas": "Global Cloud Infrastructure",
   "licenses": [
-    "Business License #SF-2024-001",
-    "SOC 2 Certified",
-    "GDPR Compliant"
+    "Business License #CA-2024-001",
+    "SOC 2 Certified"
   ],
   "specialOffers": [
     {
       "title": "Free Migration",
-      "description": "Switch from any competitor for free"
-    },
-    {
-      "title": "Startup Program",
-      "description": "50% off for qualifying startups"
+      "description": "We'll help you migrate from your current tool at no cost"
     }
   ],
   "agentInfo": {
-    "name": "AutoFlow Support Team",
-    "phone": "+1 (555) 234-5678",
-    "email": "support@autoflow.com",
-    "license": "24/7 Technical Support"
+    "name": "FlowSync Support",
+    "phone": "+1 (555) 789-FLOW",
+    "email": "support@flowsync.io",
+    "license": "24/7 Global Support"
   },
   "marketStats": {
-    "propertiesSold": "50,000+",
+    "propertiesSold": "10K+ Teams",
     "avgDaysOnMarket": "Instant Setup",
     "clientSatisfaction": "98%"
   }

@@ -91,13 +91,7 @@ export default function MasterLayout({
       `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-800/50">
           <div className="flex items-center">
-            <div className="relative">
-              <AltiraIcon size={32} className="text-blue-400" />
-              <div className="absolute inset-0 h-8 w-8 bg-blue-400/20 rounded-full blur-md"></div>
-            </div>
-            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Altira
-            </span>
+            <AltiraIcon size={120} className="text-blue-400" />
           </div>
           <Button
             variant="ghost"

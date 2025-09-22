@@ -146,14 +146,18 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
     
     // Step 3: Deploy to the created project
     console.log('🚀 Deploying to created project...')
+    let deploymentUrl = vercelProject.url || `https://${vercelProject.name}.vercel.app`
+    
     try {
       const deployment = await triggerDirectDeployment(vercelProject.id, bitbucketRepo.clone_url, data.name, bitbucketRepo.uuid)
       console.log('✅ Direct deployment triggered:', deployment.url)
       
       // Update project with deployment URL
+      deploymentUrl = deployment.url
       vercelProject.url = deployment.url
     } catch (error) {
-      console.log('⚠️ Direct deployment failed, but project created successfully:', error)
+      console.log('⚠️ Direct deployment failed, using project URL instead:', error)
+      console.log(`📍 Project will be available at: ${deploymentUrl}`)
     }
     
     // Step 3: Configure basic environment variables
@@ -174,7 +178,7 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
     console.log('✅ Deployment completed - project created with repository linked')
     const deployment = { 
       id: 'deployed', 
-      url: vercelProject.url || vercelProject.dashboard_url
+      url: deploymentUrl
     }
     
     // Step 5: Update instance with deployment details
@@ -252,11 +256,12 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
   
   // Clean and format the project name (max 100 chars, but keep it short)
   const projectName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '').substring(0, 30)
-  const fullProjectName = projectName.startsWith('cms-') ? projectName : `cms-${projectName}`
+  const fullProjectName = projectName.startsWith('altira-') ? projectName : `altira-${projectName}`
   
   console.log(`🏗️  Creating Vercel project: "${fullProjectName}"`)
   console.log(`🎯 Using Vercel Team ID: "${VERCEL_TEAM_ID}"`)
   console.log(`🔑 Vercel Token: ${VERCEL_TOKEN ? `${VERCEL_TOKEN.substring(0, 10)}...` : 'NOT SET'}`)
+  console.log(`📦 Repository URL: ${templateRepo}`)
   
   // Try to create Vercel project with Bitbucket repo first
   const apiUrl = VERCEL_TEAM_ID 
@@ -420,10 +425,10 @@ async function triggerDirectDeployment(vercelProjectId: string | null, repositor
     }
   }
   
-  // Skip project linking for now - let deployment create its own project
-  // if (vercelProjectId) {
-  //   deploymentPayload.project = vercelProjectId
-  // }
+  // Link deployment to the existing project to prevent creating a second project
+  if (vercelProjectId) {
+    deploymentPayload.project = vercelProjectId
+  }
   
   console.log('📤 Deployment payload:', JSON.stringify(deploymentPayload, null, 2))
   
@@ -444,6 +449,9 @@ async function triggerDirectDeployment(vercelProjectId: string | null, repositor
   
   const deployment = await response.json()
   console.log('✅ Direct deployment created successfully')
+  console.log(`📍 Deployment ID: ${deployment.uid || deployment.id}`)
+  console.log(`🌐 Deployment URL: ${deployment.url}`)
+  console.log(`🏷️  Deployment Alias: ${deployment.alias?.[0] || 'none'}`)
   
   return {
     id: deployment.uid || deployment.id,
@@ -743,14 +751,14 @@ async function createBitbucketRepository(websiteName: string, description?: stri
   const newRepo = await createRepoResponse.json()
   console.log('✅ Created empty repository:', newRepo.name)
 
-  // Step 2: Clone ALL files from Simple-Static template
+  // Step 2: Clone ALL files from ai-generated-site template
   try {
     await cloneStaticTemplateFiles(repoName)
-    console.log('✅ Successfully cloned ALL Simple-Static files to new repository')
+    console.log('✅ Successfully cloned ALL ai-generated-site files to new repository')
   } catch (error) {
     console.error('⚠️ Failed to clone static template files:', error)
     // Repository was created but code clone failed - this is recoverable
-    throw new Error(`Repository created but failed to clone Simple-Static files: ${error}`)
+    throw new Error(`Repository created but failed to clone ai-generated-site files: ${error}`)
   }
 
   return {
@@ -763,16 +771,16 @@ async function createBitbucketRepository(websiteName: string, description?: stri
 }
 
 async function cloneStaticTemplateFiles(newRepoName: string) {
-  console.log('🔄 Copying ALL files from local Simple-Static directory...')
+  console.log('🔄 Copying ALL files from local ai-generated-site directory...')
   
   const authHeader = BITBUCKET_API_TOKEN 
     ? `Bearer ${BITBUCKET_API_TOKEN}`
     : `Basic ${Buffer.from(`${BITBUCKET_USERNAME}:${BITBUCKET_AUTH_TOKEN}`).toString('base64')}`
 
   try {
-    // Use the local Simple-Static directory instead of API calls
-    console.log('📁 Reading from local Simple-Static directory...')
-    await copyFromLocalSimpleStatic(newRepoName, authHeader)
+  // Use the local ai-generated-site directory instead of API calls
+  console.log('📁 Reading from local ai-generated-site directory...')
+  await copyFromLocalAiGeneratedSite(newRepoName, authHeader)
     
   } catch (error) {
     console.log('⚠️ Local copy failed, using fallback approach:', error)
@@ -783,27 +791,27 @@ async function cloneStaticTemplateFiles(newRepoName: string) {
   console.log('✅ Repository ready for manual Vercel connection')
 }
 
-async function copyFromLocalSimpleStatic(newRepoName: string, authHeader: string) {
-  console.log('📂 Copying ALL files from Simple-Static/* ...')
+async function copyFromLocalAiGeneratedSite(newRepoName: string, authHeader: string) {
+  console.log('📂 Copying ALL files from ai-generated-site/* ...')
   
   const fs = require('fs')
   const path = require('path')
   
-  const staticPath = path.join(process.cwd(), 'Simple-Static')
+  const staticPath = path.join(process.cwd(), 'ai-generated-site')
   
   if (!fs.existsSync(staticPath)) {
-    throw new Error('Simple-Static directory not found')
+    throw new Error('ai-generated-site directory not found')
   }
   
-  console.log(`✅ Found Simple-Static directory at: ${staticPath}`)
+  console.log(`✅ Found ai-generated-site directory at: ${staticPath}`)
   
   // Simple approach: Just ZIP everything and upload it
   await zipAndUploadAllFiles(newRepoName, staticPath, authHeader)
-  console.log('✅ Successfully uploaded ALL Simple-Static files')
+  console.log('✅ Successfully uploaded ALL ai-generated-site files')
 }
 
 async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, authHeader: string) {
-  console.log('📦 Creating ZIP of ALL Simple-Static files...')
+  console.log('📦 Creating ZIP of ALL ai-generated-site files...')
   
   const fs = require('fs')
   const path = require('path')
@@ -833,7 +841,7 @@ async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, aut
     
     archive.pipe(output)
     
-    // Add ALL files from Simple-Static (excluding system files)
+    // Add ALL files from ai-generated-site (excluding system files)
     archive.glob('**/*', {
       cwd: staticPath,
       ignore: ['.DS_Store', '.git/**', 'node_modules/**', '.next/**']
@@ -859,7 +867,7 @@ async function uploadCompleteZip(newRepoName: string, zipPath: string, authHeade
   const authorName = process.env.COMMIT_AUTHOR_NAME || 'Fabian Almiron'
   
   let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="message"\r\n\r\nComplete CMS deployment - all files from cms-master\r\n`
+  formData += `Content-Disposition: form-data; name="message"\r\n\r\nComplete CMS deployment - all files from ai-generated-site\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
   formData += `Content-Disposition: form-data; name="branch"\r\n\r\nmain\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
@@ -1092,7 +1100,7 @@ async function createBasicStaticFiles(repoName: string, authHeader: string) {
   
   const readmeContent = `# ${repoName}
 
-This static website was automatically created from the Simple-Static template.
+This static website was automatically created from the ai-generated-site template.
 
 ## 🚀 Features
 - Modern Next.js 15 with App Router
@@ -1105,7 +1113,7 @@ This static website was automatically created from the Simple-Static template.
 This repository contains a complete static website ready to deploy.
 
 ## 🔗 Source
-Generated from Simple-Static template
+Generated from ai-generated-site template
 `
 
   const packageJsonContent = `{

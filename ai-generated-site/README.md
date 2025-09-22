@@ -1,6 +1,6 @@
-# AutoFlow
+# FlowSync
 
-Modern tech startup landing page for AutoFlow - an AI-powered business automation platform with dark theme and animated elements
+Modern SaaS landing page for FlowSync workflow automation platform with dark theme and animated elements
 
 ## Getting Started
 

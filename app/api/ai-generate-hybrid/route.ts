@@ -585,6 +585,17 @@ export async function POST(request: NextRequest) {
     const projectRoot = process.cwd()
     const siteDir = path.join(projectRoot, 'ai-generated-site')
 
+    // Preserve vercel.json if it exists
+    let existingVercelConfig: string | null = null
+    const vercelConfigPath = path.join(siteDir, 'vercel.json')
+    
+    try {
+      existingVercelConfig = await fs.readFile(vercelConfigPath, 'utf-8')
+      console.log('📋 Preserving existing vercel.json configuration')
+    } catch (error) {
+      // vercel.json doesn't exist, which is fine
+    }
+
     try {
       await fs.rm(siteDir, { recursive: true, force: true })
     } catch (error) {
@@ -600,6 +611,12 @@ export async function POST(request: NextRequest) {
       const fullPath = path.join(siteDir, filePath)
       await fs.mkdir(path.dirname(fullPath), { recursive: true })
       await fs.writeFile(fullPath, content, 'utf-8')
+    }
+
+    // Restore vercel.json if it existed
+    if (existingVercelConfig) {
+      await fs.writeFile(vercelConfigPath, existingVercelConfig, 'utf-8')
+      console.log('✅ Restored vercel.json configuration')
     }
 
     console.log('✅ Hybrid website generated successfully!')
@@ -618,9 +635,9 @@ export async function POST(request: NextRequest) {
         footer: componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)?.name
       },
       sitemap: selection.sitemap,
-      totalFiles: Object.keys(files).length,
+      totalFiles: Object.keys(files).length + (existingVercelConfig ? 1 : 0),
       location: 'ai-generated-site/',
-      files: Object.keys(files),
+      files: [...Object.keys(files), ...(existingVercelConfig ? ['vercel.json (preserved)'] : [])],
       tokensUsed: 'Significantly reduced (~4k vs 32k)'
     })
 
