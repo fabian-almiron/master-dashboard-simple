@@ -27,70 +27,28 @@ const handler = NextAuth({
   session: {
     strategy: "jwt",
   },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
-      }
-    },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
-      }
-    },
-    csrfToken: {
-      name: `next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
-      }
-    },
-    pkceCodeVerifier: {
-      name: `next-auth.pkce.code_verifier`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 900,
-        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
-      }
-    },
-    state: {
-      name: `next-auth.state`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 900,
-        domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined
-      }
-    }
-  },
   trustHost: true,
-  debug: process.env.NODE_ENV === "development",
+  useSecureCookies: process.env.NODE_ENV === "production",
+  debug: true, // Enable debug in production for troubleshooting
   callbacks: {
     async signIn({ user, account, profile }) {
+      console.log('🔐 SignIn callback triggered:', {
+        user: user?.email,
+        account: account?.provider,
+        profile: profile?.email
+      })
+      
       // Add email whitelist for security
       const allowedEmails = process.env.ALLOWED_EMAILS?.split(',') || []
+      console.log('🔐 Allowed emails:', allowedEmails)
       
       if (allowedEmails.length > 0 && user.email) {
-        return allowedEmails.includes(user.email)
+        const isAllowed = allowedEmails.includes(user.email)
+        console.log(`🔐 Email ${user.email} allowed:`, isAllowed)
+        return isAllowed
       }
       
+      console.log('🔐 No email restrictions, allowing sign in')
       return true
     },
     async session({ session, token }) {
