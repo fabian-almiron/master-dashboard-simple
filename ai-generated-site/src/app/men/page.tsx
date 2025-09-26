@@ -1,10 +1,7 @@
 import Header from '@/components/Header'
-import Hero from '@/components/Hero'
-import Features from '@/components/Features'
-import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 
-export default function About() {
+export default function Men() {
   const headerProps = {
   "logo": "LUXE FASHION",
   "navigation": [
@@ -36,72 +33,6 @@ export default function About() {
   "ctaText": "Cart (0)",
   "ctaHref": "/cart",
   "searchHref": "/search"
-}
-  const heroProps = {
-  "headline": "Our Fashion Story",
-  "description": "Born from a passion for timeless style and sustainable fashion, we create pieces that celebrate individuality while honoring craftsmanship.",
-  "primaryCta": {
-    "text": "Shop Our Story",
-    "href": "/collections"
-  },
-  "secondaryCta": {
-    "text": "Sustainability",
-    "href": "#sustainability"
-  },
-  "heroImage": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=600&fit=crop",
-  "features": [
-    "Sustainable Materials",
-    "Ethical Production",
-    "Timeless Design"
-  ]
-}
-  const featuresProps = {
-  "headline": "Our Values",
-  "description": "Every piece we create reflects our commitment to quality, sustainability, and timeless style",
-  "features": [
-    {
-      "title": "Sustainable Fashion",
-      "description": "We use eco-friendly materials and ethical production methods",
-      "image": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&h=300&fit=crop"
-    },
-    {
-      "title": "Quality Craftsmanship",
-      "description": "Each piece is carefully crafted to last, reducing fashion waste",
-      "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=300&fit=crop"
-    },
-    {
-      "title": "Timeless Design",
-      "description": "Classic styles that transcend trends and seasons",
-      "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&h=300&fit=crop"
-    },
-    {
-      "title": "Community First",
-      "description": "Supporting local artisans and giving back to our community",
-      "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&h=300&fit=crop"
-    }
-  ]
-}
-  const testimonialsProps = {
-  "headline": "Why Customers Love Us",
-  "description": "Our commitment to quality and values resonates with fashion-conscious consumers",
-  "testimonials": [
-    {
-      "quote": "Finally, a fashion brand that aligns with my values without compromising on style!",
-      "author": "Maya Patel",
-      "role": "Environmental Lawyer",
-      "company": "Green Legal",
-      "rating": 5,
-      "image": "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150&h=150&fit=crop&crop=face"
-    },
-    {
-      "quote": "The quality is outstanding and I love knowing my purchases support sustainable practices.",
-      "author": "Jessica Kim",
-      "role": "Sustainability Consultant",
-      "company": "Eco Solutions",
-      "rating": 5,
-      "image": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&h=150&fit=crop&crop=face"
-    }
-  ]
 }
   const footerProps = {
   "companyName": "LUXE FASHION",
@@ -212,9 +143,12 @@ export default function About() {
   return (
     <>
       <Header {...headerProps} />
-      <Hero {...heroProps} />
-      <Features {...featuresProps} />
-      <Testimonials {...testimonialsProps} />
+      <main className="min-h-screen py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">Men</h1>
+          <p className="text-xl text-gray-600">Men's fashion and accessories</p>
+        </div>
+      </main>
       <Footer {...footerProps} />
     </>
   )

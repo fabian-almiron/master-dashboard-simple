@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FlowSync',
-  description: 'Modern SaaS landing page for FlowSync workflow automation platform with dark theme and animated elements',
+  title: 'LUXE FASHION',
+  description: 'Premium fashion e-commerce site with clean white design and shopping functionality',
 }
 
 export default function RootLayout({

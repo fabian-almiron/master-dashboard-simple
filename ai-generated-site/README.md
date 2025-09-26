@@ -1,6 +1,6 @@
-# FlowSync
+# LUXE FASHION
 
-Modern SaaS landing page for FlowSync workflow automation platform with dark theme and animated elements
+Premium fashion e-commerce site with clean white design and shopping functionality
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: Dark Modern Header
-- Hero: Dark Gradient Hero
-- Footer: Dark Minimal Footer
+- Header: E-commerce Header
+- Hero: E-commerce Hero
+- Footer: E-commerce Footer
 
 Generated using the Hybrid Component System.

@@ -4,7 +4,7 @@ import Features from '@/components/Features'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 
-export default function About() {
+export default function Collections() {
   const headerProps = {
   "logo": "LUXE FASHION",
   "navigation": [
@@ -38,68 +38,68 @@ export default function About() {
   "searchHref": "/search"
 }
   const heroProps = {
-  "headline": "Our Fashion Story",
-  "description": "Born from a passion for timeless style and sustainable fashion, we create pieces that celebrate individuality while honoring craftsmanship.",
+  "headline": "Curated Collections",
+  "description": "Discover our carefully curated fashion collections, each telling a unique style story designed for the modern wardrobe.",
   "primaryCta": {
-    "text": "Shop Our Story",
-    "href": "/collections"
+    "text": "Explore Collections",
+    "href": "#collections"
   },
   "secondaryCta": {
-    "text": "Sustainability",
-    "href": "#sustainability"
+    "text": "Style Guide",
+    "href": "/about"
   },
-  "heroImage": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=600&fit=crop",
+  "heroImage": "https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&h=600&fit=crop",
   "features": [
-    "Sustainable Materials",
-    "Ethical Production",
-    "Timeless Design"
+    "Seasonal Updates",
+    "Limited Editions",
+    "Curated by Experts"
   ]
 }
   const featuresProps = {
-  "headline": "Our Values",
-  "description": "Every piece we create reflects our commitment to quality, sustainability, and timeless style",
+  "headline": "Featured Collections",
+  "description": "Each collection is thoughtfully designed to complement your lifestyle and express your personality",
   "features": [
     {
-      "title": "Sustainable Fashion",
-      "description": "We use eco-friendly materials and ethical production methods",
-      "image": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&h=300&fit=crop"
-    },
-    {
-      "title": "Quality Craftsmanship",
-      "description": "Each piece is carefully crafted to last, reducing fashion waste",
-      "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=300&fit=crop"
-    },
-    {
-      "title": "Timeless Design",
-      "description": "Classic styles that transcend trends and seasons",
+      "title": "Spring Essentials",
+      "description": "Light fabrics and fresh colors perfect for the new season",
       "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&h=300&fit=crop"
     },
     {
-      "title": "Community First",
-      "description": "Supporting local artisans and giving back to our community",
-      "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&h=300&fit=crop"
+      "title": "Work Wardrobe",
+      "description": "Professional pieces that transition seamlessly from office to evening",
+      "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=300&fit=crop"
+    },
+    {
+      "title": "Weekend Casual",
+      "description": "Comfortable yet stylish pieces for your downtime",
+      "image": "https://images.unsplash.com/photo-1544957992-20349e0611d1?w=400&h=300&fit=crop"
+    },
+    {
+      "title": "Evening Elegance",
+      "description": "Sophisticated pieces for special occasions and nights out",
+      "image": "https://images.unsplash.com/photo-1566479179817-c7e8b0b7f6b5?w=400&h=300&fit=crop"
     }
   ]
 }
   const testimonialsProps = {
-  "headline": "Why Customers Love Us",
-  "description": "Our commitment to quality and values resonates with fashion-conscious consumers",
+  "headline": "Collection Reviews",
+  "description": "See why our curated collections are loved by fashion enthusiasts",
   "testimonials": [
     {
-      "quote": "Finally, a fashion brand that aligns with my values without compromising on style!",
-      "author": "Maya Patel",
-      "role": "Environmental Lawyer",
-      "company": "Green Legal",
+      "quote": "The Spring Essentials collection is absolutely perfect. Every piece works beautifully together!",
+      "author": "Lisa Wang",
+      "role": "Fashion Stylist",
+      "company": "Style Studio",
       "rating": 5,
-      "image": "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150&h=150&fit=crop&crop=face"
+      "image": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face"
     },
     {
-      "quote": "The quality is outstanding and I love knowing my purchases support sustainable practices.",
-      "author": "Jessica Kim",
-      "role": "Sustainability Consultant",
-      "company": "Eco Solutions",
+      "quote": "I love how the collections make it easy to put together complete looks. Great curation!",
+      "author": "Amanda Rodriguez",
+      "role": "Creative Director",
+      "company": "Design Co",
       "rating": 5,
-      "image": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&h=150&fit=crop&crop=face"
+      "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face"
     }
   ]
 }

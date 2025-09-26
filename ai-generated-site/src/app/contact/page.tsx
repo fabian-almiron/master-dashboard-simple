@@ -3,154 +3,88 @@ import Footer from '@/components/Footer'
 
 export default function Contact() {
   const headerProps = {
-  "logo": "FlowSync",
+  "logo": "LUXE FASHION",
   "navigation": [
     {
-      "label": "Features",
-      "href": "/features"
+      "label": "Home",
+      "href": "/"
     },
     {
-      "label": "Pricing",
-      "href": "/pricing"
+      "label": "Shop",
+      "href": "/shop"
     },
     {
-      "label": "About",
-      "href": "/about"
+      "label": "Women",
+      "href": "/women"
     },
     {
-      "label": "Contact",
-      "href": "/contact"
+      "label": "Men",
+      "href": "/men"
+    },
+    {
+      "label": "Collections",
+      "href": "/collections"
+    },
+    {
+      "label": "Sale",
+      "href": "/sale"
     }
   ],
-  "ctaText": "Start Free Trial",
-  "ctaHref": "/signup",
-  "socialLinks": [
-    {
-      "platform": "twitter",
-      "href": "https://twitter.com/flowsync"
-    },
-    {
-      "platform": "linkedin",
-      "href": "https://linkedin.com/company/flowsync"
-    },
-    {
-      "platform": "github",
-      "href": "https://github.com/flowsync"
-    }
-  ],
-  "contactInfo": {
-    "phone": "+1 (555) 789-FLOW",
-    "email": "hello@flowsync.io",
-    "address": "123 Innovation Drive, Tech Valley, CA 94025",
-    "hours": "24/7 Support Available"
-  },
-  "emergencyPhone": "+1 (555) 911-TECH",
-  "serviceAreas": "Global Cloud Platform",
-  "patientPortalHref": "/dashboard",
-  "agentInfo": {
-    "name": "Alex Chen",
-    "phone": "+1 (555) 789-FLOW",
-    "email": "alex@flowsync.io"
-  },
+  "ctaText": "Cart (0)",
+  "ctaHref": "/cart",
   "searchHref": "/search"
 }
   const footerProps = {
-  "companyName": "FlowSync",
-  "tagline": "Automate. Collaborate. Accelerate.",
-  "description": "Empowering teams worldwide with intelligent workflow automation and seamless collaboration tools.",
-  "navigation": [
-    {
-      "label": "Features",
-      "href": "/features"
-    },
-    {
-      "label": "Pricing",
-      "href": "/pricing"
-    },
-    {
-      "label": "About",
-      "href": "/about"
-    },
-    {
-      "label": "Contact",
-      "href": "/contact"
-    },
-    {
-      "label": "Blog",
-      "href": "/blog"
-    },
-    {
-      "label": "Help Center",
-      "href": "/help"
-    }
-  ],
-  "socialLinks": [
-    {
-      "platform": "twitter",
-      "href": "https://twitter.com/flowsync"
-    },
-    {
-      "platform": "linkedin",
-      "href": "https://linkedin.com/company/flowsync"
-    },
-    {
-      "platform": "github",
-      "href": "https://github.com/flowsync"
-    },
-    {
-      "platform": "youtube",
-      "href": "https://youtube.com/flowsync"
-    }
-  ],
-  "copyright": "© 2024 FlowSync Technologies Inc. All rights reserved.",
+  "companyName": "LUXE FASHION",
+  "description": "Premium fashion for the modern lifestyle. Discover timeless pieces that celebrate your unique style.",
   "columns": [
     {
-      "title": "Product",
+      "title": "Shop",
       "links": [
         {
-          "label": "Features",
-          "href": "/features"
+          "label": "New Arrivals",
+          "href": "/collections/new"
         },
         {
-          "label": "Integrations",
-          "href": "/integrations"
+          "label": "Women",
+          "href": "/women"
         },
         {
-          "label": "API",
-          "href": "/api"
+          "label": "Men",
+          "href": "/men"
         },
         {
-          "label": "Security",
-          "href": "/security"
+          "label": "Accessories",
+          "href": "/accessories"
         },
         {
-          "label": "Roadmap",
-          "href": "/roadmap"
+          "label": "Sale",
+          "href": "/sale"
         }
       ]
     },
     {
-      "title": "Resources",
+      "title": "Customer Care",
       "links": [
         {
-          "label": "Documentation",
-          "href": "/docs"
+          "label": "Size Guide",
+          "href": "/size-guide"
         },
         {
-          "label": "Help Center",
-          "href": "/help"
+          "label": "Shipping Info",
+          "href": "/shipping"
         },
         {
-          "label": "Blog",
-          "href": "/blog"
+          "label": "Returns",
+          "href": "/returns"
         },
         {
-          "label": "Webinars",
-          "href": "/webinars"
+          "label": "FAQ",
+          "href": "/faq"
         },
         {
-          "label": "Case Studies",
-          "href": "/case-studies"
+          "label": "Contact Us",
+          "href": "/contact"
         }
       ]
     },
@@ -162,6 +96,10 @@ export default function Contact() {
           "href": "/about"
         },
         {
+          "label": "Sustainability",
+          "href": "/sustainability"
+        },
+        {
           "label": "Careers",
           "href": "/careers"
         },
@@ -170,61 +108,36 @@ export default function Contact() {
           "href": "/press"
         },
         {
-          "label": "Partners",
-          "href": "/partners"
-        },
-        {
-          "label": "Contact",
-          "href": "/contact"
+          "label": "Store Locator",
+          "href": "/stores"
         }
       ]
     }
   ],
   "contactInfo": {
-    "email": "hello@flowsync.io",
-    "phone": "+1 (555) 789-FLOW",
-    "address": "123 Innovation Drive, Tech Valley, CA 94025",
-    "hours": "24/7 Support Available"
+    "email": "hello@luxefashion.com",
+    "phone": "+1 (555) 123-LUXE",
+    "hours": "Mon-Fri 9AM-6PM EST"
   },
-  "credentials": [
-    "SOC 2 Type II",
-    "ISO 27001",
-    "GDPR Compliant"
-  ],
-  "emergencyPhone": "+1 (555) 911-TECH",
-  "patientResources": [
+  "socialLinks": [
     {
-      "label": "Status Page",
-      "href": "/status"
+      "platform": "instagram",
+      "href": "https://instagram.com/luxefashion"
     },
     {
-      "label": "System Health",
-      "href": "/health"
-    }
-  ],
-  "specialHours": "Global support across all time zones",
-  "serviceAreas": "Global Cloud Infrastructure",
-  "licenses": [
-    "Business License #CA-2024-001",
-    "SOC 2 Certified"
-  ],
-  "specialOffers": [
+      "platform": "facebook",
+      "href": "https://facebook.com/luxefashion"
+    },
     {
-      "title": "Free Migration",
-      "description": "We'll help you migrate from your current tool at no cost"
+      "platform": "pinterest",
+      "href": "https://pinterest.com/luxefashion"
+    },
+    {
+      "platform": "twitter",
+      "href": "https://twitter.com/luxefashion"
     }
   ],
-  "agentInfo": {
-    "name": "FlowSync Support",
-    "phone": "+1 (555) 789-FLOW",
-    "email": "support@flowsync.io",
-    "license": "24/7 Global Support"
-  },
-  "marketStats": {
-    "propertiesSold": "10K+ Teams",
-    "avgDaysOnMarket": "Instant Setup",
-    "clientSatisfaction": "98%"
-  }
+  "copyright": "© 2024 LUXE FASHION. All rights reserved."
 }
 
   return (
@@ -233,7 +146,7 @@ export default function Contact() {
       <main className="min-h-screen py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">Contact</h1>
-          <p className="text-xl text-gray-600">Get in touch with our team</p>
+          <p className="text-xl text-gray-600">Customer service and brand inquiries</p>
         </div>
       </main>
       <Footer {...footerProps} />

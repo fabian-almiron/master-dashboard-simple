@@ -81,8 +81,69 @@ async function loadComponentBlocks(): Promise<ComponentBlocks> {
   }
 }
 
+function extractInterfaceFromTemplate(template: string): string {
+  // Extract the interface definition from the component template
+  // Find the start of the interface
+  const interfaceStart = template.match(/interface\s+\w+Props\s*\{/)
+  if (!interfaceStart || interfaceStart.index === undefined) {
+    return 'No interface found'
+  }
+  
+  const startIndex = interfaceStart.index + interfaceStart[0].length
+  let braceCount = 1
+  let currentIndex = startIndex
+  
+  // Count braces to find the matching closing brace
+  while (braceCount > 0 && currentIndex < template.length) {
+    if (template[currentIndex] === '{') {
+      braceCount++
+    } else if (template[currentIndex] === '}') {
+      braceCount--
+    }
+    currentIndex++
+  }
+  
+  if (braceCount === 0) {
+    // Extract the content between the braces
+    return template.substring(startIndex, currentIndex - 1).trim()
+  }
+  
+  return 'Could not parse interface'
+}
+
+function buildComponentInterfaceMap(componentBlocks: ComponentBlocks): { [key: string]: string } {
+  const interfaceMap: { [key: string]: string } = {}
+  
+  // Extract interfaces for all components
+  componentBlocks.headers.forEach(h => {
+    interfaceMap[h.id] = extractInterfaceFromTemplate(h.template)
+  })
+  componentBlocks.heroes.forEach(h => {
+    interfaceMap[h.id] = extractInterfaceFromTemplate(h.template)
+  })
+  componentBlocks.features.forEach(f => {
+    interfaceMap[f.id] = extractInterfaceFromTemplate(f.template)
+  })
+  componentBlocks.testimonials.forEach(t => {
+    interfaceMap[t.id] = extractInterfaceFromTemplate(t.template)
+  })
+  componentBlocks.pricing.forEach(p => {
+    interfaceMap[p.id] = extractInterfaceFromTemplate(p.template)
+  })
+  componentBlocks.footers.forEach(f => {
+    interfaceMap[f.id] = extractInterfaceFromTemplate(f.template)
+  })
+  
+  return interfaceMap
+}
+
 async function getAISelection(prompt: string, componentBlocks: ComponentBlocks): Promise<AISelection> {
+  // Build interface map for exact prop matching
+  const interfaceMap = buildComponentInterfaceMap(componentBlocks)
+  
   const systemPrompt = `You are an expert web designer. Based on the user's request, select the most appropriate components and generate realistic content.
+
+CRITICAL RULE: You MUST generate props that EXACTLY match the TypeScript interface of each selected component. No generic props allowed.
 
 AVAILABLE COMPONENTS:
 
@@ -104,14 +165,41 @@ ${componentBlocks.pricing.map(p => `- ${p.id}: ${p.name} (${p.tags.join(', ')}) 
 FOOTERS:
 ${componentBlocks.footers.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
 
-IMPORTANT: Always provide ALL possible props for each component type. Different components may need different props:
-- Header components may need: ctaText, ctaHref, socialLinks, contactInfo (phone, email, address, hours), emergencyPhone, serviceAreas, patientPortalHref, agentInfo (name, phone, email), searchHref
-- Hero components may need: primaryCta, secondaryCta, ctaText, ctaHref, features, heroImage, backgroundImage, credentials, testimonialQuote, testimonialAuthor, emergencyPhone, officeHours, patientStats (yearsExperience, patientsServed, satisfactionRate), specialOffer, hours, location, menuHighlights, serviceAreas, guarantees, responseTime, serviceHighlights, agentName, agentCredentials, marketStats (propertiesSold, avgDaysOnMarket, clientSatisfaction)
-- Features components may need: features (icon, title, description, metric, guarantee, badge, highlight, duration, specialty), credentials, patientStats, highlights, serviceInfo, wellness, marketData
-- Testimonials components may need: testimonials (quote, author, role, company, rating, image, age, location, condition, outcome, treatmentType, caseResult, resultMetric, favoritedish, visitType, serviceType, projectResult, completionTime, transformation, wellnessGoal, transactionType, propertyType, salePrice, timeOnMarket), trustIndicators, patientStats, restaurantStats, serviceStats, wellnessStats, marketStats
-- Pricing components may need: pricingTiers (name, price, period, commission, description, features, notIncluded, ctaText, ctaHref, popular, badge, monthlyPrice, yearlyPrice, servingSize, eventType, minimumOrder, serviceType, responseTime, guarantee, emergencyRate, duration, treatmentType, membershipBenefit, savings, marketingBudget, guarantees, specialties), yearlyDiscount, guarantee, trustMetrics, insuranceInfo, paymentOptions, specialOffers, cateringInfo, serviceAreas, emergencyInfo, membershipPerks, addOnServices, marketStats
-- Footer components may need: tagline, description, columns, contactInfo (email, phone, address, hours), socialLinks, credentials, emergencyPhone, patientResources, specialHours, serviceAreas, licenses, specialOffers, agentInfo (name, phone, email, license), marketStats (propertiesSold, avgDaysOnMarket, clientSatisfaction)
-Include all of them even if some are optional for the selected component. Generate realistic, industry-appropriate content for service businesses.
+COMPONENT INTERFACES:
+You MUST match these exact TypeScript interfaces for each component you select:
+
+HEADER INTERFACES:
+${componentBlocks.headers.map(h => `${h.id}:\n${interfaceMap[h.id]}`).join('\n\n')}
+
+HERO INTERFACES:
+${componentBlocks.heroes.map(h => `${h.id}:\n${interfaceMap[h.id]}`).join('\n\n')}
+
+FEATURES INTERFACES:
+${componentBlocks.features.map(f => `${f.id}:\n${interfaceMap[f.id]}`).join('\n\n')}
+
+TESTIMONIALS INTERFACES:
+${componentBlocks.testimonials.map(t => `${t.id}:\n${interfaceMap[t.id]}`).join('\n\n')}
+
+PRICING INTERFACES:
+${componentBlocks.pricing.map(p => `${p.id}:\n${interfaceMap[p.id]}`).join('\n\n')}
+
+FOOTER INTERFACES:
+${componentBlocks.footers.map(f => `${f.id}:\n${interfaceMap[f.id]}`).join('\n\n')}
+
+MANDATORY PROCESS:
+1. First select component IDs based on the user request
+2. Then generate props that EXACTLY match the selected component's interface
+3. Use realistic, industry-appropriate content
+4. Ensure all required props are provided, optional props can be omitted or included
+5. For each page in sitemap, generate page-specific content in pageContent that relates to that page's purpose
+6. Each page should have unique Hero, Features, and Testimonials content tailored to that specific page
+
+CRITICAL NAMING RULES:
+- Page names in sitemap MUST be valid JavaScript identifiers (alphanumeric only, no spaces or special characters)
+- Use camelCase or PascalCase for page names: "About", "Contact", "Services", "Portfolio"
+- NEVER use special characters like &, -, +, /, \, spaces, or punctuation in page names
+- Valid examples: "About", "Services", "Contact", "Portfolio", "SpaWellness", "EventPlanning"
+- Invalid examples: "Spa & Wellness", "Event-Planning", "About Us", "Services/Products"
 
 Return ONLY a JSON object with realistic content:
 {
@@ -127,6 +215,13 @@ Return ONLY a JSON object with realistic content:
     {"path": "/", "name": "Home", "description": "Main landing page"},
     {"path": "/about", "name": "About", "description": "About page description"}
   ],
+  "pageContent": {
+    "/about": {
+      "hero": { /* hero props specific to about page */ },
+      "features": { /* features props specific to about page */ },
+      "testimonials": { /* testimonials props specific to about page */ }
+    }
+  },
   "content": {
     "header": {
       "logo": "Company Name",
@@ -288,7 +383,60 @@ Return ONLY a JSON object with realistic content:
     throw new Error('No JSON found in AI response')
   }
   
-  return JSON.parse(jsonMatch[0])
+  const parsedSelection = JSON.parse(jsonMatch[0])
+  
+  // Validate that generated props match selected component interfaces
+  validatePropsMatchInterfaces(parsedSelection, interfaceMap)
+  
+  return parsedSelection
+}
+
+function validateAndSanitizePageNames(selection: AISelection): AISelection {
+  // Sanitize page names to ensure they're valid JavaScript identifiers
+  const sanitizedSitemap = selection.sitemap.map(page => {
+    const originalName = page.name
+    // Remove all non-alphanumeric characters and convert to PascalCase
+    const sanitizedName = originalName
+      .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+      .split(/\s+/) // Split on whitespace
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // PascalCase each word
+      .join('') // Join without spaces
+    
+    if (sanitizedName !== originalName) {
+      console.log(`🔧 Sanitized page name: "${originalName}" -> "${sanitizedName}"`)
+    }
+    
+    return {
+      ...page,
+      name: sanitizedName
+    }
+  })
+  
+  return {
+    ...selection,
+    sitemap: sanitizedSitemap
+  }
+}
+
+function validatePropsMatchInterfaces(selection: AISelection, interfaceMap: { [key: string]: string }) {
+  const errors: string[] = []
+  
+  // Basic validation - check if selected components exist in interface map
+  const components = ['header', 'hero', 'features', 'testimonials', 'pricing', 'footer'] as const
+  
+  components.forEach(componentType => {
+    const selectedId = selection.selectedComponents[componentType]
+    if (!interfaceMap[selectedId]) {
+      errors.push(`Selected ${componentType} component "${selectedId}" not found in available components`)
+    }
+  })
+  
+  if (errors.length > 0) {
+    console.warn('⚠️ Component validation warnings:', errors)
+    // Don't throw error, just log warnings for now
+  }
+  
+  console.log('✅ Component selection validated')
 }
 
 function generateProjectFiles(selection: AISelection, componentBlocks: ComponentBlocks): { [key: string]: string } {
@@ -497,10 +645,39 @@ export default function Home() {
   selection.sitemap.forEach(page => {
     if (page.path !== '/') {
       const pagePath = page.path === '/' ? 'page.tsx' : `${page.path.slice(1)}/page.tsx`
-      files[`src/app/${pagePath}`] = `import Header from '@/components/Header'
+      const pageContent = (selection as any).pageContent?.[page.path]
+      
+      if (pageContent) {
+        // Generate full page with components
+        files[`src/app/${pagePath}`] = `import Header from '@/components/Header'
+import Hero from '@/components/Hero'
+import Features from '@/components/Features'
+import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 
-export default function ${page.name.replace(/\s+/g, '')}() {
+export default function ${page.name.replace(/[^a-zA-Z0-9]/g, '')}() {
+  const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
+  const heroProps = ${JSON.stringify(pageContent.hero, null, 2)}
+  const featuresProps = ${JSON.stringify(pageContent.features, null, 2)}
+  const testimonialsProps = ${JSON.stringify(pageContent.testimonials, null, 2)}
+  const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
+
+  return (
+    <>
+      <Header {...headerProps} />
+      <Hero {...heroProps} />
+      <Features {...featuresProps} />
+      <Testimonials {...testimonialsProps} />
+      <Footer {...footerProps} />
+    </>
+  )
+}`
+      } else {
+        // Fallback to simple page
+        files[`src/app/${pagePath}`] = `import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+
+export default function ${page.name.replace(/[^a-zA-Z0-9]/g, '')}() {
   const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
   const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
 
@@ -517,6 +694,7 @@ export default function ${page.name.replace(/\s+/g, '')}() {
     </>
   )
 }`
+      }
     }
   })
 
@@ -576,7 +754,10 @@ export async function POST(request: NextRequest) {
     const componentBlocks = await loadComponentBlocks()
 
     // Get AI selection and content
-    const selection = await getAISelection(prompt, componentBlocks)
+    const rawSelection = await getAISelection(prompt, componentBlocks)
+    
+    // Validate and sanitize page names to prevent syntax errors
+    const selection = validateAndSanitizePageNames(rawSelection)
 
     // Generate project files
     const files = generateProjectFiles(selection, componentBlocks)
