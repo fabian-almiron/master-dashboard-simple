@@ -17,6 +17,9 @@ import {
 } from 'lucide-react'
 import { getNotifications, type Notification } from '@/lib/master-supabase'
 
+// Force dynamic rendering - don't pre-render during build (requires auth)
+export const dynamic = 'force-dynamic'
+
 export default function MasterLayout({
   children,
 }: {

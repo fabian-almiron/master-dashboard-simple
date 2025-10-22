@@ -21,6 +21,9 @@ import {
 } from 'lucide-react'
 // Removed Select and Tabs imports as we're going freeform only
 
+// Force dynamic rendering - don't pre-render during build (requires auth)
+export const dynamic = 'force-dynamic'
+
 // Removed websiteTypes and designStyles arrays - going pure freeform
 
 const examplePrompts = [

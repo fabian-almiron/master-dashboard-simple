@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering - don't pre-render during build (requires auth)
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
