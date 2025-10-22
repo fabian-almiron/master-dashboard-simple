@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
-// Rate limiting store (in production, use Redis or similar)
+// ⚠️ WARNING: In-memory rate limiting store
+// This works for single-instance deployments but will NOT work correctly
+// across multiple Railway replicas. Each replica maintains its own state.
+// 
+// For production with numReplicas > 1, implement Redis-based rate limiting:
+// - Add REDIS_URL to environment variables
+// - Use a Redis client library (e.g., ioredis)
+// - Replace this Map with Redis GET/SET operations
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
 
 /**

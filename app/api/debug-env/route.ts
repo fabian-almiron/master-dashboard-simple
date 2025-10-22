@@ -3,6 +3,14 @@ import { isMasterSupabaseConfigured } from '@/lib/master-supabase'
 import { securityMiddleware, logSecurityEvent } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Disable debug endpoint in production unless explicitly enabled
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEBUG_ENDPOINTS !== 'true') {
+    return NextResponse.json(
+      { error: 'Debug endpoints are disabled in production for security' },
+      { status: 403 }
+    )
+  }
+  
   // Security check - admin only
   const securityCheck = await securityMiddleware(request, {
     requireAdmin: true,

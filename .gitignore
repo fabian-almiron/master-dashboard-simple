@@ -25,11 +25,17 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Environment files
+# Environment files - CRITICAL: Never commit these!
+.env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+*.env
+!*.env.example
 
 # Logs
 *.log

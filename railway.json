@@ -7,5 +7,6 @@
     "numReplicas": 1,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
-  }
+  },
+  "_comment": "⚠️ WARNING: If you increase numReplicas above 1, the in-memory rate limiting will not work correctly across replicas. You must implement Redis-based rate limiting for multi-replica deployments. See lib/security.ts for details."
 }

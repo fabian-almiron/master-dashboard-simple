@@ -7,6 +7,7 @@ import {
   formatInterfaceForPrompt,
   buildComponentInterfaceMap 
 } from '@/lib/interface-extractor'
+import { securityMiddleware } from '@/lib/security'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -549,6 +550,14 @@ Generated using the Hybrid Component System.`
 }
 
 export async function POST(request: NextRequest) {
+  // Security check with rate limiting for AI generation
+  const securityCheck = await securityMiddleware(request, {
+    requireAuth: true,
+    rateLimit: { limit: 10, windowMs: 60000 } // 10 AI generations per minute
+  })
+  
+  if (securityCheck) return securityCheck
+  
   try {
     const { prompt } = await request.json()
 

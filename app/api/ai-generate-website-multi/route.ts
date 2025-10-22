@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import fs from 'fs/promises'
 import path from 'path'
+import { securityMiddleware } from '@/lib/security'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -106,6 +107,14 @@ Requirements:
 }
 
 export async function POST(request: NextRequest) {
+  // Security check with rate limiting for AI generation
+  const securityCheck = await securityMiddleware(request, {
+    requireAuth: true,
+    rateLimit: { limit: 10, windowMs: 60000 } // 10 AI generations per minute
+  })
+  
+  if (securityCheck) return securityCheck
+  
   try {
     const { prompt } = await request.json()
 

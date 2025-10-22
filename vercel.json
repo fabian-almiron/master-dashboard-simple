@@ -15,13 +15,14 @@
       "permanent": false
     }
   ],
+  "_comment": "NOTE: Railway does not use vercel.json. These CORS headers are only for Vercel deployments. For Railway, CORS is handled in Next.js middleware or API routes.",
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://localhost:3000,https://yourdomain.com,https://*.railway.app"
+          "value": "https://your-production-domain.com"
         },
         {
           "key": "Access-Control-Allow-Methods",

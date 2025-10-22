@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { securityMiddleware, logSecurityEvent } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Disable debug endpoint in production unless explicitly enabled
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEBUG_ENDPOINTS !== 'true') {
+    return NextResponse.json(
+      { error: 'Debug endpoints are disabled in production for security' },
+      { status: 403 }
+    )
+  }
+  
+  // Security check - admin only in non-production
+  const securityCheck = await securityMiddleware(request, {
+    requireAdmin: true,
+    rateLimit: { limit: 5, windowMs: 60000 }
+  })
+  
+  if (securityCheck) return securityCheck
+  
+  // Log access to debug endpoint
+  logSecurityEvent('DEBUG_RAILWAY_ENV_ACCESS', {}, request)
+  
   // This endpoint helps debug Railway environment variable issues
-  // Remove this endpoint after fixing the database connection
   
   const envCheck = {
     // Check if environment variables exist (don't expose actual values)

@@ -35,13 +35,15 @@ const BITBUCKET_MASTER_REPO = process.env.BITBUCKET_MASTER_REPO || 'cms-master'
 // Use API Token (preferred method)
 const BITBUCKET_AUTH_TOKEN = BITBUCKET_API_TOKEN
 
-// Debug logging for environment variables
-console.log('🔧 Environment Check:')
-console.log(`   VERCEL_TOKEN: ${VERCEL_TOKEN ? 'SET' : 'MISSING'}`)
-console.log(`   VERCEL_TEAM_ID: ${VERCEL_TEAM_ID || 'MISSING'}`)
-console.log(`   BITBUCKET_USERNAME: ${BITBUCKET_USERNAME ? 'SET' : 'MISSING'}`)
-console.log(`   BITBUCKET_API_TOKEN: ${BITBUCKET_API_TOKEN ? 'SET' : 'MISSING'}`)
-console.log(`   BITBUCKET_WORKSPACE: ${BITBUCKET_WORKSPACE || 'MISSING'}`)
+// Debug logging for environment variables (development only)
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 Environment Check:')
+  console.log(`   VERCEL_TOKEN: ${VERCEL_TOKEN ? 'SET' : 'MISSING'}`)
+  console.log(`   VERCEL_TEAM_ID: ${VERCEL_TEAM_ID || 'MISSING'}`)
+  console.log(`   BITBUCKET_USERNAME: ${BITBUCKET_USERNAME ? 'SET' : 'MISSING'}`)
+  console.log(`   BITBUCKET_API_TOKEN: ${BITBUCKET_API_TOKEN ? 'SET' : 'MISSING'}`)
+  console.log(`   BITBUCKET_WORKSPACE: ${BITBUCKET_WORKSPACE || 'MISSING'}`)
+}
 
 
 export async function POST(request: NextRequest) {
