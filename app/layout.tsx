@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import AuthSessionProvider from '@/components/auth/session-provider'
+import { ClerkProvider } from '@clerk/nextjs'
 
 export const metadata: Metadata = {
   title: 'Altira - CMS Management Platform',
@@ -15,9 +15,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <AuthSessionProvider>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning className="dark">
+        <body className="min-h-screen bg-background font-sans antialiased">
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -26,8 +26,8 @@ export default function RootLayout({
           >
             {children}
           </ThemeProvider>
-        </AuthSessionProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

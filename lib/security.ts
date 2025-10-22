@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 
 // Rate limiting store (in production, use Redis or similar)
@@ -56,47 +55,85 @@ export function getClientIP(request: NextRequest): string {
 }
 
 /**
- * Authentication middleware for API routes
+ * Authentication middleware for API routes using Clerk
  */
 export async function requireAuth(request: NextRequest) {
-  const session = await getServerSession()
-  
-  if (!session) {
+  try {
+    // Check if auth bypass is enabled in development
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    const bypassAuth = process.env.BYPASS_AUTH === 'true'
+    
+    if (isDevelopment && bypassAuth) {
+      console.log('🔓 Auth bypassed for API route (development mode)')
+      return null // Skip authentication
+    }
+
+    // In production, require Clerk authentication
+    const { auth } = await import('@clerk/nextjs/server')
+    const { userId } = await auth()
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
+    return null // Authentication successful
+  } catch (error) {
+    console.error('Authentication error:', error)
     return NextResponse.json(
-      { error: 'Authentication required' }, 
+      { error: 'Authentication failed' },
       { status: 401 }
     )
   }
-  
-  return null // No error, continue
 }
 
 /**
- * Admin-only authentication middleware
+ * Admin-only authentication middleware using Clerk
  */
 export async function requireAdmin(request: NextRequest) {
-  const session = await getServerSession()
-  
-  if (!session) {
-    return NextResponse.json(
-      { error: 'Authentication required' }, 
-      { status: 401 }
-    )
-  }
-  
-  // Check if user is in allowed emails list (admin check)
-  const allowedEmails = process.env.ALLOWED_EMAILS?.split(',') || []
-  
-  if (allowedEmails.length > 0 && session.user?.email) {
-    if (!allowedEmails.includes(session.user.email)) {
+  try {
+    // Check if auth bypass is enabled in development
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    const bypassAuth = process.env.BYPASS_AUTH === 'true'
+    
+    if (isDevelopment && bypassAuth) {
+      console.log('🔓 Admin auth bypassed for API route (development mode)')
+      return null // Skip authentication
+    }
+
+    // In production, require Clerk authentication and admin role
+    const { auth } = await import('@clerk/nextjs/server')
+    const { userId, sessionClaims } = await auth()
+    
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Admin access required' }, 
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
+    // Check for admin role (you can customize this logic)
+    const userRole = sessionClaims?.metadata?.role || 'user'
+    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || []
+    const userEmail = sessionClaims?.email
+    
+    if (userRole !== 'admin' && !adminEmails.includes(userEmail)) {
+      return NextResponse.json(
+        { error: 'Admin access required' },
         { status: 403 }
       )
     }
+    
+    return null // Admin authentication successful
+  } catch (error) {
+    console.error('Admin authentication error:', error)
+    return NextResponse.json(
+      { error: 'Authentication failed' },
+      { status: 401 }
+    )
   }
-  
-  return null // No error, continue
 }
 
 /**

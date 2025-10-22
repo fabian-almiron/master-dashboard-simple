@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AltiraIcon } from '@/components/ui/altira-logo'
@@ -13,7 +12,6 @@ import {
   User,
   Menu,
   X,
-  LogOut,
   Globe,
   Sparkles
 } from 'lucide-react'
@@ -24,7 +22,6 @@ export default function MasterLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { data: session } = useSession()
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -91,7 +88,13 @@ export default function MasterLayout({
       `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-800/50">
           <div className="flex items-center">
-            <AltiraIcon size={120} className="text-blue-400" />
+            <div className="relative">
+              <AltiraIcon size={32} className="text-blue-400" />
+              <div className="absolute inset-0 h-8 w-8 bg-blue-400/20 rounded-full blur-md"></div>
+            </div>
+            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Altira
+            </span>
           </div>
           <Button
             variant="ghost"
@@ -227,29 +230,14 @@ export default function MasterLayout({
 
               {/* User Menu */}
               <div className="flex items-center space-x-2">
-                {session?.user && (
-                  <>
-                    <div className="hidden sm:block text-sm text-gray-300">
-                      {session.user.name || session.user.email}
-                    </div>
-                    {session.user.image && (
-                      <img
-                        src={session.user.image}
-                        alt="User avatar"
-                        className="w-8 h-8 rounded-full border border-gray-600"
-                      />
-                    )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                      className="text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-xl"
-                      title="Sign out"
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl"
+                  title="User profile"
+                >
+                  <User className="h-5 w-5" />
+                </Button>
               </div>
             </div>
           </div>

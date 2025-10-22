@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import fs from 'fs/promises'
 import path from 'path'
+import { 
+  extractInterfaceFromTemplate, 
+  formatInterfaceForPrompt,
+  buildComponentInterfaceMap 
+} from '@/lib/interface-extractor'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -24,7 +29,6 @@ interface ComponentBlocks {
   heroes: ComponentBlock[]
   features: ComponentBlock[]
   testimonials: ComponentBlock[]
-  pricing: ComponentBlock[]
   footers: ComponentBlock[]
 }
 
@@ -34,7 +38,6 @@ interface AISelection {
     hero: string
     features: string
     testimonials: string
-    pricing: string
     footer: string
   }
   sitemap: Array<{
@@ -47,7 +50,6 @@ interface AISelection {
     hero: any
     features: any
     testimonials: any
-    pricing: any
     footer: any
   }
   projectConfig: {
@@ -62,12 +64,11 @@ interface AISelection {
 }
 
 async function loadComponentBlocks(): Promise<ComponentBlocks> {
-  const [headersData, heroesData, featuresData, testimonialsData, pricingData, footersData] = await Promise.all([
+  const [headersData, heroesData, featuresData, testimonialsData, footersData] = await Promise.all([
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-header-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-hero-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-features-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-testimonials-blocks.json'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'component-blocks/available-pricing-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-footer-blocks.json'), 'utf-8')
   ])
 
@@ -76,74 +77,22 @@ async function loadComponentBlocks(): Promise<ComponentBlocks> {
     heroes: JSON.parse(heroesData).heroes,
     features: JSON.parse(featuresData).features,
     testimonials: JSON.parse(testimonialsData).testimonials,
-    pricing: JSON.parse(pricingData).pricing,
     footers: JSON.parse(footersData).footers
   }
 }
 
-function extractInterfaceFromTemplate(template: string): string {
-  // Extract the interface definition from the component template
-  // Find the start of the interface
-  const interfaceStart = template.match(/interface\s+\w+Props\s*\{/)
-  if (!interfaceStart || interfaceStart.index === undefined) {
-    return 'No interface found'
-  }
-  
-  const startIndex = interfaceStart.index + interfaceStart[0].length
-  let braceCount = 1
-  let currentIndex = startIndex
-  
-  // Count braces to find the matching closing brace
-  while (braceCount > 0 && currentIndex < template.length) {
-    if (template[currentIndex] === '{') {
-      braceCount++
-    } else if (template[currentIndex] === '}') {
-      braceCount--
-    }
-    currentIndex++
-  }
-  
-  if (braceCount === 0) {
-    // Extract the content between the braces
-    return template.substring(startIndex, currentIndex - 1).trim()
-  }
-  
-  return 'Could not parse interface'
-}
-
-function buildComponentInterfaceMap(componentBlocks: ComponentBlocks): { [key: string]: string } {
-  const interfaceMap: { [key: string]: string } = {}
-  
-  // Extract interfaces for all components
-  componentBlocks.headers.forEach(h => {
-    interfaceMap[h.id] = extractInterfaceFromTemplate(h.template)
-  })
-  componentBlocks.heroes.forEach(h => {
-    interfaceMap[h.id] = extractInterfaceFromTemplate(h.template)
-  })
-  componentBlocks.features.forEach(f => {
-    interfaceMap[f.id] = extractInterfaceFromTemplate(f.template)
-  })
-  componentBlocks.testimonials.forEach(t => {
-    interfaceMap[t.id] = extractInterfaceFromTemplate(t.template)
-  })
-  componentBlocks.pricing.forEach(p => {
-    interfaceMap[p.id] = extractInterfaceFromTemplate(p.template)
-  })
-  componentBlocks.footers.forEach(f => {
-    interfaceMap[f.id] = extractInterfaceFromTemplate(f.template)
-  })
-  
-  return interfaceMap
-}
-
 async function getAISelection(prompt: string, componentBlocks: ComponentBlocks): Promise<AISelection> {
-  // Build interface map for exact prop matching
+  // Build interface map for all components
   const interfaceMap = buildComponentInterfaceMap(componentBlocks)
   
+  // Example interfaces for the AI (we'll inject real ones based on selection)
+  const exampleHeaderInterface = extractInterfaceFromTemplate(componentBlocks.headers[0].template)
+  const exampleHeroInterface = extractInterfaceFromTemplate(componentBlocks.heroes[0].template)
+  const exampleFeaturesInterface = extractInterfaceFromTemplate(componentBlocks.features[0].template)
+  const exampleTestimonialsInterface = extractInterfaceFromTemplate(componentBlocks.testimonials[0].template)
+  const exampleFooterInterface = extractInterfaceFromTemplate(componentBlocks.footers[0].template)
+  
   const systemPrompt = `You are an expert web designer. Based on the user's request, select the most appropriate components and generate realistic content.
-
-CRITICAL RULE: You MUST generate props that EXACTLY match the TypeScript interface of each selected component. No generic props allowed.
 
 AVAILABLE COMPONENTS:
 
@@ -159,201 +108,148 @@ ${componentBlocks.features.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')})
 TESTIMONIALS:
 ${componentBlocks.testimonials.map(t => `- ${t.id}: ${t.name} (${t.tags.join(', ')}) - ${t.description}`).join('\n')}
 
-PRICING:
-${componentBlocks.pricing.map(p => `- ${p.id}: ${p.name} (${p.tags.join(', ')}) - ${p.description}`).join('\n')}
-
 FOOTERS:
 ${componentBlocks.footers.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
 
-COMPONENT INTERFACES:
-You MUST match these exact TypeScript interfaces for each component you select:
+🚨 CRITICAL: EXACT INTERFACE MATCHING REQUIRED 🚨
 
-HEADER INTERFACES:
-${componentBlocks.headers.map(h => `${h.id}:\n${interfaceMap[h.id]}`).join('\n\n')}
+Each component has a STRICT TypeScript interface. You MUST generate props that EXACTLY match the interface:
 
-HERO INTERFACES:
-${componentBlocks.heroes.map(h => `${h.id}:\n${interfaceMap[h.id]}`).join('\n\n')}
+✅ DO:
+- Generate ONLY properties defined in the interface
+- Include ALL required properties (non-optional)
+- Use correct property types (string, number, array, object)
+- Match exact property names (case-sensitive)
+- Use valid icon names from iconMap when applicable
 
-FEATURES INTERFACES:
-${componentBlocks.features.map(f => `${f.id}:\n${interfaceMap[f.id]}`).join('\n\n')}
+❌ DON'T:
+- Add extra properties not in the interface
+- Miss required properties
+- Nest required properties inside other objects incorrectly
+- Use industry-specific properties from other component types
+- Generate "just in case" properties
 
-TESTIMONIALS INTERFACES:
-${componentBlocks.testimonials.map(t => `${t.id}:\n${interfaceMap[t.id]}`).join('\n\n')}
+EXAMPLE INTERFACES (actual interfaces vary by component):
 
-PRICING INTERFACES:
-${componentBlocks.pricing.map(p => `${p.id}:\n${interfaceMap[p.id]}`).join('\n\n')}
+${exampleHeaderInterface ? formatInterfaceForPrompt(exampleHeaderInterface) : 'Header interface not found'}
 
-FOOTER INTERFACES:
-${componentBlocks.footers.map(f => `${f.id}:\n${interfaceMap[f.id]}`).join('\n\n')}
+${exampleFeaturesInterface ? formatInterfaceForPrompt(exampleFeaturesInterface) : 'Features interface not found'}
 
-MANDATORY PROCESS:
-1. First select component IDs based on the user request
-2. Then generate props that EXACTLY match the selected component's interface
-3. Use realistic, industry-appropriate content
-4. Ensure all required props are provided, optional props can be omitted or included
-5. For each page in sitemap, generate page-specific content in pageContent that relates to that page's purpose
-6. Each page should have unique Hero, Features, and Testimonials content tailored to that specific page
+COMPONENT-SPECIFIC RULES:
 
-CRITICAL NAMING RULES:
-- Page names in sitemap MUST be valid JavaScript identifiers (alphanumeric only, no spaces or special characters)
-- Use camelCase or PascalCase for page names: "About", "Contact", "Services", "Portfolio"
-- NEVER use special characters like &, -, +, /, \, spaces, or punctuation in page names
-- Valid examples: "About", "Services", "Contact", "Portfolio", "SpaWellness", "EventPlanning"
-- Invalid examples: "Spa & Wellness", "Event-Planning", "About Us", "Services/Products"
+For Excavation/Construction components:
+- Header icons: Truck, HardHat, Shield, MapPin, Award, CheckCircle
+- Features icons: "truck", "hardHat", "shield", "mapPin", "award", "check"
+- Use orange color theme (orange-50, orange-100, orange-600)
 
-Return ONLY a JSON object with realistic content:
+For all components:
+- Keep it simple and minimal
+- Only generate properties that exist in the interface
+- Don't bloat with unused properties
+
+Return ONLY a JSON object. Generate MINIMAL props that match the selected component interfaces EXACTLY:
+
+EXAMPLE for excavation-construction header (header-excavation-construction):
 {
   "selectedComponents": {
-    "header": "header-id",
-    "hero": "hero-id",
-    "features": "features-id",
-    "testimonials": "testimonials-id",
-    "pricing": "pricing-id",
-    "footer": "footer-id"
+    "header": "header-excavation-construction",
+    "hero": "hero-excavation-construction",
+    "features": "features-excavation-construction",
+    "testimonials": "testimonials-excavation-construction",
+    "footer": "footer-excavation-construction"
   },
   "sitemap": [
     {"path": "/", "name": "Home", "description": "Main landing page"},
-    {"path": "/about", "name": "About", "description": "About page description"}
+    {"path": "/services", "name": "Services", "description": "Our services"},
+    {"path": "/about", "name": "About", "description": "About our company"},
+    {"path": "/contact", "name": "Contact", "description": "Contact us"}
   ],
-  "pageContent": {
-    "/about": {
-      "hero": { /* hero props specific to about page */ },
-      "features": { /* features props specific to about page */ },
-      "testimonials": { /* testimonials props specific to about page */ }
-    }
-  },
   "content": {
     "header": {
       "logo": "Company Name",
-      "navigation": [{"label": "Home", "href": "/"}, {"label": "About", "href": "/about"}],
-      "ctaText": "Get Started",
+      "navigation": [{"label": "Home", "href": "/"}, {"label": "Services", "href": "/services"}],
+      "ctaText": "Get Quote",
       "ctaHref": "/contact",
-      "socialLinks": [{"platform": "twitter", "href": "#"}, {"platform": "instagram", "href": "#"}],
-      "contactInfo": {
-        "phone": "+1 (555) 123-4567",
-        "email": "info@company.com",
-        "address": "123 Main St, City, State",
-        "hours": "Mon-Fri 9AM-5PM"
-      },
-      "emergencyPhone": "+1 (555) 911-HELP",
-      "serviceAreas": "City & Surrounding Areas",
-      "patientPortalHref": "/patient-portal",
-      "agentInfo": {
-        "name": "John Smith",
-        "phone": "+1 (555) 123-4567",
-        "email": "john@company.com"
-      },
-      "searchHref": "/search"
+      "contactPhone": "+1 (555) 123-4567",
+      "serviceAreas": "City & Surrounding Areas"
     },
     "hero": {
-      "headline": "Your Compelling Headline",
-      "description": "Engaging description",
+      "headline": "Your Headline",
+      "description": "Description here",
       "primaryCta": {"text": "Get Started", "href": "/contact"},
       "secondaryCta": {"text": "Learn More", "href": "/about"},
-      "ctaText": "Get Started",
-      "ctaHref": "/contact",
-      "features": ["Feature 1", "Feature 2", "Feature 3"],
-      "heroImage": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
-      "backgroundImage": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
-      "credentials": ["Licensed Professional", "Certified Expert", "Award Winner"],
-      "testimonialQuote": "Exceptional service and expertise!",
-      "testimonialAuthor": "John Smith, Client",
-      "emergencyPhone": "+1 (555) 911-HELP",
-      "officeHours": "Mon-Fri 9AM-5PM",
-      "patientStats": {"yearsExperience": "15+", "patientsServed": "5000+", "satisfactionRate": "98%"},
-      "specialOffer": "20% off first service for new clients",
-      "hours": "Mon-Sun 11AM-10PM",
-      "location": "Downtown District",
-      "menuHighlights": ["Signature Dish", "Chef's Special", "Popular Item"],
-      "serviceAreas": "City & 30-Mile Radius",
-      "guarantees": ["100% Satisfaction", "Licensed & Insured", "Free Estimates"],
-      "responseTime": "30 minutes",
-      "serviceHighlights": ["Signature Service", "Popular Treatment", "Specialty Option"],
-      "agentName": "John Smith",
-      "agentCredentials": ["Licensed Realtor", "MLS Member", "Top Producer"],
-      "marketStats": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%"}
+      "heroImage": "https://images.unsplash.com/photo-1580901368919-7738efb0f87e?w=800&h=600&fit=crop",
+      "contactPhone": "+1 (555) 123-4567",
+      "serviceAreas": "City & Surrounding Areas",
+      "projectTypes": ["Service 1", "Service 2", "Service 3"],
+      "guarantees": ["Guarantee 1", "Guarantee 2"],
+      "yearsExperience": "10+"
     },
     "features": {
       "headline": "Why Choose Us",
-      "description": "Discover what makes us the preferred choice for your needs",
+      "description": "What makes us different",
       "features": [
-        {"icon": "check", "title": "Feature Title", "description": "Feature description", "metric": "100%", "guarantee": "Satisfaction Guaranteed", "badge": "Popular", "highlight": "Best Value", "duration": "60 minutes", "specialty": "Award Winner"}
+        {"icon": "truck", "title": "Feature 1", "description": "Description", "guarantee": "Promise"}
       ],
-      "credentials": ["Licensed Professional", "Certified Expert", "Award Winner"],
-      "patientStats": {"yearsExperience": "15+", "patientsServed": "5000+", "satisfactionRate": "98%"},
-      "highlights": {"rating": "4.9", "reviews": "500+", "specialties": ["Specialty 1", "Specialty 2"]},
-      "serviceInfo": {"responseTime": "30 minutes", "serviceAreas": "City & Surrounding Areas", "yearsExperience": "15+", "jobsCompleted": "1000+"},
-      "wellness": {"treatments": "25+", "experience": "15+", "satisfaction": "98%", "awards": ["Best Spa 2024", "Excellence Award"]},
-      "marketData": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%", "marketAreas": ["Downtown", "Suburbs", "Waterfront"]}
+      "companyInfo": {
+        "yearsExperience": "10+",
+        "projectsCompleted": "500+",
+        "serviceAreas": "City & Area",
+        "equipmentCount": "12+"
+      }
     },
     "testimonials": {
-      "headline": "What Our Clients Say",
-      "description": "Real experiences from satisfied customers who trust our services",
+      "headline": "What Clients Say",
+      "description": "Real reviews",
       "testimonials": [
-        {"quote": "Outstanding service and results!", "author": "John Smith", "role": "Business Owner", "company": "ABC Corp", "rating": 5, "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"},
-        {"quote": "Exceeded all expectations!", "author": "Jane Doe", "role": "Manager", "company": "XYZ Inc", "rating": 5, "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"}
+        {
+          "quote": "Great service!",
+          "author": "John Doe",
+          "location": "City, State",
+          "rating": 5,
+          "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+          "projectType": "Project Type",
+          "projectResult": "Excellent result",
+          "completionTime": "2 days"
+        }
       ],
-      "trustIndicators": {"totalClients": "500+", "successRate": "98%", "yearsExperience": "15+"},
-      "patientStats": {"patientsServed": "2000+", "satisfactionRate": "99%", "yearsExperience": "12+"},
-      "restaurantStats": {"totalReviews": "1000+", "averageRating": "4.8", "repeatCustomers": "85%"},
-      "serviceStats": {"jobsCompleted": "500+", "customerSatisfaction": "98%", "responseTime": "30 min"},
-      "wellnessStats": {"clientsServed": "800+", "satisfactionRate": "99%", "treatmentsOffered": "25+"},
-      "marketStats": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%"}
-    },
-    "pricing": {
-      "headline": "Our Pricing",
-      "description": "Choose the perfect plan for your needs with transparent, competitive pricing",
-      "pricingTiers": [
-        {"name": "Basic", "price": "$99", "period": "month", "description": "Perfect for getting started", "features": ["Feature 1", "Feature 2", "Feature 3"], "ctaText": "Get Started", "ctaHref": "/contact", "popular": false},
-        {"name": "Professional", "price": "$199", "period": "month", "description": "Best for growing businesses", "features": ["Everything in Basic", "Advanced Feature", "Priority Support"], "ctaText": "Choose Plan", "ctaHref": "/contact", "popular": true},
-        {"name": "Enterprise", "price": "$399", "period": "month", "description": "For large organizations", "features": ["Everything in Professional", "Custom Integration", "Dedicated Support"], "ctaText": "Contact Sales", "ctaHref": "/contact", "popular": false}
-      ],
-      "yearlyDiscount": "20%",
-      "guarantee": "30-day money-back guarantee",
-      "trustMetrics": {"clientsServed": "500+", "successRate": "98%", "yearsExperience": "15+"},
-      "insuranceInfo": {"accepted": ["Blue Cross", "Aetna", "Cigna"], "note": "We accept most major insurance plans"},
-      "paymentOptions": ["Credit Card", "PayPal", "Bank Transfer", "Payment Plans"],
-      "specialOffers": [{"title": "New Client Special", "description": "20% off first service", "discount": "20%"}],
-      "cateringInfo": {"minimumGuests": "10", "advanceNotice": "48 hours", "deliveryRadius": "15 miles"},
-      "serviceAreas": ["Downtown", "Midtown", "Suburbs"],
-      "emergencyInfo": {"available": "24/7", "surcharge": "50%", "responseTime": "30 minutes"},
-      "membershipPerks": ["Priority Booking", "Member Discounts", "Exclusive Events"],
-      "addOnServices": [{"name": "Express Service", "price": "$25", "duration": "15 min"}],
-      "marketStats": {"avgSalePrice": "$450K", "avgDaysOnMarket": "18", "successRate": "98%"}
+      "companyStats": {
+        "projectsCompleted": "500+",
+        "yearsExperience": "10+",
+        "customerSatisfaction": "100%"
+      }
     },
     "footer": {
       "companyName": "Company Name",
-      "tagline": "Optional tagline for dark minimal footer",
-      "description": "Optional description for multi-column footer",
-      "navigation": [{"label": "Home", "href": "/"}, {"label": "About", "href": "/about"}],
-      "socialLinks": [{"platform": "twitter", "href": "#"}, {"platform": "linkedin", "href": "#"}],
-      "copyright": "© 2024 Company Name. All rights reserved.",
-      "columns": [{"title": "Services", "links": [{"label": "Web Design", "href": "/services"}]}],
-      "contactInfo": {"email": "info@company.com", "phone": "+1 (555) 123-4567", "address": "123 Main St, City, State", "hours": "Mon-Fri 9AM-5PM"},
-      "credentials": ["Licensed Professional", "Certified Expert", "Insured"],
-      "emergencyPhone": "+1 (555) 911-HELP",
-      "patientResources": [{"label": "Patient Portal", "href": "/portal"}, {"label": "Forms", "href": "/forms"}],
-      "specialHours": "Holiday hours may vary",
-      "serviceAreas": "City & Surrounding Areas",
-      "licenses": ["License #12345", "Bonded & Insured"],
-      "specialOffers": [{"title": "New Client Special", "description": "20% off first service"}],
-      "agentInfo": {"name": "John Smith", "phone": "+1 (555) 123-4567", "email": "john@company.com", "license": "RE License #12345"},
-      "marketStats": {"propertiesSold": "150+", "avgDaysOnMarket": "18", "clientSatisfaction": "98%"}
+      "tagline": "Your tagline",
+      "description": "Brief description",
+      "navigation": [{"label": "Home", "href": "/"}],
+      "contactInfo": {
+        "email": "info@company.com",
+        "phone": "+1 (555) 123-4567",
+        "address": "123 Main St",
+        "hours": "Mon-Fri 9AM-5PM"
+      },
+      "serviceAreas": "City & Areas",
+      "licenses": ["License #12345"],
+      "yearsExperience": "10+",
+      "guarantees": ["Guarantee 1", "Guarantee 2"],
+      "socialLinks": [{"platform": "facebook", "href": "#"}],
+      "copyright": "© 2024 Company. All rights reserved."
     }
   },
   "projectConfig": {
     "name": "project-name",
-    "description": "Brief project description",
-    "style": "modern-minimalist",
-    "colors": {
-      "primary": "#3B82F6",
-      "secondary": "#8B5CF6"
-    }
+    "description": "Project description",
+    "style": "modern",
+    "colors": {"primary": "#3B82F6", "secondary": "#8B5CF6"}
   }
-}`
+}
+
+REMEMBER: Generate ONLY the properties that exist in the selected component's interface. No extras!`
 
   const stream = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-opus-4-20250514',
     max_tokens: 32000,
     temperature: 0.7,
     stream: true,
@@ -383,60 +279,7 @@ Return ONLY a JSON object with realistic content:
     throw new Error('No JSON found in AI response')
   }
   
-  const parsedSelection = JSON.parse(jsonMatch[0])
-  
-  // Validate that generated props match selected component interfaces
-  validatePropsMatchInterfaces(parsedSelection, interfaceMap)
-  
-  return parsedSelection
-}
-
-function validateAndSanitizePageNames(selection: AISelection): AISelection {
-  // Sanitize page names to ensure they're valid JavaScript identifiers
-  const sanitizedSitemap = selection.sitemap.map(page => {
-    const originalName = page.name
-    // Remove all non-alphanumeric characters and convert to PascalCase
-    const sanitizedName = originalName
-      .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
-      .split(/\s+/) // Split on whitespace
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // PascalCase each word
-      .join('') // Join without spaces
-    
-    if (sanitizedName !== originalName) {
-      console.log(`🔧 Sanitized page name: "${originalName}" -> "${sanitizedName}"`)
-    }
-    
-    return {
-      ...page,
-      name: sanitizedName
-    }
-  })
-  
-  return {
-    ...selection,
-    sitemap: sanitizedSitemap
-  }
-}
-
-function validatePropsMatchInterfaces(selection: AISelection, interfaceMap: { [key: string]: string }) {
-  const errors: string[] = []
-  
-  // Basic validation - check if selected components exist in interface map
-  const components = ['header', 'hero', 'features', 'testimonials', 'pricing', 'footer'] as const
-  
-  components.forEach(componentType => {
-    const selectedId = selection.selectedComponents[componentType]
-    if (!interfaceMap[selectedId]) {
-      errors.push(`Selected ${componentType} component "${selectedId}" not found in available components`)
-    }
-  })
-  
-  if (errors.length > 0) {
-    console.warn('⚠️ Component validation warnings:', errors)
-    // Don't throw error, just log warnings for now
-  }
-  
-  console.log('✅ Component selection validated')
+  return JSON.parse(jsonMatch[0])
 }
 
 function generateProjectFiles(selection: AISelection, componentBlocks: ComponentBlocks): { [key: string]: string } {
@@ -444,14 +287,16 @@ function generateProjectFiles(selection: AISelection, componentBlocks: Component
   const selectedHero = componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)
   const selectedFeatures = componentBlocks.features.find(f => f.id === selection.selectedComponents.features)
   const selectedTestimonials = componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)
-  const selectedPricing = componentBlocks.pricing.find(p => p.id === selection.selectedComponents.pricing)
   const selectedFooter = componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)
 
-  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedPricing || !selectedFooter) {
+  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedFooter) {
     throw new Error('Selected components not found')
   }
 
   const files: { [key: string]: string } = {}
+
+  // Note: vercel.json is NOT generated here to save tokens
+  // Static vercel.json exists in ai-generated-site/ and gets copied during deployment
 
   // Package.json
   files['package.json'] = JSON.stringify({
@@ -465,18 +310,18 @@ function generateProjectFiles(selection: AISelection, componentBlocks: Component
       lint: 'next lint'
     },
     dependencies: {
-      next: '14.0.4',
-      react: '^18.2.0',
-      'react-dom': '^18.2.0',
-      'lucide-react': '^0.263.1'
+      next: '15.1.3',
+      react: '^19.0.0',
+      'react-dom': '^19.0.0',
+      'lucide-react': '^0.468.0'
     },
     devDependencies: {
       '@types/node': '^20',
-      '@types/react': '^18',
-      '@types/react-dom': '^18',
+      '@types/react': '^19',
+      '@types/react-dom': '^19',
       autoprefixer: '^10',
       postcss: '^8',
-      tailwindcss: '^3',
+      tailwindcss: '^3.4.0',
       typescript: '^5'
     }
   }, null, 2)
@@ -484,6 +329,7 @@ function generateProjectFiles(selection: AISelection, componentBlocks: Component
   // Next.config.js
   files['next.config.js'] = `/** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -542,7 +388,7 @@ module.exports = config`
   // TypeScript config
   files['tsconfig.json'] = JSON.stringify({
     compilerOptions: {
-      lib: ['dom', 'dom.iterable', 'es6'],
+      lib: ['dom', 'dom.iterable', 'esnext'],
       allowJs: true,
       skipLibCheck: true,
       strict: true,
@@ -606,7 +452,6 @@ export default function RootLayout({
   files['src/components/Hero.tsx'] = selectedHero.template
   files['src/components/Features.tsx'] = selectedFeatures.template
   files['src/components/Testimonials.tsx'] = selectedTestimonials.template
-  files['src/components/Pricing.tsx'] = selectedPricing.template
   files['src/components/Footer.tsx'] = selectedFooter.template
 
   // Home page with proper props
@@ -618,7 +463,6 @@ export default function RootLayout({
 import Hero from '@/components/Hero'
 import Features from '@/components/Features'
 import Testimonials from '@/components/Testimonials'
-import Pricing from '@/components/Pricing'
 import Footer from '@/components/Footer'
 
 export default function Home() {
@@ -626,7 +470,6 @@ export default function Home() {
   const heroProps = ${JSON.stringify(selection.content.hero, null, 2)}
   const featuresProps = ${JSON.stringify(selection.content.features, null, 2)}
   const testimonialsProps = ${JSON.stringify(selection.content.testimonials, null, 2)}
-  const pricingProps = ${JSON.stringify(selection.content.pricing, null, 2)}
   const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
 
   return (
@@ -635,7 +478,6 @@ export default function Home() {
       <Hero {...heroProps} />
       <Features {...featuresProps} />
       <Testimonials {...testimonialsProps} />
-      <Pricing {...pricingProps} />
       <Footer {...footerProps} />
     </>
   )
@@ -645,39 +487,10 @@ export default function Home() {
   selection.sitemap.forEach(page => {
     if (page.path !== '/') {
       const pagePath = page.path === '/' ? 'page.tsx' : `${page.path.slice(1)}/page.tsx`
-      const pageContent = (selection as any).pageContent?.[page.path]
-      
-      if (pageContent) {
-        // Generate full page with components
-        files[`src/app/${pagePath}`] = `import Header from '@/components/Header'
-import Hero from '@/components/Hero'
-import Features from '@/components/Features'
-import Testimonials from '@/components/Testimonials'
+      files[`src/app/${pagePath}`] = `import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-export default function ${page.name.replace(/[^a-zA-Z0-9]/g, '')}() {
-  const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
-  const heroProps = ${JSON.stringify(pageContent.hero, null, 2)}
-  const featuresProps = ${JSON.stringify(pageContent.features, null, 2)}
-  const testimonialsProps = ${JSON.stringify(pageContent.testimonials, null, 2)}
-  const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
-
-  return (
-    <>
-      <Header {...headerProps} />
-      <Hero {...heroProps} />
-      <Features {...featuresProps} />
-      <Testimonials {...testimonialsProps} />
-      <Footer {...footerProps} />
-    </>
-  )
-}`
-      } else {
-        // Fallback to simple page
-        files[`src/app/${pagePath}`] = `import Header from '@/components/Header'
-import Footer from '@/components/Footer'
-
-export default function ${page.name.replace(/[^a-zA-Z0-9]/g, '')}() {
+export default function ${page.name.replace(/\s+/g, '')}() {
   const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
   const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
 
@@ -694,7 +507,6 @@ export default function ${page.name.replace(/[^a-zA-Z0-9]/g, '')}() {
     </>
   )
 }`
-      }
     }
   })
 
@@ -754,10 +566,7 @@ export async function POST(request: NextRequest) {
     const componentBlocks = await loadComponentBlocks()
 
     // Get AI selection and content
-    const rawSelection = await getAISelection(prompt, componentBlocks)
-    
-    // Validate and sanitize page names to prevent syntax errors
-    const selection = validateAndSanitizePageNames(rawSelection)
+    const selection = await getAISelection(prompt, componentBlocks)
 
     // Generate project files
     const files = generateProjectFiles(selection, componentBlocks)
@@ -765,16 +574,15 @@ export async function POST(request: NextRequest) {
     // Create the ai-generated-site directory
     const projectRoot = process.cwd()
     const siteDir = path.join(projectRoot, 'ai-generated-site')
-
-    // Preserve vercel.json if it exists
-    let existingVercelConfig: string | null = null
-    const vercelConfigPath = path.join(siteDir, 'vercel.json')
+    const vercelJsonPath = path.join(siteDir, 'vercel.json')
     
+    // Backup existing vercel.json if it exists
+    let vercelJsonBackup: string | null = null
     try {
-      existingVercelConfig = await fs.readFile(vercelConfigPath, 'utf-8')
-      console.log('📋 Preserving existing vercel.json configuration')
-    } catch (error) {
-      // vercel.json doesn't exist, which is fine
+      vercelJsonBackup = await fs.readFile(vercelJsonPath, 'utf-8')
+      console.log('📋 Backing up existing vercel.json configuration')
+    } catch {
+      // vercel.json doesn't exist, no backup needed
     }
 
     try {
@@ -784,20 +592,27 @@ export async function POST(request: NextRequest) {
     }
 
     await fs.mkdir(siteDir, { recursive: true })
+    
+    // Restore vercel.json backup if we had one
+    if (vercelJsonBackup) {
+      await fs.writeFile(vercelJsonPath, vercelJsonBackup, 'utf-8')
+      console.log('✅ Restored vercel.json configuration')
+    }
 
     console.log('📁 Creating hybrid component structure...')
 
     // Create all the files
     for (const [filePath, content] of Object.entries(files)) {
       const fullPath = path.join(siteDir, filePath)
+      
+      // Skip vercel.json since we've already restored the user's version
+      if (filePath === 'vercel.json' && vercelJsonBackup) {
+        console.log('⚠️  Skipping vercel.json generation - using restored configuration')
+        continue
+      }
+      
       await fs.mkdir(path.dirname(fullPath), { recursive: true })
       await fs.writeFile(fullPath, content, 'utf-8')
-    }
-
-    // Restore vercel.json if it existed
-    if (existingVercelConfig) {
-      await fs.writeFile(vercelConfigPath, existingVercelConfig, 'utf-8')
-      console.log('✅ Restored vercel.json configuration')
     }
 
     console.log('✅ Hybrid website generated successfully!')
@@ -812,13 +627,12 @@ export async function POST(request: NextRequest) {
         hero: componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)?.name,
         features: componentBlocks.features.find(f => f.id === selection.selectedComponents.features)?.name,
         testimonials: componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)?.name,
-        pricing: componentBlocks.pricing.find(p => p.id === selection.selectedComponents.pricing)?.name,
         footer: componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)?.name
       },
       sitemap: selection.sitemap,
-      totalFiles: Object.keys(files).length + (existingVercelConfig ? 1 : 0),
+      totalFiles: Object.keys(files).length,
       location: 'ai-generated-site/',
-      files: [...Object.keys(files), ...(existingVercelConfig ? ['vercel.json (preserved)'] : [])],
+      files: Object.keys(files),
       tokensUsed: 'Significantly reduced (~4k vs 32k)'
     })
 

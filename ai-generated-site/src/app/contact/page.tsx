@@ -3,141 +3,80 @@ import Footer from '@/components/Footer'
 
 export default function Contact() {
   const headerProps = {
-  "logo": "LUXE FASHION",
+  "logo": "Stirring Dirt Excavation",
   "navigation": [
     {
       "label": "Home",
       "href": "/"
     },
     {
-      "label": "Shop",
-      "href": "/shop"
+      "label": "Services",
+      "href": "/services"
     },
     {
-      "label": "Women",
-      "href": "/women"
+      "label": "About",
+      "href": "/about"
     },
     {
-      "label": "Men",
-      "href": "/men"
-    },
-    {
-      "label": "Collections",
-      "href": "/collections"
-    },
-    {
-      "label": "Sale",
-      "href": "/sale"
+      "label": "Contact",
+      "href": "/contact"
     }
   ],
-  "ctaText": "Cart (0)",
-  "ctaHref": "/cart",
-  "searchHref": "/search"
+  "ctaText": "Get Free Quote",
+  "ctaHref": "/contact",
+  "contactPhone": "(435) 555-DIRT",
+  "serviceAreas": "Logan, UT & Surrounding Areas"
 }
   const footerProps = {
-  "companyName": "LUXE FASHION",
-  "description": "Premium fashion for the modern lifestyle. Discover timeless pieces that celebrate your unique style.",
-  "columns": [
+  "companyName": "Stirring Dirt Excavation",
+  "tagline": "Honest Work, Fair Prices",
+  "description": "Owner-operated excavation services in Logan, Utah. No middleman, just quality work at honest prices.",
+  "navigation": [
     {
-      "title": "Shop",
-      "links": [
-        {
-          "label": "New Arrivals",
-          "href": "/collections/new"
-        },
-        {
-          "label": "Women",
-          "href": "/women"
-        },
-        {
-          "label": "Men",
-          "href": "/men"
-        },
-        {
-          "label": "Accessories",
-          "href": "/accessories"
-        },
-        {
-          "label": "Sale",
-          "href": "/sale"
-        }
-      ]
+      "label": "Home",
+      "href": "/"
     },
     {
-      "title": "Customer Care",
-      "links": [
-        {
-          "label": "Size Guide",
-          "href": "/size-guide"
-        },
-        {
-          "label": "Shipping Info",
-          "href": "/shipping"
-        },
-        {
-          "label": "Returns",
-          "href": "/returns"
-        },
-        {
-          "label": "FAQ",
-          "href": "/faq"
-        },
-        {
-          "label": "Contact Us",
-          "href": "/contact"
-        }
-      ]
+      "label": "Services",
+      "href": "/services"
     },
     {
-      "title": "Company",
-      "links": [
-        {
-          "label": "About Us",
-          "href": "/about"
-        },
-        {
-          "label": "Sustainability",
-          "href": "/sustainability"
-        },
-        {
-          "label": "Careers",
-          "href": "/careers"
-        },
-        {
-          "label": "Press",
-          "href": "/press"
-        },
-        {
-          "label": "Store Locator",
-          "href": "/stores"
-        }
-      ]
+      "label": "About",
+      "href": "/about"
+    },
+    {
+      "label": "Contact",
+      "href": "/contact"
     }
   ],
   "contactInfo": {
-    "email": "hello@luxefashion.com",
-    "phone": "+1 (555) 123-LUXE",
-    "hours": "Mon-Fri 9AM-6PM EST"
+    "email": "colton@stirringdirt.com",
+    "phone": "(435) 555-DIRT",
+    "address": "Logan, UT 84321",
+    "hours": "Mon-Sat 7AM-6PM"
   },
+  "serviceAreas": "Logan, Providence, North Logan, Hyde Park, Smithfield, and all of Cache Valley",
+  "licenses": [
+    "Utah Contractor License #123456",
+    "Fully Insured"
+  ],
+  "yearsExperience": "15+",
+  "guarantees": [
+    "Owner-Operated",
+    "Transparent Pricing",
+    "Quality Guaranteed"
+  ],
   "socialLinks": [
     {
-      "platform": "instagram",
-      "href": "https://instagram.com/luxefashion"
-    },
-    {
       "platform": "facebook",
-      "href": "https://facebook.com/luxefashion"
+      "href": "#"
     },
     {
-      "platform": "pinterest",
-      "href": "https://pinterest.com/luxefashion"
-    },
-    {
-      "platform": "twitter",
-      "href": "https://twitter.com/luxefashion"
+      "platform": "instagram",
+      "href": "#"
     }
   ],
-  "copyright": "© 2024 LUXE FASHION. All rights reserved."
+  "copyright": "© 2024 Stirring Dirt Excavation. All rights reserved."
 }
 
   return (
@@ -146,7 +85,7 @@ export default function Contact() {
       <main className="min-h-screen py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">Contact</h1>
-          <p className="text-xl text-gray-600">Customer service and brand inquiries</p>
+          <p className="text-xl text-gray-600">Get a free quote</p>
         </div>
       </main>
       <Footer {...footerProps} />

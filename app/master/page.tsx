@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2, Sparkles } from 'lucide-react'
+import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2, Sparkles, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
+import { useUser, UserButton } from '@clerk/nextjs'
 import { 
+  getCMSInstances, 
+  getDashboardStats, 
   deleteCMSInstance,
   isMasterSupabaseConfigured,
   type CMSInstance 
@@ -20,6 +23,7 @@ interface DashboardStats {
 }
 
 export default function MasterDashboard() {
+  const { user, isLoaded } = useUser()
   const [instances, setInstances] = useState<CMSInstance[]>([])
   const [stats, setStats] = useState<DashboardStats>({
     totalInstances: 0,
@@ -32,8 +36,10 @@ export default function MasterDashboard() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    if (isLoaded) {
+      loadDashboardData()
+    }
+  }, [isLoaded])
 
   const loadDashboardData = async () => {
     try {
@@ -48,25 +54,13 @@ export default function MasterDashboard() {
         return
       }
       
-      // Load data via API endpoints instead of direct Supabase calls
-      const [instancesResponse, statsResponse] = await Promise.all([
-        fetch('/api/dashboard/instances?limit=10'),
-        fetch('/api/dashboard/stats')
+      const [instancesData, statsData] = await Promise.all([
+        getCMSInstances(10), // Get latest 10 instances
+        getDashboardStats()
       ])
       
-      const instancesData = await instancesResponse.json()
-      const statsData = await statsResponse.json()
-      
-      if (!instancesData.success) {
-        throw new Error(instancesData.error || 'Failed to load instances')
-      }
-      
-      if (!statsData.success) {
-        throw new Error(statsData.error || 'Failed to load stats')
-      }
-      
-      setInstances(instancesData.data)
-      setStats(statsData.data)
+      setInstances(instancesData)
+      setStats(statsData)
     } catch (error) {
       console.error('Error loading dashboard data:', error)
       setError('Failed to load dashboard data')
@@ -154,7 +148,8 @@ export default function MasterDashboard() {
     }
   }
 
-  if (isLoading) {
+  // Show loading state while Clerk is loading or while data is loading
+  if (!isLoaded || isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
@@ -269,9 +264,11 @@ export default function MasterDashboard() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 Master Dashboard
               </h1>
-              <p className="text-gray-400">Manage all your CMS instances from one place</p>
+              <p className="text-gray-400">
+                Welcome back, {user?.firstName || user?.emailAddresses[0]?.emailAddress || 'User'}! Manage all your CMS instances from one place
+              </p>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex items-center space-x-3">
               <Link href="/master/playground">
                 <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg shadow-purple-500/25">
                   <Sparkles className="h-4 w-4 mr-2" />
@@ -284,6 +281,18 @@ export default function MasterDashboard() {
                   Create New Website
                 </Button>
               </Link>
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10",
+                    userButtonPopoverCard: "bg-gray-900 border-gray-700",
+                    userButtonPopoverActionButton: "text-gray-300 hover:text-white hover:bg-gray-800",
+                    userButtonPopoverActionButtonText: "text-gray-300",
+                    userButtonPopoverFooter: "hidden"
+                  }
+                }}
+                afterSignOutUrl="/sign-in"
+              />
             </div>
           </div>
         </div>

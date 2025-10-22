@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Globe, Zap, CheckCircle, AlertCircle, Loader2, Sparkles, Brain, Lightbulb, Send, ToggleLeft, ToggleRight } from 'lucide-react'
+import { ArrowLeft, Globe, Zap, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface FormData {
@@ -23,7 +23,6 @@ interface FormData {
   plan: 'free' | 'pro' | 'enterprise'
   autoDeploy: boolean
   description: string
-  aiPrompt: string
 }
 
 interface DeploymentStep {
@@ -32,33 +31,6 @@ interface DeploymentStep {
   status: 'pending' | 'running' | 'completed' | 'error'
   message?: string
 }
-
-const examplePrompts = [
-  {
-    category: 'Business',
-    prompts: [
-      "Create a modern law firm website with a professional blue color scheme, featuring services, attorney profiles, and a contact form",
-      "Build a tech startup landing page with a dark theme, animated hero section, and pricing tiers",
-      "Design a restaurant website with warm colors, menu showcase, online reservations, and location map"
-    ]
-  },
-  {
-    category: 'E-commerce',
-    prompts: [
-      "Create a fashion e-commerce site with a clean white design, product galleries, and shopping cart functionality",
-      "Build an electronics store with a tech-focused design, product comparisons, and customer reviews",
-      "Design a handmade crafts marketplace with earthy tones and artisan profiles"
-    ]
-  },
-  {
-    category: 'Creative',
-    prompts: [
-      "Create a photographer's portfolio with full-screen image galleries and a minimalist black design",
-      "Build a graphic designer's showcase with bold colors, interactive portfolio, and client testimonials",
-      "Design a musician's website with audio players, tour dates, and merchandise store"
-    ]
-  }
-]
 
 export default function CreateWebsite() {
   const router = useRouter()
@@ -71,14 +43,10 @@ export default function CreateWebsite() {
     status: 'active',
     plan: 'free',
     autoDeploy: true,
-    description: '',
-    aiPrompt: ''
+    description: ''
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [generationComplete, setGenerationComplete] = useState(false)
-  const [aiGenerationEnabled, setAiGenerationEnabled] = useState(true)
   const [deploymentSteps, setDeploymentSteps] = useState<DeploymentStep[]>([])
   const [error, setError] = useState<string | null>(null)
   const [instanceId, setInstanceId] = useState<string | null>(null)
@@ -92,7 +60,6 @@ export default function CreateWebsite() {
     if (!formData.name.trim()) return 'Website name is required'
     if (!formData.ownerName.trim()) return 'Owner name is required'
     if (!formData.ownerEmail.trim()) return 'Owner email is required'
-    if (aiGenerationEnabled && !formData.aiPrompt.trim()) return 'AI website description is required'
     
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -123,50 +90,6 @@ export default function CreateWebsite() {
     return null
   }
 
-  const handleGenerateWebsite = async () => {
-    if (!formData.aiPrompt.trim()) {
-      setError('Please describe your website before generating')
-      return
-    }
-
-    setError(null)
-    setIsGenerating(true)
-    
-    try {
-      console.log('🚀 Starting AI website generation...')
-      
-      const response = await fetch('/api/ai-generate-hybrid', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: formData.aiPrompt })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to generate website')
-      }
-
-      console.log('✅ Website generated successfully:', result)
-      setGenerationComplete(true)
-      
-      // Show success message
-      alert(`🎉 Website Generated Successfully!\n\n${result.description}\n\nFiles created: ${result.filesCreated}\nLocation: ${result.location}\n\nNow you can deploy your website!`)
-      
-    } catch (error) {
-      console.error('❌ Error generating website:', error)
-      setError(`Failed to generate website: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const insertExamplePrompt = (examplePrompt: string) => {
-    setFormData(prev => ({ ...prev, aiPrompt: examplePrompt }))
-  }
-
   const initializeDeploymentSteps = () => {
     const steps: DeploymentStep[] = [
       { id: 'create-instance', name: 'Creating website instance', status: 'running' },
@@ -193,11 +116,6 @@ export default function CreateWebsite() {
     const validationError = validateForm()
     if (validationError) {
       setError(validationError)
-      return
-    }
-
-    if (aiGenerationEnabled && !generationComplete) {
-      setError('Please generate your website first before deploying')
       return
     }
 
@@ -485,204 +403,6 @@ export default function CreateWebsite() {
             </CardContent>
           </Card>
 
-          {/* AI Website Generation */}
-          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center justify-between">
-                <div className="flex items-center">
-                  <Sparkles className="h-6 w-6 mr-3 text-purple-400" />
-                  AI Website Generation
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className={`text-sm font-medium ${aiGenerationEnabled ? 'text-purple-400' : 'text-gray-500'}`}>
-                    {aiGenerationEnabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAiGenerationEnabled(!aiGenerationEnabled)
-                      if (!aiGenerationEnabled) {
-                        // Reset generation state when enabling
-                        setGenerationComplete(false)
-                        setFormData(prev => ({ ...prev, aiPrompt: '' }))
-                      }
-                    }}
-                    className={`relative inline-flex items-center transition-colors duration-200 ${
-                      aiGenerationEnabled 
-                        ? 'text-purple-400 hover:text-purple-300' 
-                        : 'text-gray-500 hover:text-gray-400'
-                    }`}
-                    title={aiGenerationEnabled ? 'Disable AI Generation' : 'Enable AI Generation'}
-                  >
-                    {aiGenerationEnabled ? (
-                      <ToggleRight className="h-8 w-8" />
-                    ) : (
-                      <ToggleLeft className="h-8 w-8" />
-                    )}
-                  </button>
-                </div>
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                {aiGenerationEnabled 
-                  ? 'Describe your dream website and let AI create it for you'
-                  : 'AI generation is disabled. You can deploy without generating content.'
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {aiGenerationEnabled ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="aiPrompt" className="text-gray-300 flex items-center">
-                      <Brain className="h-4 w-4 mr-2 text-purple-400" />
-                      Describe Your Website *
-                    </Label>
-                    <Textarea
-                      id="aiPrompt"
-                      placeholder="Describe your dream website in detail... Include the type of business, design preferences, colors, features, and any specific requirements. For example: 'Create a modern law firm website with a professional blue color scheme, featuring services, attorney profiles, and a contact form'"
-                      value={formData.aiPrompt}
-                      onChange={(e) => updateFormData('aiPrompt', e.target.value)}
-                      rows={6}
-                      className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-purple-500/50 focus:ring-purple-500/20 resize-none"
-                      required
-                    />
-                    <div className="text-xs text-gray-500 flex items-center justify-between">
-                      <span>{formData.aiPrompt.length} characters</span>
-                      <span>Be as detailed as possible for better results</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <Lightbulb className="h-4 w-4 text-yellow-400" />
-                      <span>Pro tip: Include business type, colors, features, and style preferences</span>
-                    </div>
-                    
-                    <Button
-                      type="button"
-                      onClick={handleGenerateWebsite}
-                      disabled={isGenerating || !formData.aiPrompt.trim() || generationComplete}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-6 py-2 font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : generationComplete ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Generated!
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Generate Website
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-800/50 rounded-full mb-4">
-                    <Sparkles className="h-8 w-8 text-gray-500" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-400 mb-2">AI Generation Disabled</h3>
-                  <p className="text-gray-500 text-sm max-w-md mx-auto">
-                    You can deploy your website without AI generation. A basic template will be used instead.
-                  </p>
-                  <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-blue-300 text-sm">
-                      💡 Enable AI generation above to create custom content for your website
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Generation Progress */}
-              {aiGenerationEnabled && isGenerating && (
-                <div className="space-y-4 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-white">AI is creating your website...</h4>
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center text-xs text-gray-300">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                      Analyzing your requirements with Claude AI...
-                    </div>
-                    <div className="flex items-center text-xs text-gray-300">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-                      Selecting optimal components from library...
-                    </div>
-                    <div className="flex items-center text-xs text-gray-300">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full mr-2 animate-pulse"></div>
-                      Generating pages and content...
-                    </div>
-                  </div>
-                  
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '65%' }}></div>
-                  </div>
-                </div>
-              )}
-
-              {/* Generation Success */}
-              {aiGenerationEnabled && generationComplete && (
-                <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg backdrop-blur-sm">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
-                    <p className="text-green-300 font-medium">Website generated successfully!</p>
-                  </div>
-                  <p className="text-green-400/80 text-sm mt-1">Your website is ready to deploy. Fill out the remaining details and click "Deploy Website".</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Example Prompts Sidebar - Only show when AI generation is enabled */}
-          {aiGenerationEnabled && (
-            <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center">
-                  <Lightbulb className="h-5 w-5 mr-2 text-yellow-400" />
-                  Example Prompts
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Get inspired by these examples
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {examplePrompts.map((category) => (
-                  <div key={category.category} className="space-y-2">
-                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
-                      {category.category}
-                    </h4>
-                    <div className="space-y-2">
-                      {category.prompts.map((prompt, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => insertExamplePrompt(prompt)}
-                          disabled={generationComplete}
-                          className="w-full text-left p-3 text-xs bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-gray-600/50 rounded-lg transition-all duration-200 text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {prompt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
           {/* Owner Information */}
           <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">
             <CardHeader>
@@ -760,25 +480,18 @@ export default function CreateWebsite() {
             </Link>
             <Button 
               type="submit" 
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isLoading || isDeploying || (aiGenerationEnabled && !generationComplete)}
-              title={
-                aiGenerationEnabled && !generationComplete 
-                  ? "Please generate your website first" 
-                  : !aiGenerationEnabled 
-                    ? "Deploy with basic template" 
-                    : ""
-              }
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg shadow-blue-500/25"
+              disabled={isLoading || isDeploying}
             >
-              {isLoading || isDeploying ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {isDeploying ? 'Deploying...' : 'Creating...'}
+                  Creating...
                 </>
               ) : (
                 <>
                   <Zap className="h-4 w-4 mr-2" />
-                  {aiGenerationEnabled ? 'Deploy Website' : 'Deploy Basic Template'}
+                  Deploy Website
                 </>
               )}
             </Button>

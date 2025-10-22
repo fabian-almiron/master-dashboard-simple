@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   // Security checks
   const securityCheck = await securityMiddleware(request, {
     requireAuth: true,
-    rateLimit: { limit: 10, windowMs: 300000 } // 10 deployments per 5 minutes
+    rateLimit: { limit: 5, windowMs: 300000 } // 5 deployments per 5 minutes
   })
   
   if (securityCheck) return securityCheck
@@ -146,18 +146,14 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
     
     // Step 3: Deploy to the created project
     console.log('🚀 Deploying to created project...')
-    let deploymentUrl = vercelProject.url || `https://${vercelProject.name}.vercel.app`
-    
     try {
       const deployment = await triggerDirectDeployment(vercelProject.id, bitbucketRepo.clone_url, data.name, bitbucketRepo.uuid)
       console.log('✅ Direct deployment triggered:', deployment.url)
       
       // Update project with deployment URL
-      deploymentUrl = deployment.url
       vercelProject.url = deployment.url
     } catch (error) {
-      console.log('⚠️ Direct deployment failed, using project URL instead:', error)
-      console.log(`📍 Project will be available at: ${deploymentUrl}`)
+      console.log('⚠️ Direct deployment failed, but project created successfully:', error)
     }
     
     // Step 3: Configure basic environment variables
@@ -178,7 +174,7 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
     console.log('✅ Deployment completed - project created with repository linked')
     const deployment = { 
       id: 'deployed', 
-      url: deploymentUrl
+      url: vercelProject.url || vercelProject.dashboard_url
     }
     
     // Step 5: Update instance with deployment details
@@ -256,12 +252,11 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
   
   // Clean and format the project name (max 100 chars, but keep it short)
   const projectName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '').substring(0, 30)
-  const fullProjectName = projectName.startsWith('altira-') ? projectName : `altira-${projectName}`
+  const fullProjectName = projectName.startsWith('cms-') ? projectName : `cms-${projectName}`
   
   console.log(`🏗️  Creating Vercel project: "${fullProjectName}"`)
   console.log(`🎯 Using Vercel Team ID: "${VERCEL_TEAM_ID}"`)
   console.log(`🔑 Vercel Token: ${VERCEL_TOKEN ? `${VERCEL_TOKEN.substring(0, 10)}...` : 'NOT SET'}`)
-  console.log(`📦 Repository URL: ${templateRepo}`)
   
   // Try to create Vercel project with Bitbucket repo first
   const apiUrl = VERCEL_TEAM_ID 
@@ -425,10 +420,10 @@ async function triggerDirectDeployment(vercelProjectId: string | null, repositor
     }
   }
   
-  // Link deployment to the existing project to prevent creating a second project
-  if (vercelProjectId) {
-    deploymentPayload.project = vercelProjectId
-  }
+  // Skip project linking for now - let deployment create its own project
+  // if (vercelProjectId) {
+  //   deploymentPayload.project = vercelProjectId
+  // }
   
   console.log('📤 Deployment payload:', JSON.stringify(deploymentPayload, null, 2))
   
@@ -449,9 +444,6 @@ async function triggerDirectDeployment(vercelProjectId: string | null, repositor
   
   const deployment = await response.json()
   console.log('✅ Direct deployment created successfully')
-  console.log(`📍 Deployment ID: ${deployment.uid || deployment.id}`)
-  console.log(`🌐 Deployment URL: ${deployment.url}`)
-  console.log(`🏷️  Deployment Alias: ${deployment.alias?.[0] || 'none'}`)
   
   return {
     id: deployment.uid || deployment.id,
@@ -751,7 +743,7 @@ async function createBitbucketRepository(websiteName: string, description?: stri
   const newRepo = await createRepoResponse.json()
   console.log('✅ Created empty repository:', newRepo.name)
 
-  // Step 2: Clone ALL files from ai-generated-site template
+  // Step 2: Clone ALL files from ai-generated-site
   try {
     await cloneStaticTemplateFiles(repoName)
     console.log('✅ Successfully cloned ALL ai-generated-site files to new repository')
@@ -778,9 +770,9 @@ async function cloneStaticTemplateFiles(newRepoName: string) {
     : `Basic ${Buffer.from(`${BITBUCKET_USERNAME}:${BITBUCKET_AUTH_TOKEN}`).toString('base64')}`
 
   try {
-  // Use the local ai-generated-site directory instead of API calls
-  console.log('📁 Reading from local ai-generated-site directory...')
-  await copyFromLocalAiGeneratedSite(newRepoName, authHeader)
+    // Use the local ai-generated-site directory instead of API calls
+    console.log('📁 Reading from local ai-generated-site directory...')
+    await copyFromLocalSimpleStatic(newRepoName, authHeader)
     
   } catch (error) {
     console.log('⚠️ Local copy failed, using fallback approach:', error)
@@ -791,7 +783,7 @@ async function cloneStaticTemplateFiles(newRepoName: string) {
   console.log('✅ Repository ready for manual Vercel connection')
 }
 
-async function copyFromLocalAiGeneratedSite(newRepoName: string, authHeader: string) {
+async function copyFromLocalSimpleStatic(newRepoName: string, authHeader: string) {
   console.log('📂 Copying ALL files from ai-generated-site/* ...')
   
   const fs = require('fs')
@@ -805,89 +797,9 @@ async function copyFromLocalAiGeneratedSite(newRepoName: string, authHeader: str
   
   console.log(`✅ Found ai-generated-site directory at: ${staticPath}`)
   
-  // Use simpler file-by-file upload instead of ZIP
-  await uploadFilesDirectly(newRepoName, staticPath, authHeader)
+  // Simple approach: Just ZIP everything and upload it
+  await zipAndUploadAllFiles(newRepoName, staticPath, authHeader)
   console.log('✅ Successfully uploaded ALL ai-generated-site files')
-}
-
-async function uploadFilesDirectly(newRepoName: string, staticPath: string, authHeader: string) {
-  console.log('📤 Uploading ALL files in single API call from ai-generated-site...')
-  
-  const fs = require('fs')
-  const path = require('path')
-  
-  // Read all files recursively
-  function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
-    const files = fs.readdirSync(dirPath)
-    
-    files.forEach((file: string) => {
-      const fullPath = path.join(dirPath, file)
-      if (fs.statSync(fullPath).isDirectory()) {
-        arrayOfFiles = getAllFiles(fullPath, arrayOfFiles)
-      } else {
-        // Skip system files
-        if (!file.startsWith('.') && !file.includes('node_modules')) {
-          arrayOfFiles.push(fullPath)
-        }
-      }
-    })
-    
-    return arrayOfFiles
-  }
-  
-  const allFiles = getAllFiles(staticPath)
-  console.log(`📁 Found ${allFiles.length} files to upload in SINGLE API call`)
-  
-  // Create form data with all files in one request
-  let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="message"\r\n\r\nDeploy complete ai-generated-site template (${allFiles.length} files)\r\n`
-  formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="branch"\r\n\r\nmain\r\n`
-  
-  // Add ALL files to the same form data (single request)
-  for (const filePath of allFiles) {
-    const relativePath = path.relative(staticPath, filePath)
-    
-    try {
-      // Handle binary files vs text files
-      const stats = fs.statSync(filePath)
-      if (stats.size > 1024 * 1024) { // Skip files larger than 1MB
-        console.log(`⚠️ Skipping large file: ${relativePath} (${stats.size} bytes)`)
-        continue
-      }
-      
-      // Read as text for most files, handle encoding properly
-      const fileContent = fs.readFileSync(filePath, 'utf8')
-      
-      formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-      formData += `Content-Disposition: form-data; name="${relativePath}"\r\n\r\n${fileContent}\r\n`
-      
-      console.log(`📄 Added to batch: ${relativePath}`)
-    } catch (error) {
-      console.log(`⚠️ Skipping file ${relativePath}: ${error}`)
-    }
-  }
-  
-  formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW--\r\n`
-  
-  console.log('🚀 Making SINGLE API call to upload all files...')
-  
-  // Single API call to upload ALL files
-  const uploadResponse = await fetch(`https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${newRepoName}/src`, {
-    method: 'POST',
-    headers: {
-      'Authorization': authHeader,
-      'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
-    },
-    body: formData
-  })
-  
-  if (!uploadResponse.ok) {
-    const error = await uploadResponse.text()
-    throw new Error(`Failed to upload files in single call: ${uploadResponse.status} ${error}`)
-  }
-  
-  console.log(`✅ Successfully uploaded ${allFiles.length} files in SINGLE API call!`)
 }
 
 async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, authHeader: string) {
@@ -922,9 +834,10 @@ async function zipAndUploadAllFiles(newRepoName: string, staticPath: string, aut
     archive.pipe(output)
     
     // Add ALL files from ai-generated-site (excluding system files)
+    // This includes the static vercel.json file (not AI-generated to save tokens)
     archive.glob('**/*', {
       cwd: staticPath,
-      ignore: ['.DS_Store', '.git/**', 'node_modules/**', '.next/**']
+      ignore: ['.DS_Store', '.git/**', 'node_modules/**', '.next/**', 'next-env.d.ts']
     })
     
     await archive.finalize()
@@ -947,7 +860,7 @@ async function uploadCompleteZip(newRepoName: string, zipPath: string, authHeade
   const authorName = process.env.COMMIT_AUTHOR_NAME || 'Fabian Almiron'
   
   let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
-  formData += `Content-Disposition: form-data; name="message"\r\n\r\nComplete CMS deployment - all files from ai-generated-site\r\n`
+  formData += `Content-Disposition: form-data; name="message"\r\n\r\nComplete CMS deployment - all files from cms-master\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
   formData += `Content-Disposition: form-data; name="branch"\r\n\r\nmain\r\n`
   formData += `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
@@ -1093,7 +1006,7 @@ async function copyDirectoriesFromLocal(newRepoName: string, cmsPath: string, au
     const dirPath = path.join(cmsPath, dirName)
     if (fs.existsSync(dirPath)) {
       console.log(`📂 Batch copying ${dirName}/ directory...`)
-      await batchCopyDirectory(newRepoName, dirPath, dirName, authHeader)
+      await copyDirectoryRecursively(newRepoName, dirPath, dirName, authHeader)
     } else {
       console.log(`⚠️ Directory not found: ${dirName}`)
     }
@@ -1180,7 +1093,7 @@ async function createBasicStaticFiles(repoName: string, authHeader: string) {
   
   const readmeContent = `# ${repoName}
 
-This static website was automatically created from the ai-generated-site template.
+This static website was automatically created from the Altira AI generation system.
 
 ## 🚀 Features
 - Modern Next.js 15 with App Router
@@ -1193,7 +1106,7 @@ This static website was automatically created from the ai-generated-site templat
 This repository contains a complete static website ready to deploy.
 
 ## 🔗 Source
-Generated from ai-generated-site template
+Generated from Altira AI Theme Generation System
 `
 
   const packageJsonContent = `{
@@ -1235,7 +1148,7 @@ const nextConfig = {
   },
 }
 
-export default nextConfig`
+module.exports = nextConfig`
 
   let formData = `------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n`
   formData += `Content-Disposition: form-data; name="message"\r\n\r\nInitial commit: Basic CMS structure with package.json and configs\r\n`
@@ -1290,7 +1203,7 @@ async function copyKeyFilesFromMaster(newRepoName: string, authHeader: string) {
     
   } catch (error) {
     console.log('⚠️ Could not copy files from master, creating placeholder structure instead')
-    await createPlaceholderStructure(newRepoName, authHeader)
+    await createPlaceholderStaticStructure(newRepoName, authHeader)
   }
 }
 

@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isMasterSupabaseFullyConfigured, testMasterConnection } from '@/lib/master-supabase'
-import { securityMiddleware, sanitizeError } from '@/lib/security'
+import { sanitizeError } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
-  // Security check - admin only for config details in production
-  const securityCheck = await securityMiddleware(request, {
-    requireAdmin: process.env.NODE_ENV === 'production',
-    rateLimit: { limit: 30, windowMs: 60000 } // 30 requests per minute
-  })
-  
-  if (securityCheck) return securityCheck
+  // No authentication required
   try {
     const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY
     const isMasterConfigured = isMasterSupabaseFullyConfigured()
@@ -25,6 +19,7 @@ export async function GET(request: NextRequest) {
       connected: connectionTest.success,
       error: connectionTest.success ? null : connectionTest.message,
       config: {
+        environment: process.env.NODE_ENV,
         master_database_configured: isMasterConfigured,
         master_database_connected: connectionTest.success,
         anthropic_api_key_available: hasAnthropicKey,

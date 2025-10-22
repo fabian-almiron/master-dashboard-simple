@@ -1,6 +1,6 @@
-# LUXE FASHION
+# Stirring Dirt Excavation
 
-Premium fashion e-commerce site with clean white design and shopping functionality
+Owner-operated excavation services in Logan, Utah
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: E-commerce Header
-- Hero: E-commerce Hero
-- Footer: E-commerce Footer
+- Header: Excavation & Construction Header
+- Hero: Excavation & Construction Hero
+- Footer: Excavation & Construction Footer
 
 Generated using the Hybrid Component System.

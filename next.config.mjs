@@ -41,7 +41,29 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.anthropic.com https://api.vercel.com https://api.bitbucket.org;"
+            value: process.env.NODE_ENV === 'production' 
+              ? "default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://clerk.accounts.dev; style-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev; img-src 'self' data: https: https://*.clerk.accounts.dev; font-src 'self' data: https://*.clerk.accounts.dev; connect-src 'self' https://*.supabase.co https://*.anthropic.com https://api.vercel.com https://api.bitbucket.org https://*.clerk.accounts.dev https://clerk.accounts.dev; frame-src https://*.clerk.accounts.dev; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;"
+              : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.accounts.dev https://clerk.accounts.dev; style-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev; img-src 'self' data: https: https://*.clerk.accounts.dev; font-src 'self' data: https://*.clerk.accounts.dev; connect-src 'self' https://*.supabase.co https://*.anthropic.com https://api.vercel.com https://api.bitbucket.org https://*.clerk.accounts.dev https://clerk.accounts.dev; frame-src https://*.clerk.accounts.dev;"
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp'
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin'
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-origin'
           }
         ]
       }

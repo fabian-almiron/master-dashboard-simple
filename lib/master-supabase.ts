@@ -5,20 +5,11 @@ import { createClient } from '@supabase/supabase-js'
 
 // Helper function to get environment variables at runtime
 function getMasterSupabaseConfig() {
-  const config = {
+  return {
     url: process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL,
     anonKey: process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY,
     serviceKey: process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY
   }
-  
-  // Debug logging to see what's actually loaded
-  console.log('🗄️ Master Supabase Config Check:', {
-    url: config.url ? `${config.url.substring(0, 30)}...` : 'MISSING',
-    anonKey: config.anonKey ? 'SET' : 'MISSING',
-    serviceKey: config.serviceKey ? 'SET' : 'MISSING'
-  })
-  
-  return config
 }
 
 // Helper function to check if Master Supabase is configured (client-safe)
@@ -43,11 +34,6 @@ function createFallbackClient() {
     NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY,
     MASTER_SUPABASE_SERVICE_ROLE_KEY: !!process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY
   })
-  console.error('Current values:', {
-    url: process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL?.substring(0, 30) + '...',
-    anonKey: process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY?.substring(0, 20) + '...',
-    serviceKey: process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20) + '...'
-  })
   return createClient('https://fallback.supabase.co', 'fallback-key')
 }
 
@@ -59,13 +45,9 @@ let _masterSupabaseAdmin: ReturnType<typeof createClient> | null = null
 export function getMasterSupabase() {
   if (!_masterSupabase) {
     const config = getMasterSupabaseConfig()
-    if (config.url && config.anonKey) {
-      console.log('✅ Creating Master Supabase client with valid config')
-      _masterSupabase = createClient(config.url, config.anonKey)
-    } else {
-      console.error('❌ Missing Master Supabase config, using fallback')
-      _masterSupabase = createFallbackClient()
-    }
+    _masterSupabase = config.url && config.anonKey 
+      ? createClient(config.url, config.anonKey)
+      : createFallbackClient()
   }
   return _masterSupabase
 }

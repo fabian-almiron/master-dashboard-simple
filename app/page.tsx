@@ -10,10 +10,10 @@ import Link from 'next/link'
 export default function HomePage() {
   const router = useRouter()
 
-  // Auto-redirect to master dashboard after a brief display
+  // Auto-redirect to sign-in after a brief display
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/master')
+      router.push('/sign-in')
     }, 3000) // Redirect after 3 seconds
 
     return () => clearTimeout(timer)
@@ -98,7 +98,7 @@ export default function HomePage() {
             {/* Auto-redirect notice */}
             <div className="text-center mt-8">
               <p className="text-gray-500 text-sm">
-                Redirecting to Master Dashboard in a few seconds...
+                Redirecting to Sign In in a few seconds...
               </p>
               <div className="w-64 h-1 bg-gray-800 rounded-full mx-auto mt-2 overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>

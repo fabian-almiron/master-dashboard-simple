@@ -1,138 +1,153 @@
 import Link from 'next/link'
-import { Mail, Phone, Truck, Shield, CreditCard, Facebook, Twitter, Instagram, Youtube } from 'lucide-react'
+import { Mail, Phone, MapPin, Clock, Truck, HardHat, Shield, Award, Wrench, CheckCircle } from 'lucide-react'
 
 interface FooterProps {
   companyName: string
+  tagline: string
   description: string
-  columns: Array<{
-    title: string
-    links: Array<{ label: string; href: string }>
-  }>
+  navigation: Array<{ label: string; href: string }>
   contactInfo: {
     email: string
     phone: string
+    address: string
     hours: string
   }
+  serviceAreas: string
+  licenses: Array<string>
+  yearsExperience: string
+  guarantees: Array<string>
   socialLinks: Array<{ platform: string; href: string }>
   copyright: string
 }
 
-export default function Footer({ companyName, description, columns, contactInfo, socialLinks, copyright }: FooterProps) {
-  const getSocialIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case 'facebook': return <Facebook className="h-5 w-5" />
-      case 'twitter': return <Twitter className="h-5 w-5" />
-      case 'instagram': return <Instagram className="h-5 w-5" />
-      case 'youtube': return <Youtube className="h-5 w-5" />
-      default: return null
-    }
-  }
-
+export default function Footer({ companyName, tagline, description, navigation, contactInfo, serviceAreas, licenses, yearsExperience, guarantees, socialLinks, copyright }: FooterProps) {
   return (
-    <footer className="bg-gray-900 text-white">
-      {/* Newsletter Section */}
-      <div className="bg-gray-800 border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-xl font-bold mb-2">Stay Updated</h3>
-              <p className="text-gray-300">Get the latest deals and new arrivals delivered to your inbox.</p>
-            </div>
-            <div className="flex w-full md:w-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 md:w-80 px-4 py-3 bg-gray-700 border border-gray-600 rounded-l-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
-              />
-              <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-r-md font-medium transition-colors">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Main Footer */}
+    <footer className="bg-orange-50 border-t border-orange-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="lg:col-span-2">
-            <h3 className="text-2xl font-bold mb-4">{companyName}</h3>
-            <p className="text-gray-400 mb-6">{description}</p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{companyName}</h3>
+            <p className="text-orange-600 font-medium mb-3">{tagline}</p>
+            <p className="text-gray-600 mb-4">{description}</p>
             
-            {/* Customer Service */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold mb-3">Customer Service</h4>
-              <div className="space-y-2">
-                <div className="flex items-center text-gray-300">
-                  <Phone className="h-4 w-4 mr-3 text-blue-400" />
-                  <span>{contactInfo.phone}</span>
-                </div>
-                <div className="flex items-center text-gray-300">
-                  <Mail className="h-4 w-4 mr-3 text-blue-400" />
-                  <span>{contactInfo.email}</span>
-                </div>
-                <p className="text-gray-400 text-sm">{contactInfo.hours}</p>
-              </div>
+            {/* Contact Highlight */}
+            <div className="bg-orange-100 border border-orange-200 rounded-lg p-4 mb-4">
+              <h4 className="text-sm font-semibold text-orange-800 mb-2 flex items-center">
+                <Phone className="h-4 w-4 mr-2 text-orange-600" />
+                Call for Free Quote
+              </h4>
+              <p className="text-orange-900 font-bold text-lg">{contactInfo.phone}</p>
+              <p className="text-orange-700 text-xs mt-1">Available 7 Days a Week</p>
             </div>
             
-            {/* Social Links */}
-            <div>
-              <h4 className="text-lg font-semibold mb-3">Follow Us</h4>
-              <div className="flex space-x-4">
-                {socialLinks.map((social) => (
-                  <Link
-                    key={social.platform}
-                    href={social.href}
-                    className="text-gray-400 hover:text-white transition-colors"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {getSocialIcon(social.platform)}
-                  </Link>
+            {/* Service Areas */}
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                <MapPin className="h-4 w-4 mr-2 text-orange-600" />
+                Service Areas
+              </h4>
+              <p className="text-gray-600 text-sm">{serviceAreas}</p>
+            </div>
+            
+            {/* Licenses */}
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                <Shield className="h-4 w-4 mr-2 text-orange-600" />
+                Licensed • Bonded • Insured
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {licenses.map((license, index) => (
+                  <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                    {license}
+                  </span>
                 ))}
               </div>
             </div>
+            
+            {/* Years Experience Badge */}
+            <div className="flex items-center text-blue-600 text-sm">
+              <Award className="h-4 w-4 mr-2" />
+              <span>{yearsExperience} Years of Reliable Service • Family Owned & Operated</span>
+            </div>
           </div>
           
-          {/* Links Columns */}
-          {columns.map((column) => (
-            <div key={column.title}>
-              <h4 className="text-lg font-semibold mb-4">{column.title}</h4>
-              <ul className="space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-400 hover:text-white text-sm transition-colors"
-                    >
-                      {link.label}
-                    </Link>
+          {/* Services */}
+          <div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Truck className="h-5 w-5 mr-2 text-orange-600" />
+              Our Services
+            </h4>
+            <ul className="space-y-2">
+              {navigation.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="text-gray-600 hover:text-orange-600 text-sm transition-colors flex items-center"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-2 text-orange-500" />
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            
+            <Link
+              href="/quote"
+              className="inline-flex items-center mt-4 bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700 transition-colors w-full justify-center"
+            >
+              <Wrench className="h-4 w-4 mr-2" />
+              Request Free Estimate
+            </Link>
+          </div>
+          
+          {/* Contact & Guarantees */}
+          <div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Contact & Hours</h4>
+            <div className="space-y-3 mb-6">
+              <div className="flex items-start text-gray-600 text-sm">
+                <MapPin className="h-4 w-4 mr-2 mt-0.5 text-orange-600" />
+                <span>{contactInfo.address}</span>
+              </div>
+              <div className="flex items-center text-gray-600 text-sm">
+                <Phone className="h-4 w-4 mr-2 text-orange-600" />
+                <span>{contactInfo.phone}</span>
+              </div>
+              <div className="flex items-center text-gray-600 text-sm">
+                <Mail className="h-4 w-4 mr-2 text-orange-600" />
+                <span>{contactInfo.email}</span>
+              </div>
+              <div className="flex items-start text-gray-600 text-sm">
+                <Clock className="h-4 w-4 mr-2 mt-0.5 text-orange-600" />
+                <span>{contactInfo.hours}</span>
+              </div>
+            </div>
+            
+            {/* Guarantees */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                <HardHat className="h-4 w-4 mr-2 text-orange-600" />
+                Our Commitment
+              </h4>
+              <ul className="space-y-1">
+                {guarantees.map((guarantee, index) => (
+                  <li key={index} className="flex items-start text-gray-600 text-xs">
+                    <CheckCircle className="h-3 w-3 mr-1 mt-0.5 text-green-500" />
+                    <span>{guarantee}</span>
                   </li>
                 ))}
               </ul>
             </div>
-          ))}
+          </div>
         </div>
         
-        {/* Trust Indicators */}
-        <div className="border-t border-gray-800 mt-8 pt-8">
+        <div className="border-t border-orange-200 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-6 mb-4 md:mb-0">
-              <div className="flex items-center text-gray-400">
-                <Truck className="h-5 w-5 mr-2 text-green-400" />
-                <span className="text-sm">Free Shipping Over $50</span>
-              </div>
-              <div className="flex items-center text-gray-400">
-                <Shield className="h-5 w-5 mr-2 text-blue-400" />
-                <span className="text-sm">Secure Checkout</span>
-              </div>
-              <div className="flex items-center text-gray-400">
-                <CreditCard className="h-5 w-5 mr-2 text-purple-400" />
-                <span className="text-sm">Multiple Payment Options</span>
-              </div>
+            <p className="text-gray-500 text-sm mb-4 md:mb-0">{copyright}</p>
+            <div className="flex items-center text-gray-600 text-sm">
+              <Shield className="h-4 w-4 mr-2 text-orange-600" />
+              <span>Fully Licensed, Bonded & Insured</span>
             </div>
-            <p className="text-gray-500 text-sm">{copyright}</p>
           </div>
         </div>
       </div>
