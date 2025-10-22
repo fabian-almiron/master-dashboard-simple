@@ -14,8 +14,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Allow build to succeed even without Clerk keys (they'll be required at runtime)
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+  
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
       <html lang="en" suppressHydrationWarning className="dark">
         <body className="min-h-screen bg-background font-sans antialiased">
           <ThemeProvider

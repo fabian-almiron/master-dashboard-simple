@@ -28,12 +28,11 @@ export function isMasterSupabaseFullyConfigured(): boolean {
 
 // Create fallback client for build time when env vars are missing
 function createFallbackClient() {
-  console.error('🚨 SUPABASE CONFIG ERROR: Using fallback client - environment variables not configured!')
-  console.error('Required variables:', {
-    NEXT_PUBLIC_MASTER_SUPABASE_URL: !!process.env.NEXT_PUBLIC_MASTER_SUPABASE_URL,
-    NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_MASTER_SUPABASE_ANON_KEY,
-    MASTER_SUPABASE_SERVICE_ROLE_KEY: !!process.env.MASTER_SUPABASE_SERVICE_ROLE_KEY
-  })
+  // Only log warning in development or when NODE_ENV is not set (build time)
+  if (process.env.NODE_ENV !== 'production' || !process.env.NODE_ENV) {
+    console.warn('⚠️ SUPABASE: Using fallback client - environment variables not configured during build')
+    console.warn('This is normal during build. Set env vars in Railway dashboard before deploying.')
+  }
   return createClient('https://fallback.supabase.co', 'fallback-key')
 }
 
