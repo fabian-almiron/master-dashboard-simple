@@ -1,7 +1,7 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/master-supabase'
+import { getMasterSupabase } from '@/lib/master-supabase'
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
@@ -55,6 +55,8 @@ export async function POST(req: Request) {
   console.log(`Webhook received: ${type}`)
 
   try {
+    const supabase = getMasterSupabase()
+    
     switch (type) {
       case 'user.created':
         // User signed up - add to your database if needed
