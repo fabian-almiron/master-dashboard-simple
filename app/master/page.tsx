@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2, Sparkles, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
-import { useUser, UserButton } from '@clerk/nextjs'
+import { useSafeUser, SafeUserButton } from '@/components/clerk-wrapper'
 import { 
   getCMSInstances, 
   getDashboardStats, 
@@ -26,7 +26,7 @@ interface DashboardStats {
 }
 
 export default function MasterDashboard() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoaded } = useSafeUser()
   const [instances, setInstances] = useState<CMSInstance[]>([])
   const [stats, setStats] = useState<DashboardStats>({
     totalInstances: 0,
@@ -284,7 +284,7 @@ export default function MasterDashboard() {
                   Create New Website
                 </Button>
               </Link>
-              <UserButton 
+              <SafeUserButton 
                 appearance={{
                   elements: {
                     avatarBox: "w-10 h-10",
