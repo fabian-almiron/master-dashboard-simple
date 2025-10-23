@@ -42,10 +42,15 @@ let _masterSupabaseAdmin: ReturnType<typeof createClient> | null = null
 
 // Public client for master dashboard (respects RLS) - lazy loaded
 export function getMasterSupabase() {
-  if (!_masterSupabase) {
-    const config = getMasterSupabaseConfig()
-    _masterSupabase = config.url && config.anonKey 
-      ? createClient(config.url, config.anonKey)
+  const config = getMasterSupabaseConfig()
+  
+  // Always recreate if we don't have a real client yet, or if we have real config now
+  const hasRealConfig = !!(config.url && config.anonKey)
+  const isUsingFallback = _masterSupabase && (_masterSupabase as any)._supabaseUrl?.includes('fallback.supabase.co')
+  
+  if (!_masterSupabase || (hasRealConfig && isUsingFallback)) {
+    _masterSupabase = hasRealConfig
+      ? createClient(config.url!, config.anonKey!)
       : createFallbackClient()
   }
   return _masterSupabase
@@ -53,10 +58,14 @@ export function getMasterSupabase() {
 
 // Admin client for master dashboard (bypasses RLS) - lazy loaded
 export function getMasterSupabaseAdmin() {
-  if (!_masterSupabaseAdmin) {
-    const config = getMasterSupabaseConfig()
-    _masterSupabaseAdmin = config.serviceKey && config.url
-      ? createClient(config.url, config.serviceKey, {
+  const config = getMasterSupabaseConfig()
+  
+  // Always recreate if we don't have a real client yet, or if we have real config now
+  const hasRealConfig = !!(config.serviceKey && config.url)
+  
+  if (!_masterSupabaseAdmin || hasRealConfig) {
+    _masterSupabaseAdmin = hasRealConfig
+      ? createClient(config.url!, config.serviceKey!, {
           auth: {
             autoRefreshToken: false,
             persistSession: false
