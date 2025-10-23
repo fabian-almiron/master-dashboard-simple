@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Globe, ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 
+// Force dynamic rendering - don't pre-render during build
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   const router = useRouter()
 
