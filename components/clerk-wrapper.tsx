@@ -1,6 +1,6 @@
 'use client'
 
-import { useUser, UserButton } from '@clerk/nextjs'
+import { useUser, UserButton, useSession } from '@clerk/nextjs'
 import { ReactNode } from 'react'
 
 // Wrapper component that gracefully handles missing ClerkProvider during build
@@ -18,6 +18,19 @@ export function useSafeUser() {
       user: null,
       isLoaded: false,
       isSignedIn: false
+    }
+  }
+}
+
+// Safe useSession hook that doesn't crash during build
+export function useSafeSession() {
+  try {
+    return useSession()
+  } catch (error) {
+    // During build (no ClerkProvider), return safe defaults
+    return {
+      session: null,
+      isLoaded: false
     }
   }
 }

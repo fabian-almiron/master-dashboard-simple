@@ -33,12 +33,13 @@ export default function RootLayout({
     </html>
   )
   
-  // During build (no env vars), render without ClerkProvider
-  // At runtime (with env vars), render with ClerkProvider
+  // Only skip ClerkProvider if we explicitly don't have keys
+  // This allows build to succeed but runtime to work normally
   if (!clerkPublishableKey || clerkPublishableKey === '') {
     return content
   }
   
+  // Render with ClerkProvider when keys are available
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
       {content}
