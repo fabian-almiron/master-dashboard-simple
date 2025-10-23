@@ -76,9 +76,9 @@ export function getMasterSupabaseAdmin() {
   return _masterSupabaseAdmin
 }
 
-// Backward compatibility exports
-export const masterSupabase = getMasterSupabase()
-export const masterSupabaseAdmin = getMasterSupabaseAdmin()
+// Backward compatibility exports - use getters to avoid immediate creation
+export const masterSupabase = (() => getMasterSupabase())()  
+export const masterSupabaseAdmin = (() => getMasterSupabaseAdmin())()
 
 // =============================================
 // TYPE DEFINITIONS
