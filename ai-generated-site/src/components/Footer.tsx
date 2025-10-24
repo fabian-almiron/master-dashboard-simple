@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'luc
 export default function Footer() {
   // Component data - will be populated by AI
   const data = {
-    companyName: "Elite Climate Solutions",
+    companyName: "Summit Roofing & Restoration",
     description: "Leading provider of innovative solutions that help businesses thrive in today's competitive marketplace.",
     columns: [
       {
@@ -46,7 +46,7 @@ export default function Footer() {
       { platform: "instagram", href: "https://instagram.com/company" },
       { platform: "linkedin", href: "https://linkedin.com/company" }
     ],
-    copyright: "© 2024 Elite Climate Solutions. All rights reserved."
+    copyright: "© 2024 Summit Roofing & Restoration. All rights reserved."
   }
 
   const getSocialIcon = (platform: string) => {

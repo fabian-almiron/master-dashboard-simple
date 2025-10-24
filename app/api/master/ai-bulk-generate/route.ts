@@ -250,7 +250,7 @@ Return a JSON object with each placeholder as a key:
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250929', // Creative model
-    max_tokens: 20000,
+    max_tokens: 50000,
     temperature: creativeFreedom === 'experimental' ? 0.9 : 0.7, // Variable creativity
     messages: [{ role: 'user', content: prompt }]
   })

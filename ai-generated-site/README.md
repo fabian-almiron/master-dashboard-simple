@@ -1,6 +1,6 @@
-# hvac-specialist-pro
+# professional-roofing-contractor
 
-Professional HVAC specialist website showcasing advanced certifications and expert services
+Professional roofing contractor website with emergency storm damage services, 25+ years experience, and customer testimonials
 
 ## Getting Started
 
@@ -27,7 +27,7 @@ This project uses:
 ## Components Used
 
 - Header: Modern Navigation Header
-- Hero: Service Specialist Hero
+- Hero: Professional Services Hero
 - Footer: Multi-Column Footer
 
 Generated using the Hybrid Component System.

@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'hvac-specialist-pro',
-  description: 'Professional HVAC specialist website showcasing advanced certifications and expert services',
+  title: 'professional-roofing-contractor',
+  description: 'Professional roofing contractor website with emergency storm damage services, 25+ years experience, and customer testimonials',
 }
 
 export default function RootLayout({

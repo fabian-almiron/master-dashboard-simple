@@ -182,7 +182,7 @@ NO other text, NO explanations, NO other JSON structure. ONLY the exact JSON abo
 
   const stream = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 3200,
+    max_tokens: 50000,
     temperature: 0.4, // Balanced for variety while staying coherent
     stream: true,
     system: 'You are a JSON API. Return ONLY valid JSON matching the exact structure requested. No explanations, no other text.',
@@ -333,7 +333,7 @@ Return ONLY this JSON structure with realistic content:
 
   const stream = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 3200,
+    max_tokens: 50000,
     temperature: 0.7,
     stream: true,
     system: systemPrompt,
@@ -359,7 +359,7 @@ Return ONLY this JSON structure with realistic content:
 }
 
 // Helper function to replace placeholder data in component templates
-function generateSelfContainedComponent(template: string, content: any, componentType: string): string {
+function generateSelfContainedComponent(template: string, content: any, componentType: string, originalPrompt?: string): string {
   let updatedTemplate = template
   
   // Replace common placeholders based on component type and generated content
@@ -422,6 +422,68 @@ function generateSelfContainedComponent(template: string, content: any, componen
         updatedTemplate = updatedTemplate
           .replace(/"address": ".*?"/, `"address": "${content.contactAddress}"`)
       }
+      
+      // Generate business-appropriate benefits based on business type
+      if (content.companyName || content.ctaHeadline || originalPrompt) {
+        const businessType = ((content.companyName || '') + ' ' + (content.ctaHeadline || '') + ' ' + (content.heroHeadline || '') + ' ' + (originalPrompt || '')).toLowerCase()
+        console.log(`🎯 CTA Business type detection: "${businessType}"`)
+        let benefits = []
+        
+        if (businessType.includes('spa') || businessType.includes('wellness') || businessType.includes('beauty')) {
+          benefits = [
+            "Luxury spa experience",
+            "Licensed therapists",
+            "Organic products",
+            "Relaxing atmosphere"
+          ]
+        } else if (businessType.includes('architect') || businessType.includes('design') || businessType.includes('luxury') || businessType.includes('home')) {
+          benefits = [
+            "Award-winning designs",
+            "Licensed architects",
+            "Luxury project portfolio",
+            "Custom design consultation"
+          ]
+        } else if (businessType.includes('contractor') || businessType.includes('service') || businessType.includes('repair') || businessType.includes('emergency')) {
+          benefits = [
+            "Free consultation",
+            "Written estimates", 
+            "Licensed & insured",
+            "Same-day service available"
+          ]
+        } else if (businessType.includes('tech') || businessType.includes('software') || businessType.includes('saas')) {
+          benefits = [
+            "Free trial available",
+            "24/7 customer support",
+            "Secure and reliable",
+            "No setup fees"
+          ]
+        } else {
+          benefits = [
+            "Professional consultation",
+            "Tailored solutions",
+            "Experienced team", 
+            "Quality guaranteed"
+          ]
+        }
+        
+        updatedTemplate = updatedTemplate
+          .replace(/benefits: \[[\s\S]*?\]/, `benefits: ${JSON.stringify(benefits)}`)
+        
+        // Replace hard-coded contractor messaging with business-appropriate text
+        if (businessType.includes('architect') || businessType.includes('design')) {
+          updatedTemplate = updatedTemplate
+            .replace(/Licensed & Insured Professionals/g, "Licensed Architecture Professionals")
+            .replace(/Fully licensed contractor with comprehensive insurance coverage/g, "Licensed architects with professional liability coverage")
+        } else if (businessType.includes('spa') || businessType.includes('wellness')) {
+          updatedTemplate = updatedTemplate
+            .replace(/Licensed & Insured Professionals/g, "Certified Wellness Professionals")
+            .replace(/Fully licensed contractor with comprehensive insurance coverage/g, "Licensed therapists and wellness practitioners")
+        } else if (businessType.includes('tech') || businessType.includes('software')) {
+          updatedTemplate = updatedTemplate
+            .replace(/Licensed & Insured Professionals/g, "Expert Development Team")
+            .replace(/Fully licensed contractor with comprehensive insurance coverage/g, "Professional development services with security compliance")
+        }
+      }
       break
       
     case 'footer':
@@ -449,7 +511,7 @@ function generateSelfContainedComponent(template: string, content: any, componen
   return updatedTemplate
 }
 
-function generateProjectFiles(selection: AISelection, componentBlocks: ComponentBlocks): { [key: string]: string } {
+function generateProjectFiles(selection: AISelection, componentBlocks: ComponentBlocks, originalPrompt: string): { [key: string]: string } {
   const selectedHeader = componentBlocks.headers.find(h => h.id === selection.selectedComponents.header)
   const selectedHero = componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)
   const selectedFeatures = componentBlocks.features.find(f => f.id === selection.selectedComponents.features)
@@ -616,12 +678,12 @@ export default function RootLayout({
 }`
 
   // Components - Replace placeholder data with generated content
-  files['src/components/Header.tsx'] = generateSelfContainedComponent(selectedHeader.template, selection.content, 'header')
-  files['src/components/Hero.tsx'] = generateSelfContainedComponent(selectedHero.template, selection.content, 'hero')
-  files['src/components/Features.tsx'] = generateSelfContainedComponent(selectedFeatures.template, selection.content, 'features')
-  files['src/components/Testimonials.tsx'] = generateSelfContainedComponent(selectedTestimonials.template, selection.content, 'testimonials')
-  files['src/components/CTA.tsx'] = generateSelfContainedComponent(selectedCTA.template, selection.content, 'cta')
-  files['src/components/Footer.tsx'] = generateSelfContainedComponent(selectedFooter.template, selection.content, 'footer')
+  files['src/components/Header.tsx'] = generateSelfContainedComponent(selectedHeader.template, selection.content, 'header', originalPrompt)
+  files['src/components/Hero.tsx'] = generateSelfContainedComponent(selectedHero.template, selection.content, 'hero', originalPrompt)
+  files['src/components/Features.tsx'] = generateSelfContainedComponent(selectedFeatures.template, selection.content, 'features', originalPrompt)
+  files['src/components/Testimonials.tsx'] = generateSelfContainedComponent(selectedTestimonials.template, selection.content, 'testimonials', originalPrompt)
+  files['src/components/CTA.tsx'] = generateSelfContainedComponent(selectedCTA.template, selection.content, 'cta', originalPrompt)
+  files['src/components/Footer.tsx'] = generateSelfContainedComponent(selectedFooter.template, selection.content, 'footer', originalPrompt)
 
   // Home page - Clean and simple with self-contained components
   files['src/app/page.tsx'] = `import Header from '@/components/Header'
@@ -735,7 +797,7 @@ export async function POST(request: NextRequest) {
     const selection = await getAISelection(prompt, componentBlocks)
 
     // Generate project files
-    const files = generateProjectFiles(selection, componentBlocks)
+    const files = generateProjectFiles(selection, componentBlocks, prompt)
 
     // Create the ai-generated-site directory
     const projectRoot = process.cwd()
@@ -800,7 +862,7 @@ export async function POST(request: NextRequest) {
       totalFiles: Object.keys(files).length,
       location: 'ai-generated-site/',
       files: Object.keys(files),
-      tokensUsed: 'Significantly reduced (~4k vs 32k)'
+      tokensUsed: 'High-quality generation (up to 50k tokens for comprehensive content)'
     })
 
   } catch (error) {

@@ -9,7 +9,7 @@ export default function Header() {
   
   // Component data - will be populated by AI
   const data = {
-    logo: "Elite Climate Solutions",
+    logo: "Summit Roofing & Restoration",
     navigation: [
       { label: "Home", href: "/" },
       { label: "About", href: "/about" },

@@ -62,7 +62,7 @@ Requirements:
 
   const stream = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 32000,
+    max_tokens: 50000,
     temperature: 0.7,
     stream: true,
     system: systemPrompt,

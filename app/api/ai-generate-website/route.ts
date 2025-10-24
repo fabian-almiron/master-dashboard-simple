@@ -93,7 +93,7 @@ Please generate all the necessary files for a complete, functional Next.js websi
     // Use streaming for long generations to avoid timeout
     const stream = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 32000, // Maximum tokens allowed for Claude Opus 4 - enables extremely comprehensive generation
+      max_tokens: 50000, // Maximum tokens for comprehensive generation - allows for detailed, high-quality websites
       temperature: 0.7,
       stream: true,
       system: systemPrompt,
