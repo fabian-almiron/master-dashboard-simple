@@ -13,6 +13,14 @@ const nextConfig = {
   output: 'standalone',
   // Configure external packages for Railway deployment
   serverExternalPackages: ['@anthropic-ai/sdk'],
+  // Force all authenticated routes to be fully dynamic
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+  // Prevent static generation of protected routes
+  async generateBuildId() {
+    return 'dynamic-build'
+  },
   // Security headers
   async headers() {
     return [

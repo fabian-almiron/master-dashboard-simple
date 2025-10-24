@@ -8,10 +8,10 @@ export function ClerkWrapper({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-// Safe useUser hook that doesn't crash during build
+// Safe useUser hook that doesn't crash during build or before client mount
 export function useSafeUser() {
   try {
-    // During build (server-side), return safe defaults immediately
+    // During server-side rendering, return safe defaults immediately
     if (typeof window === 'undefined') {
       return {
         user: null,
@@ -40,7 +40,7 @@ export function useSafeUser() {
     
     return useUser()
   } catch (error) {
-    // During build (no ClerkProvider), return safe defaults
+    // If ClerkProvider isn't ready yet, return safe defaults
     return {
       user: null,
       isLoaded: false,

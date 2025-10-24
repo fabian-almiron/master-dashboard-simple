@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClientClerkProvider } from '@/components/client-clerk-provider'
 
 export const metadata: Metadata = {
   title: 'Altira - CMS Management Platform',
@@ -33,18 +33,10 @@ export default function RootLayout({
     </html>
   )
   
-  // Handle ClerkProvider for both build time and runtime
-  // During build, use a fallback key to prevent build failures
-  const finalPublishableKey = clerkPublishableKey || 'pk_test_fallback_for_build'
-  
-  // Only log error in browser, not during build
-  if (typeof window !== 'undefined' && !clerkPublishableKey) {
-    console.error('Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY')
-  }
-  
+  // Always render, but ClerkProvider only initializes on client-side
   return (
-    <ClerkProvider publishableKey={finalPublishableKey}>
+    <ClientClerkProvider publishableKey={clerkPublishableKey || ''}>
       {content}
-    </ClerkProvider>
+    </ClientClerkProvider>
   )
 }
