@@ -185,7 +185,7 @@ Return a JSON object with this structure:
 }`
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2000,
     temperature: allowExperimental ? 0.9 : 0.7,
     messages: [{ role: 'user', content: prompt }]
@@ -333,7 +333,7 @@ Return ONLY a JSON object:
 }`
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 8000,
     temperature: allowExperimental ? 0.9 : 0.8,
     messages: [{ role: 'user', content: prompt }]
@@ -387,7 +387,7 @@ Return ONLY a JSON object with RGB values:
 }`
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 500,
     temperature: 0.6,
     messages: [{ role: 'user', content: prompt }]

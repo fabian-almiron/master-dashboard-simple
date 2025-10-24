@@ -11,6 +11,24 @@ export function ClerkWrapper({ children }: { children: ReactNode }) {
 // Safe useUser hook that doesn't crash during build
 export function useSafeUser() {
   try {
+    // Check if auth is bypassed in development
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+    
+    if (isDevelopment && bypassAuth) {
+      // Return mock authenticated user for bypassed auth
+      return {
+        user: {
+          id: 'dev-user',
+          emailAddresses: [{ emailAddress: 'dev@localhost.local' }],
+          firstName: 'Developer',
+          lastName: 'User'
+        },
+        isLoaded: true,
+        isSignedIn: true
+      }
+    }
+    
     return useUser()
   } catch (error) {
     // During build (no ClerkProvider), return safe defaults

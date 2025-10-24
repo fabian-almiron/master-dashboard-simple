@@ -1,6 +1,6 @@
-# Stirring Dirt Excavation
+# modern-saas-platform
 
-Owner-operated excavation services in Logan, Utah
+Modern tech startup SaaS platform with dark gradient design
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: Excavation & Construction Header
-- Hero: Excavation & Construction Hero
-- Footer: Excavation & Construction Footer
+- Header: Dark Modern Header
+- Hero: Dark Gradient Hero
+- Footer: Dark Minimal Footer
 
 Generated using the Hybrid Component System.

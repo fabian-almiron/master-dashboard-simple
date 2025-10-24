@@ -258,7 +258,7 @@ export default function CreateWebsite() {
     <div className="min-h-screen">
       {/* Header */}
       <div className="bg-gray-900/50 backdrop-blur-xl border-b border-gray-800/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
               <Link href="/master">
@@ -278,7 +278,7 @@ export default function CreateWebsite() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">

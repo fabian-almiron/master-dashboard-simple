@@ -203,6 +203,7 @@ export async function getCMSInstances(limit?: number) {
 }
 
 export async function getCMSInstanceById(instanceId: string) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('cms_instances')
     .select('*')
@@ -214,6 +215,7 @@ export async function getCMSInstanceById(instanceId: string) {
 }
 
 export async function updateCMSInstance(instanceId: string, updates: Partial<CMSInstance>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('cms_instances')
     .update(updates)
@@ -226,6 +228,7 @@ export async function updateCMSInstance(instanceId: string, updates: Partial<CMS
 }
 
 export async function deleteCMSInstance(instanceId: string) {
+  const masterSupabase = getMasterSupabase()
   const { error } = await masterSupabase
     .from('cms_instances')
     .delete()
@@ -235,6 +238,7 @@ export async function deleteCMSInstance(instanceId: string) {
 }
 
 export async function getCMSInstancesByOwner(ownerEmail: string) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('cms_instances')
     .select('*')
@@ -249,6 +253,7 @@ export async function getCMSInstancesByOwner(ownerEmail: string) {
 // DEPLOYMENT LOG FUNCTIONS
 // =============================================
 export async function createDeploymentLog(logData: Omit<DeploymentLog, 'id' | 'started_at'>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('deployment_logs')
     .insert([logData])
@@ -260,6 +265,7 @@ export async function createDeploymentLog(logData: Omit<DeploymentLog, 'id' | 's
 }
 
 export async function updateDeploymentLog(logId: string, updates: Partial<DeploymentLog>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('deployment_logs')
     .update(updates)
@@ -272,6 +278,7 @@ export async function updateDeploymentLog(logId: string, updates: Partial<Deploy
 }
 
 export async function getDeploymentLogs(instanceId: string, limit: number = 10) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('deployment_logs')
     .select('*')
@@ -288,6 +295,7 @@ export async function getDeploymentLogs(instanceId: string, limit: number = 10) 
 // SUPABASE PROJECT FUNCTIONS
 // =============================================
 export async function createSupabaseProject(projectData: Omit<SupabaseProject, 'id' | 'created_at' | 'updated_at'>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('supabase_projects')
     .insert([projectData])
@@ -299,6 +307,7 @@ export async function createSupabaseProject(projectData: Omit<SupabaseProject, '
 }
 
 export async function getSupabaseProjectByInstance(instanceId: string) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('supabase_projects')
     .select('*')
@@ -310,6 +319,7 @@ export async function getSupabaseProjectByInstance(instanceId: string) {
 }
 
 export async function updateSupabaseProject(projectId: string, updates: Partial<SupabaseProject>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('supabase_projects')
     .update(updates)
@@ -325,6 +335,7 @@ export async function updateSupabaseProject(projectId: string, updates: Partial<
 // NOTIFICATION FUNCTIONS
 // =============================================
 export async function createNotification(notificationData: Omit<Notification, 'id' | 'created_at'>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('notifications')
     .insert([notificationData])
@@ -336,6 +347,7 @@ export async function createNotification(notificationData: Omit<Notification, 'i
 }
 
 export async function getNotifications(limit: number = 20, unreadOnly: boolean = false) {
+  const masterSupabase = getMasterSupabase()
   let query = masterSupabase
     .from('notifications')
     .select('*')
@@ -352,6 +364,7 @@ export async function getNotifications(limit: number = 20, unreadOnly: boolean =
 }
 
 export async function markNotificationAsRead(notificationId: string) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('notifications')
     .update({ is_read: true })
@@ -367,6 +380,7 @@ export async function markNotificationAsRead(notificationId: string) {
 // SETTINGS FUNCTIONS
 // =============================================
 export async function getMasterSetting(key: string): Promise<any> {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('master_settings')
     .select('value')
@@ -378,6 +392,7 @@ export async function getMasterSetting(key: string): Promise<any> {
 }
 
 export async function setMasterSetting(key: string, value: any, description?: string) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('master_settings')
     .upsert([{ key, value, description }], { 
@@ -391,6 +406,7 @@ export async function setMasterSetting(key: string, value: any, description?: st
 }
 
 export async function getAllMasterSettings() {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('master_settings')
     .select('*')
@@ -404,6 +420,7 @@ export async function getAllMasterSettings() {
 // ANALYTICS FUNCTIONS
 // =============================================
 export async function recordInstanceMetric(instanceId: string, metricType: string, metricValue: number, metadata?: Record<string, any>) {
+  const masterSupabase = getMasterSupabase()
   const { data, error } = await masterSupabase
     .from('instance_analytics')
     .insert([{
@@ -420,6 +437,7 @@ export async function recordInstanceMetric(instanceId: string, metricType: strin
 }
 
 export async function getInstanceMetrics(instanceId: string, metricType?: string, days: number = 30) {
+  const masterSupabase = getMasterSupabase()
   let query = masterSupabase
     .from('instance_analytics')
     .select('*')
@@ -441,6 +459,7 @@ export async function getInstanceMetrics(instanceId: string, metricType?: string
 // =============================================
 export async function testMasterConnection() {
   try {
+    const masterSupabase = getMasterSupabase()
     const { data, error } = await masterSupabase
       .from('cms_instances')
       .select('count')
@@ -457,28 +476,48 @@ export async function testMasterConnection() {
 export async function getDashboardStats() {
   try {
     const masterSupabase = getMasterSupabase()
-    const [instancesResult, deploymentsResult, templatesResult] = await Promise.all([
-      masterSupabase.from('cms_instances').select('count'),
-      masterSupabase.from('deployment_logs').select('count'),
-      masterSupabase.from('cms_templates').select('count').eq('is_active', true)
-    ])
-
-    const activeInstances = await masterSupabase
+    
+    // Get total instances count
+    const { count: totalInstances } = await masterSupabase
       .from('cms_instances')
-      .select('count')
+      .select('*', { count: 'exact', head: true })
+
+    // Get active instances count
+    const { count: activeInstances } = await masterSupabase
+      .from('cms_instances')
+      .select('*', { count: 'exact', head: true })
       .eq('status', 'active')
 
-    const successfulDeployments = await masterSupabase
+    // Get total deployments count  
+    const { count: totalDeployments } = await masterSupabase
       .from('deployment_logs')
-      .select('count')
+      .select('*', { count: 'exact', head: true })
+
+    // Get successful deployments count
+    const { count: successfulDeployments } = await masterSupabase
+      .from('deployment_logs')
+      .select('*', { count: 'exact', head: true })
       .eq('status', 'success')
 
+    // Get available templates count (table might not exist yet, so handle gracefully)
+    let availableTemplates = 0
+    try {
+      const { count: templatesCount } = await masterSupabase
+        .from('cms_templates')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+      availableTemplates = templatesCount || 0
+    } catch (templatesError) {
+      // Templates table doesn't exist yet - that's OK
+      availableTemplates = 0
+    }
+
     return {
-      totalInstances: instancesResult.count || 0,
-      activeInstances: activeInstances.count || 0,
-      totalDeployments: deploymentsResult.count || 0,
-      successfulDeployments: successfulDeployments.count || 0,
-      availableTemplates: templatesResult.count || 0
+      totalInstances: totalInstances || 0,
+      activeInstances: activeInstances || 0,
+      totalDeployments: totalDeployments || 0,
+      successfulDeployments: successfulDeployments || 0,
+      availableTemplates: availableTemplates
     }
   } catch (error) {
     console.error('Error getting dashboard stats:', error)

@@ -8,10 +8,6 @@ import { Plus, Globe, Server, Users, ExternalLink, Settings, Trash2, Sparkles, U
 import Link from 'next/link'
 import { useSafeUser, SafeUserButton } from '@/components/clerk-wrapper'
 import { 
-  getCMSInstances, 
-  getDashboardStats, 
-  deleteCMSInstance,
-  isMasterSupabaseConfigured,
   type CMSInstance 
 } from '@/lib/master-supabase'
 
@@ -23,6 +19,7 @@ interface DashboardStats {
   activeInstances: number
   totalDeployments: number
   successfulDeployments: number
+  availableTemplates: number
 }
 
 export default function MasterDashboard() {
@@ -32,7 +29,8 @@ export default function MasterDashboard() {
     totalInstances: 0,
     activeInstances: 0,
     totalDeployments: 0,
-    successfulDeployments: 0
+    successfulDeployments: 0,
+    availableTemplates: 0
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,13 +55,28 @@ export default function MasterDashboard() {
         return
       }
       
-      const [instancesData, statsData] = await Promise.all([
-        getCMSInstances(10), // Get latest 10 instances
-        getDashboardStats()
+      // Fetch data via API endpoints instead of direct database calls
+      const [instancesResponse, statsResponse] = await Promise.all([
+        fetch('/api/master/instances?limit=10'),
+        fetch('/api/master/stats')
       ])
       
-      setInstances(instancesData)
-      setStats(statsData)
+      if (!instancesResponse.ok) {
+        throw new Error('Failed to fetch instances')
+      }
+      if (!statsResponse.ok) {
+        throw new Error('Failed to fetch stats')
+      }
+      
+      const instancesResult = await instancesResponse.json()
+      const statsResult = await statsResponse.json()
+      
+      if (instancesResult.success && statsResult.success) {
+        setInstances(instancesResult.data)
+        setStats(statsResult.data)
+      } else {
+        throw new Error('API returned error response')
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error)
       setError('Failed to load dashboard data')
@@ -261,7 +274,7 @@ export default function MasterDashboard() {
     <div className="min-h-screen">
       {/* Header */}
       <div className="bg-gray-900/50 backdrop-blur-xl border-b border-gray-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
@@ -301,7 +314,7 @@ export default function MasterDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 group">
@@ -499,18 +512,6 @@ export default function MasterDashboard() {
             </Link>
           </Card>
 
-          <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50 hover:bg-gray-800/50 transition-all duration-200 cursor-pointer group">
-            <Link href="/master/themes">
-              <CardContent className="p-6 text-center">
-                <div className="relative mb-4">
-                  <Globe className="h-12 w-12 text-green-400 mx-auto" />
-                  <div className="absolute inset-0 h-12 w-12 bg-green-400/20 rounded-full blur-md mx-auto group-hover:bg-green-400/30 transition-all duration-200"></div>
-                </div>
-                <h3 className="font-semibold text-white mb-2">Browse Themes</h3>
-                <p className="text-gray-400 text-sm">Explore pre-built themes and templates</p>
-              </CardContent>
-            </Link>
-          </Card>
         </div>
       </div>
     </div>

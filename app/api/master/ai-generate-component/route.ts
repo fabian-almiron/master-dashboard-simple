@@ -190,7 +190,7 @@ Return ONLY a JSON object with placeholder names as keys and generated content a
 }`
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514', // Creative model for content
+    model: 'claude-sonnet-4-5-20250929', // Creative model for content
     max_tokens: 20000,
     temperature: 0.8, // Higher creativity
     messages: [{ role: 'user', content: prompt }]

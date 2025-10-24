@@ -247,7 +247,7 @@ Return ONLY this JSON structure with no other text:
 }`
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2000,
     temperature: 0.1, // Very low temperature for consistent JSON
     system: 'You are a JSON API. Return only valid JSON. No explanations, no markdown, no text outside the JSON object.',
@@ -749,7 +749,7 @@ Return ONLY the React component code with proper imports and metadata export.`
     
     // Use streaming for better performance and larger token limits
     const stream = await anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 64000, // Maximum output tokens for testing
       temperature: 0.3,
       system: 'You are a React developer. Return only valid React/TypeScript component code.',

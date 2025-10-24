@@ -8,8 +8,6 @@ import { ArrowLeft, Globe, ExternalLink, Trash2, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { useSafeUser } from '@/components/clerk-wrapper'
 import { 
-  getCMSInstances, 
-  deleteCMSInstance,
   type CMSInstance 
 } from '@/lib/master-supabase'
 
@@ -34,9 +32,18 @@ export default function AllInstancesPage() {
       setIsLoading(true)
       setError(null)
       
-      // Get all instances (not limited to 10)
-      const instancesData = await getCMSInstances(100)
-      setInstances(instancesData)
+      // Fetch instances via API endpoint
+      const response = await fetch('/api/master/instances?limit=100')
+      if (!response.ok) {
+        throw new Error('Failed to fetch instances')
+      }
+      
+      const result = await response.json()
+      if (result.success) {
+        setInstances(result.data)
+      } else {
+        throw new Error('API returned error response')
+      }
     } catch (error) {
       console.error('Error loading instances:', error)
       setError('Failed to load CMS instances')
@@ -155,7 +162,7 @@ export default function AllInstancesPage() {
     <div className="min-h-screen bg-gray-950">
       {/* Header */}
       <div className="bg-gray-900/50 backdrop-blur-xl border-b border-gray-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               <Link href="/master">
@@ -193,7 +200,7 @@ export default function AllInstancesPage() {
       </div>
 
       {/* Instances List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {instances.length === 0 ? (
           <Card className="bg-gray-900/40 backdrop-blur-xl border-gray-800/50">
             <CardContent className="py-16 text-center">

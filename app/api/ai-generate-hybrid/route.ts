@@ -5,7 +5,9 @@ import path from 'path'
 import { 
   extractInterfaceFromTemplate, 
   formatInterfaceForPrompt,
-  buildComponentInterfaceMap 
+  buildComponentInterfaceMap,
+  validatePropsMatchInterface,
+  type ExtractedInterface
 } from '@/lib/interface-extractor'
 import { securityMiddleware } from '@/lib/security'
 
@@ -30,6 +32,7 @@ interface ComponentBlocks {
   heroes: ComponentBlock[]
   features: ComponentBlock[]
   testimonials: ComponentBlock[]
+  ctas: ComponentBlock[]
   footers: ComponentBlock[]
 }
 
@@ -39,6 +42,7 @@ interface AISelection {
     hero: string
     features: string
     testimonials: string
+    cta: string
     footer: string
   }
   sitemap: Array<{
@@ -51,6 +55,7 @@ interface AISelection {
     hero: any
     features: any
     testimonials: any
+    cta: any
     footer: any
   }
   projectConfig: {
@@ -65,11 +70,12 @@ interface AISelection {
 }
 
 async function loadComponentBlocks(): Promise<ComponentBlocks> {
-  const [headersData, heroesData, featuresData, testimonialsData, footersData] = await Promise.all([
+  const [headersData, heroesData, featuresData, testimonialsData, ctasData, footersData] = await Promise.all([
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-header-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-hero-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-features-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-testimonials-blocks.json'), 'utf-8'),
+    fs.readFile(path.join(process.cwd(), 'component-blocks/available-cta-blocks.json'), 'utf-8'),
     fs.readFile(path.join(process.cwd(), 'component-blocks/available-footer-blocks.json'), 'utf-8')
   ])
 
@@ -78,209 +84,367 @@ async function loadComponentBlocks(): Promise<ComponentBlocks> {
     heroes: JSON.parse(heroesData).heroes,
     features: JSON.parse(featuresData).features,
     testimonials: JSON.parse(testimonialsData).testimonials,
+    ctas: JSON.parse(ctasData).ctas,
     footers: JSON.parse(footersData).footers
   }
 }
 
-async function getAISelection(prompt: string, componentBlocks: ComponentBlocks): Promise<AISelection> {
-  // Build interface map for all components
-  const interfaceMap = buildComponentInterfaceMap(componentBlocks)
-  
-  // Example interfaces for the AI (we'll inject real ones based on selection)
-  const exampleHeaderInterface = extractInterfaceFromTemplate(componentBlocks.headers[0].template)
-  const exampleHeroInterface = extractInterfaceFromTemplate(componentBlocks.heroes[0].template)
-  const exampleFeaturesInterface = extractInterfaceFromTemplate(componentBlocks.features[0].template)
-  const exampleTestimonialsInterface = extractInterfaceFromTemplate(componentBlocks.testimonials[0].template)
-  const exampleFooterInterface = extractInterfaceFromTemplate(componentBlocks.footers[0].template)
-  
-  const systemPrompt = `You are an expert web designer. Based on the user's request, select the most appropriate components and generate realistic content.
+// STAGE 1: Component Selection Only (no content generation)
+async function selectComponentsOnly(prompt: string, componentBlocks: ComponentBlocks): Promise<{
+  selectedComponents: {
+    header: string
+    hero: string  
+    features: string
+    testimonials: string
+    cta: string
+    footer: string
+  }
+  sitemap: Array<{ path: string; name: string; description: string }>
+  projectConfig: {
+    name: string
+    description: string
+    style: string
+    colors: { primary: string; secondary: string }
+  }
+}> {
+  const selectionPrompt = `🚨 STRICT JSON API - EXACT FORMAT REQUIRED 🚨
 
-AVAILABLE COMPONENTS:
+You are a JSON API that selects components based on STYLE MATCHING. 
 
-HEADERS:
+🎯 CRITICAL: Match the user's style requirements to component tags and descriptions!
+
+USER REQUEST: "${prompt}"
+
+🔍 STYLE MATCHING RULES:
+- "dark", "tech", "modern" → Choose components with "dark", "tech", "modern", "gradient" tags
+  EXAMPLE: For "dark tech website" → header-dark-modern, hero-gradient-dark, footer-dark-minimal
+- "healthcare", "medical" → Choose components with "healthcare", "medical", "trust" tags  
+- "restaurant", "food" → Choose components with "restaurant", "hospitality", "warm" tags
+- "creative", "artistic" → Choose components with "creative", "artistic", "portfolio" tags
+- "professional", "business" → Choose components with "professional", "corporate", "business" tags
+
+🎯 IMPORTANT: Look at the tags in parentheses (dark, gradient, modern, tech) and match them to the user's request!
+
+AVAILABLE COMPONENTS TO CHOOSE FROM:
+
+HEADERS (choose ONE id):
 ${componentBlocks.headers.map(h => `- ${h.id}: ${h.name} (${h.tags.join(', ')}) - ${h.description}`).join('\n')}
 
-HEROES:
+HEROES (choose ONE id):
 ${componentBlocks.heroes.map(h => `- ${h.id}: ${h.name} (${h.tags.join(', ')}) - ${h.description}`).join('\n')}
 
-FEATURES:
+FEATURES (choose ONE id):
 ${componentBlocks.features.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
 
-TESTIMONIALS:
+TESTIMONIALS (choose ONE id):
 ${componentBlocks.testimonials.map(t => `- ${t.id}: ${t.name} (${t.tags.join(', ')}) - ${t.description}`).join('\n')}
 
-FOOTERS:
+CTAS (choose ONE id):
+${componentBlocks.ctas.map(c => `- ${c.id}: ${c.name} (${c.tags.join(', ')}) - ${c.description}`).join('\n')}
+
+FOOTERS (choose ONE id):
 ${componentBlocks.footers.map(f => `- ${f.id}: ${f.name} (${f.tags.join(', ')}) - ${f.description}`).join('\n')}
 
-🚨 CRITICAL: EXACT INTERFACE MATCHING REQUIRED 🚨
+🚨 SELECTION STRATEGY:
+1. ANALYZE the user's request for style keywords (dark, modern, tech, creative, etc.)
+2. MATCH those keywords to component tags in parentheses 
+3. SELECT components whose tags BEST MATCH the requested style
+4. PREFER variety - don't always pick the same "safe" options
+5. CREATE a cohesive style across all selected components
 
-Each component has a STRICT TypeScript interface. You MUST generate props that EXACTLY match the interface:
+⚠️ AVOID: Always selecting "header-modern-nav", "hero-centered-cta", "features-grid-icons" - show variety!
 
-✅ DO:
-- Generate ONLY properties defined in the interface
-- Include ALL required properties (non-optional)
-- Use correct property types (string, number, array, object)
-- Match exact property names (case-sensitive)
-- Use valid icon names from iconMap when applicable
+🚨 CRITICAL: Return ONLY this EXACT JSON structure with component IDs:
 
-❌ DON'T:
-- Add extra properties not in the interface
-- Miss required properties
-- Nest required properties inside other objects incorrectly
-- Use industry-specific properties from other component types
-- Generate "just in case" properties
-
-EXAMPLE INTERFACES (actual interfaces vary by component):
-
-${exampleHeaderInterface ? formatInterfaceForPrompt(exampleHeaderInterface) : 'Header interface not found'}
-
-${exampleFeaturesInterface ? formatInterfaceForPrompt(exampleFeaturesInterface) : 'Features interface not found'}
-
-COMPONENT-SPECIFIC RULES:
-
-For Excavation/Construction components:
-- Header icons: Truck, HardHat, Shield, MapPin, Award, CheckCircle
-- Features icons: "truck", "hardHat", "shield", "mapPin", "award", "check"
-- Use orange color theme (orange-50, orange-100, orange-600)
-
-For all components:
-- Keep it simple and minimal
-- Only generate properties that exist in the interface
-- Don't bloat with unused properties
-
-Return ONLY a JSON object. Generate MINIMAL props that match the selected component interfaces EXACTLY:
-
-EXAMPLE for excavation-construction header (header-excavation-construction):
 {
   "selectedComponents": {
-    "header": "header-excavation-construction",
-    "hero": "hero-excavation-construction",
-    "features": "features-excavation-construction",
-    "testimonials": "testimonials-excavation-construction",
-    "footer": "footer-excavation-construction"
+    "header": "exact-component-id-from-list-above",
+    "hero": "exact-component-id-from-list-above",
+    "features": "exact-component-id-from-list-above",
+    "testimonials": "exact-component-id-from-list-above",
+    "cta": "exact-component-id-from-list-above",
+    "footer": "exact-component-id-from-list-above"
   },
   "sitemap": [
     {"path": "/", "name": "Home", "description": "Main landing page"},
-    {"path": "/services", "name": "Services", "description": "Our services"},
-    {"path": "/about", "name": "About", "description": "About our company"},
-    {"path": "/contact", "name": "Contact", "description": "Contact us"}
+    {"path": "/about", "name": "About", "description": "About page"},
+    {"path": "/contact", "name": "Contact", "description": "Contact page"}
   ],
-  "content": {
-    "header": {
-      "logo": "Company Name",
-      "navigation": [{"label": "Home", "href": "/"}, {"label": "Services", "href": "/services"}],
-      "ctaText": "Get Quote",
-      "ctaHref": "/contact",
-      "contactPhone": "+1 (555) 123-4567",
-      "serviceAreas": "City & Surrounding Areas"
-    },
-    "hero": {
-      "headline": "Your Headline",
-      "description": "Description here",
-      "primaryCta": {"text": "Get Started", "href": "/contact"},
-      "secondaryCta": {"text": "Learn More", "href": "/about"},
-      "heroImage": "https://images.unsplash.com/photo-1580901368919-7738efb0f87e?w=800&h=600&fit=crop",
-      "contactPhone": "+1 (555) 123-4567",
-      "serviceAreas": "City & Surrounding Areas",
-      "projectTypes": ["Service 1", "Service 2", "Service 3"],
-      "guarantees": ["Guarantee 1", "Guarantee 2"],
-      "yearsExperience": "10+"
-    },
-    "features": {
-      "headline": "Why Choose Us",
-      "description": "What makes us different",
-      "features": [
-        {"icon": "truck", "title": "Feature 1", "description": "Description", "guarantee": "Promise"}
-      ],
-      "companyInfo": {
-        "yearsExperience": "10+",
-        "projectsCompleted": "500+",
-        "serviceAreas": "City & Area",
-        "equipmentCount": "12+"
-      }
-    },
-    "testimonials": {
-      "headline": "What Clients Say",
-      "description": "Real reviews",
-      "testimonials": [
-        {
-          "quote": "Great service!",
-          "author": "John Doe",
-          "location": "City, State",
-          "rating": 5,
-          "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-          "projectType": "Project Type",
-          "projectResult": "Excellent result",
-          "completionTime": "2 days"
-        }
-      ],
-      "companyStats": {
-        "projectsCompleted": "500+",
-        "yearsExperience": "10+",
-        "customerSatisfaction": "100%"
-      }
-    },
-    "footer": {
-      "companyName": "Company Name",
-      "tagline": "Your tagline",
-      "description": "Brief description",
-      "navigation": [{"label": "Home", "href": "/"}],
-      "contactInfo": {
-        "email": "info@company.com",
-        "phone": "+1 (555) 123-4567",
-        "address": "123 Main St",
-        "hours": "Mon-Fri 9AM-5PM"
-      },
-      "serviceAreas": "City & Areas",
-      "licenses": ["License #12345"],
-      "yearsExperience": "10+",
-      "guarantees": ["Guarantee 1", "Guarantee 2"],
-      "socialLinks": [{"platform": "facebook", "href": "#"}],
-      "copyright": "© 2024 Company. All rights reserved."
-    }
-  },
   "projectConfig": {
     "name": "project-name",
-    "description": "Project description",
+    "description": "Brief description",
     "style": "modern",
     "colors": {"primary": "#3B82F6", "secondary": "#8B5CF6"}
   }
 }
 
-REMEMBER: Generate ONLY the properties that exist in the selected component's interface. No extras!`
+NO other text, NO explanations, NO other JSON structure. ONLY the exact JSON above with real component IDs.`
 
   const stream = await anthropic.messages.create({
-    model: 'claude-opus-4-20250514',
-    max_tokens: 32000,
-    temperature: 0.7,
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 3200,
+    temperature: 0.4, // Balanced for variety while staying coherent
     stream: true,
-    system: systemPrompt,
-    messages: [
-      {
-        role: 'user',
-        content: `Create a website: ${prompt}`
-      }
-    ]
+    system: 'You are a JSON API. Return ONLY valid JSON matching the exact structure requested. No explanations, no other text.',
+    messages: [{ role: 'user', content: selectionPrompt }]
   })
 
-  let fullResponse = ''
+  let response = ''
   for await (const chunk of stream) {
-    if (chunk.type === 'content_block_delta') {
-      if (chunk.delta.type === 'text_delta') {
-        fullResponse += chunk.delta.text
-      }
+    if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+      response += chunk.delta.text
     }
   }
 
-  let cleanedResponse = fullResponse.trim()
-  cleanedResponse = cleanedResponse.replace(/```json\s*/, '').replace(/```\s*$/, '')
+  console.log('📝 Raw AI response:', response.substring(0, 200) + '...')
   
+  const cleanedResponse = response.trim().replace(/```json\s*/, '').replace(/```\s*$/, '')
   const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+  
   if (!jsonMatch) {
-    throw new Error('No JSON found in AI response')
+    console.error('❌ No JSON found in component selection response:', cleanedResponse)
+    throw new Error('No JSON found in component selection')
   }
   
-  return JSON.parse(jsonMatch[0])
+  console.log('🧹 Cleaned JSON:', jsonMatch[0].substring(0, 200) + '...')
+  
+  try {
+    const parsed = JSON.parse(jsonMatch[0])
+    console.log('✅ Parsed selection result keys:', Object.keys(parsed))
+    return parsed
+  } catch (error) {
+    console.error('❌ JSON parse error:', error)
+    console.error('❌ Failed to parse:', jsonMatch[0])
+    throw new Error('Failed to parse component selection JSON')
+  }
+}
+
+async function getAISelection(prompt: string, componentBlocks: ComponentBlocks): Promise<AISelection> {
+  
+  // STAGE 1: Component Selection
+  console.log('🎯 Stage 1: Selecting components...')
+  const componentSelectionResult = await selectComponentsOnly(prompt, componentBlocks)
+  console.log('✅ Component selection result:', JSON.stringify(componentSelectionResult, null, 2))
+  
+  // Validate component selection result
+  if (!componentSelectionResult || !componentSelectionResult.selectedComponents) {
+    throw new Error('Component selection failed: Invalid result structure')
+  }
+  
+  // STAGE 2: Generate content for selected components (self-contained approach)
+  console.log('🎯 Stage 2: Generating component content...')
+  const contentGenerationResult = await generateComponentContent(
+    prompt,
+    componentSelectionResult
+  )
+
+  console.log('✅ Content generation completed successfully')
+
+  // Combine selection + content
+  return {
+    ...componentSelectionResult,
+    content: contentGenerationResult
+  }
+}
+
+// STAGE 2: Generate content for self-contained components
+async function generateComponentContent(
+  prompt: string,
+  selection: any
+): Promise<any> {
+  
+  const systemPrompt = `🚨 SELF-CONTAINED COMPONENT CONTENT GENERATION 🚨
+
+You are generating realistic content for SPECIFIC selected components that will replace placeholder data.
+
+SELECTED COMPONENTS:
+- Header: ${selection.selectedComponents.header}
+- Hero: ${selection.selectedComponents.hero}
+- Features: ${selection.selectedComponents.features}
+- Testimonials: ${selection.selectedComponents.testimonials}
+- Footer: ${selection.selectedComponents.footer}
+
+PROJECT INFO:
+- Name: ${selection.projectConfig.name}
+- Description: ${selection.projectConfig.description}
+- Style: ${selection.projectConfig.style}
+- Colors: ${JSON.stringify(selection.projectConfig.colors)}
+
+🎯 YOUR TASK:
+
+Generate realistic, contextual content for each component that matches the user's request: "${prompt}"
+
+📋 CONTENT REQUIREMENTS:
+
+1. **Company/Brand Name**: Create a fitting name based on the user's prompt
+2. **Navigation Links**: Generate appropriate menu items for the business type
+3. **Headlines & Copy**: Write compelling, professional content
+4. **Contact Information**: Create realistic contact details
+5. **Features/Services**: Generate relevant features/benefits
+6. **Testimonials**: Write believable customer reviews
+7. **Social Links**: Use appropriate platforms for the business type
+
+🎨 STYLE MATCHING:
+
+Match your content to the selected component styles:
+- Modern/Tech: Focus on innovation, efficiency, cutting-edge solutions
+- Creative/Artistic: Emphasize creativity, uniqueness, artistic vision
+- Professional/Business: Highlight expertise, trust, professional results
+
+🔗 ICON NAMES (Lucide Icons Only):
+Use these exact names: "check", "star", "heart", "award", "shield", "zap", "clock", "users", "globe", "phone", "mail", "coffee", "utensils", "wheat", "chefHat", "sun", "leaf", "sparkles", "home", "map", "truck"
+
+📧 CONTACT INFO FORMAT:
+- Email: realistic format (hello@company.com, info@business.com)
+- Phone: (555) XXX-XXXX format
+- Address: Include street, city, state, zip
+
+Return ONLY this JSON structure with realistic content:
+
+{
+  "companyName": "Realistic Company Name",
+  "navigation": [
+    {"label": "Home", "href": "/"},
+    {"label": "About", "href": "/about"},
+    {"label": "Services", "href": "/services"},
+    {"label": "Contact", "href": "/contact"}
+  ],
+  "heroHeadline": "Compelling Main Headline",
+  "heroDescription": "Engaging description that sells the value proposition",
+  "features": [
+    {"icon": "check", "title": "Feature 1", "description": "Benefit description"},
+    {"icon": "star", "title": "Feature 2", "description": "Benefit description"}
+  ],
+  "testimonials": [
+    {"quote": "Great experience quote", "author": "Customer Name", "role": "Job Title", "company": "Company Name", "rating": 5}
+  ],
+  "ctaHeadline": "Ready to Get Started?",
+  "ctaDescription": "Contact us today for your free consultation and estimate",
+  "contactEmail": "info@company.com",
+  "contactPhone": "(555) 123-4567",
+  "contactAddress": "123 Street Name, City, ST 12345",
+  "socialLinks": [
+    {"platform": "facebook", "href": "https://facebook.com/company"},
+    {"platform": "instagram", "href": "https://instagram.com/company"}
+  ]
+}`
+
+  const stream = await anthropic.messages.create({
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 3200,
+    temperature: 0.7,
+    stream: true,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: `Generate content for: ${prompt}` }]
+  })
+
+  let response = ''
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+      response += chunk.delta.text
+    }
+  }
+
+  const cleanedResponse = response.trim().replace(/```json\s*/, '').replace(/```\s*$/, '')
+  const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) throw new Error('No JSON found in content generation')
+  
+  const content = JSON.parse(jsonMatch[0])
+  
+  console.log('✅ Generated content:', JSON.stringify(content, null, 2))
+  
+  return content
+}
+
+// Helper function to replace placeholder data in component templates
+function generateSelfContainedComponent(template: string, content: any, componentType: string): string {
+  let updatedTemplate = template
+  
+  // Replace common placeholders based on component type and generated content
+  switch (componentType) {
+    case 'header':
+      updatedTemplate = updatedTemplate
+        .replace(/COMPANY_NAME/g, content.companyName || 'Your Company')
+        .replace(/"logo": ".*?"/, `"logo": "${content.companyName || 'Your Company'}"`)
+        .replace(/"navigation": \[[\s\S]*?\]/, `"navigation": ${JSON.stringify(content.navigation || [])}`)
+        .replace(/"ctaText": ".*?"/, `"ctaText": "${content.navigation?.find((n: any) => n.label.toLowerCase().includes('contact'))?.label || 'Get Started'}"`)
+        .replace(/"ctaHref": ".*?"/, `"ctaHref": "${content.navigation?.find((n: any) => n.label.toLowerCase().includes('contact'))?.href || '/contact'}"`)
+      break
+      
+    case 'hero':
+      updatedTemplate = updatedTemplate
+        .replace(/"headline": ".*?"/, `"headline": "${content.heroHeadline || 'Transform Your Business'}"`)
+        .replace(/"description": ".*?"/, `"description": "${content.heroDescription || 'Professional solutions that drive results.'}"`)
+      break
+      
+    case 'features':
+      if (content.features) {
+        updatedTemplate = updatedTemplate
+          .replace(/"headline": ".*?"/, `"headline": "Why Choose ${content.companyName || 'Our Service'}"`)
+          .replace(/"description": ".*?"/, `"description": "Discover the benefits that make us the preferred choice."`)
+          .replace(/"features": \[[\s\S]*?\]/, `"features": ${JSON.stringify(content.features)}`)
+      }
+      break
+      
+    case 'testimonials':
+      if (content.testimonials) {
+        updatedTemplate = updatedTemplate
+          .replace(/"testimonials": \[[\s\S]*?\]/, `"testimonials": ${JSON.stringify(content.testimonials)}`)
+      }
+      break
+      
+    case 'cta':
+      updatedTemplate = updatedTemplate
+        .replace(/"headline": ".*?"/, `"headline": "${content.ctaHeadline || 'Ready to Get Started?'}"`)
+        .replace(/"description": ".*?"/, `"description": "${content.ctaDescription || 'Contact us today for more information.'}"`)
+      
+      // Handle phone numbers in CTA
+      if (content.contactPhone) {
+        updatedTemplate = updatedTemplate
+          .replace(/"phone": ".*?"/, `"phone": "${content.contactPhone}"`)
+          .replace(/\(555\) 123-4567/g, content.contactPhone)
+          .replace(/\(555\) 911-HELP/g, content.contactPhone)
+          .replace(/5551234567/g, content.contactPhone.replace(/[^\d]/g, ''))
+          .replace(/5559114357/g, content.contactPhone.replace(/[^\d]/g, ''))
+      }
+      
+      // Handle email in CTA
+      if (content.contactEmail) {
+        updatedTemplate = updatedTemplate
+          .replace(/"email": ".*?"/, `"email": "${content.contactEmail}"`)
+          .replace(/info@company\.com/g, content.contactEmail)
+      }
+      
+      // Handle address in CTA
+      if (content.contactAddress) {
+        updatedTemplate = updatedTemplate
+          .replace(/"address": ".*?"/, `"address": "${content.contactAddress}"`)
+      }
+      break
+      
+    case 'footer':
+      updatedTemplate = updatedTemplate
+        .replace(/Your Company/g, content.companyName || 'Your Company')
+        .replace(/"companyName": ".*?"/, `"companyName": "${content.companyName || 'Your Company'}"`)
+        .replace(/"navigation": \[[\s\S]*?\]/, `"navigation": ${JSON.stringify(content.navigation || [])}`)
+        .replace(/"socialLinks": \[[\s\S]*?\]/, `"socialLinks": ${JSON.stringify(content.socialLinks || [])}`)
+      
+      // Handle contact info if present
+      if (content.contactEmail || content.contactPhone || content.contactAddress) {
+        const contactInfo = {
+          email: content.contactEmail || "hello@company.com",
+          phone: content.contactPhone || "(555) 123-4567", 
+          address: content.contactAddress || "123 Main St, City, ST 12345"
+        }
+        updatedTemplate = updatedTemplate
+          .replace(/"email": ".*?"/, `"email": "${contactInfo.email}"`)
+          .replace(/"phone": ".*?"/, `"phone": "${contactInfo.phone}"`)
+          .replace(/"address": ".*?"/, `"address": "${contactInfo.address}"`)
+      }
+      break
+  }
+  
+  return updatedTemplate
 }
 
 function generateProjectFiles(selection: AISelection, componentBlocks: ComponentBlocks): { [key: string]: string } {
@@ -288,9 +452,10 @@ function generateProjectFiles(selection: AISelection, componentBlocks: Component
   const selectedHero = componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)
   const selectedFeatures = componentBlocks.features.find(f => f.id === selection.selectedComponents.features)
   const selectedTestimonials = componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)
+  const selectedCTA = componentBlocks.ctas.find(c => c.id === selection.selectedComponents.cta)
   const selectedFooter = componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)
 
-  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedFooter) {
+  if (!selectedHeader || !selectedHero || !selectedFeatures || !selectedTestimonials || !selectedCTA || !selectedFooter) {
     throw new Error('Selected components not found')
   }
 
@@ -432,7 +597,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '${selection.content.header.logo}',
+  title: '${selection.projectConfig.name}',
   description: '${selection.projectConfig.description}',
 }
 
@@ -448,43 +613,36 @@ export default function RootLayout({
   )
 }`
 
-  // Components
-  files['src/components/Header.tsx'] = selectedHeader.template
-  files['src/components/Hero.tsx'] = selectedHero.template
-  files['src/components/Features.tsx'] = selectedFeatures.template
-  files['src/components/Testimonials.tsx'] = selectedTestimonials.template
-  files['src/components/Footer.tsx'] = selectedFooter.template
+  // Components - Replace placeholder data with generated content
+  files['src/components/Header.tsx'] = generateSelfContainedComponent(selectedHeader.template, selection.content, 'header')
+  files['src/components/Hero.tsx'] = generateSelfContainedComponent(selectedHero.template, selection.content, 'hero')
+  files['src/components/Features.tsx'] = generateSelfContainedComponent(selectedFeatures.template, selection.content, 'features')
+  files['src/components/Testimonials.tsx'] = generateSelfContainedComponent(selectedTestimonials.template, selection.content, 'testimonials')
+  files['src/components/CTA.tsx'] = generateSelfContainedComponent(selectedCTA.template, selection.content, 'cta')
+  files['src/components/Footer.tsx'] = generateSelfContainedComponent(selectedFooter.template, selection.content, 'footer')
 
-  // Home page with proper props
-  const headerProps = JSON.stringify(selection.content.header, null, 2).replace(/"/g, '')
-  const heroProps = JSON.stringify(selection.content.hero, null, 2).replace(/"/g, '')
-  const footerProps = JSON.stringify(selection.content.footer, null, 2).replace(/"/g, '')
-
+  // Home page - Clean and simple with self-contained components
   files['src/app/page.tsx'] = `import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import Features from '@/components/Features'
 import Testimonials from '@/components/Testimonials'
+import CTA from '@/components/CTA'
 import Footer from '@/components/Footer'
 
 export default function Home() {
-  const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
-  const heroProps = ${JSON.stringify(selection.content.hero, null, 2)}
-  const featuresProps = ${JSON.stringify(selection.content.features, null, 2)}
-  const testimonialsProps = ${JSON.stringify(selection.content.testimonials, null, 2)}
-  const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
-
   return (
     <>
-      <Header {...headerProps} />
-      <Hero {...heroProps} />
-      <Features {...featuresProps} />
-      <Testimonials {...testimonialsProps} />
-      <Footer {...footerProps} />
+      <Header />
+      <Hero />
+      <Features />
+      <Testimonials />
+      <CTA />
+      <Footer />
     </>
   )
 }`
 
-  // Generate additional pages from sitemap
+  // Generate additional pages from sitemap - Clean and simple
   selection.sitemap.forEach(page => {
     if (page.path !== '/') {
       const pagePath = page.path === '/' ? 'page.tsx' : `${page.path.slice(1)}/page.tsx`
@@ -492,19 +650,16 @@ export default function Home() {
 import Footer from '@/components/Footer'
 
 export default function ${page.name.replace(/\s+/g, '')}() {
-  const headerProps = ${JSON.stringify(selection.content.header, null, 2)}
-  const footerProps = ${JSON.stringify(selection.content.footer, null, 2)}
-
   return (
     <>
-      <Header {...headerProps} />
+      <Header />
       <main className="min-h-screen py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">${page.name}</h1>
           <p className="text-xl text-gray-600">${page.description}</p>
         </div>
       </main>
-      <Footer {...footerProps} />
+      <Footer />
     </>
   )
 }`
@@ -512,7 +667,7 @@ export default function ${page.name.replace(/\s+/g, '')}() {
   })
 
   // README
-  files['README.md'] = `# ${selection.content.header.logo}
+  files['README.md'] = `# ${selection.projectConfig.name}
 
 ${selection.projectConfig.description}
 
@@ -636,6 +791,7 @@ export async function POST(request: NextRequest) {
         hero: componentBlocks.heroes.find(h => h.id === selection.selectedComponents.hero)?.name,
         features: componentBlocks.features.find(f => f.id === selection.selectedComponents.features)?.name,
         testimonials: componentBlocks.testimonials.find(t => t.id === selection.selectedComponents.testimonials)?.name,
+        cta: componentBlocks.ctas.find(c => c.id === selection.selectedComponents.cta)?.name,
         footer: componentBlocks.footers.find(f => f.id === selection.selectedComponents.footer)?.name
       },
       sitemap: selection.sitemap,

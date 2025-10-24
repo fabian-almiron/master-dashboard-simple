@@ -6,6 +6,16 @@ const isProtectedRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, req) => {
+  // Check if auth bypass is enabled in development
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const bypassAuth = process.env.BYPASS_AUTH === 'true'
+  
+  // Skip auth protection if bypassed in development
+  if (isDevelopment && bypassAuth) {
+    console.log('🔓 Middleware: Auth bypassed for route:', req.nextUrl.pathname)
+    return
+  }
+  
   // Allow build to succeed even without Clerk keys (they'll be required at runtime)
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   
