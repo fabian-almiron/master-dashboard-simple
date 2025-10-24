@@ -3,8 +3,7 @@ import {
   createCMSInstance, 
   updateCMSInstance, 
   createDeploymentLog, 
-  updateDeploymentLog,
-  createNotification
+  updateDeploymentLog
 } from '@/lib/master-supabase'
 import { securityMiddleware, validateInput, schemas, sanitizeError, logSecurityEvent } from '@/lib/security'
 
@@ -238,27 +237,7 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
       }
     })
     
-    // Send success notification with appropriate message
-    const notificationTitle = bitbucketRepo 
-      ? 'Website Repository Created Successfully'
-      : 'Vercel Project Created Successfully'
-      
-    const notificationMessage = bitbucketRepo
-      ? `${data.name} repository created with complete code. Project deployed and ready to use.`
-      : `${data.name} Vercel project created. Manual repository connection required in Vercel dashboard.`
-      
-    await createNotification({
-      cms_instance_id: instanceId,
-      type: 'success',
-      title: notificationTitle,
-      message: notificationMessage,
-      is_read: false,
-      metadata: {
-        repository_url: bitbucketRepo?.web_url || undefined,
-        vercel_project_url: `https://vercel.com/${VERCEL_TEAM_ID ? `team/${VERCEL_TEAM_ID}/` : ''}${vercelProject.name}`,
-        requires_manual_setup: !bitbucketRepo
-      }
-    })
+    // Deployment completed successfully
     
   } catch (error) {
     console.error('Deployment failed:', error)
@@ -276,17 +255,7 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
       error_message: error instanceof Error ? error.message : 'Unknown error occurred'
     })
     
-    // Send error notification
-    await createNotification({
-      cms_instance_id: instanceId,
-      type: 'error',
-      title: 'Website Deployment Failed',
-      message: `Failed to deploy ${data.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      is_read: false,
-      metadata: {
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
-    })
+    // Error logged in deployment log
   }
 }
 

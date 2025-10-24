@@ -146,16 +146,6 @@ export interface SupabaseProject {
   updated_at: string
 }
 
-export interface Notification {
-  id: string
-  cms_instance_id?: string
-  type: 'deployment' | 'error' | 'success' | 'warning'
-  title: string
-  message: string
-  is_read: boolean
-  metadata: Record<string, any>
-  created_at: string
-}
 
 export interface MasterSetting {
   id: string
@@ -331,50 +321,6 @@ export async function updateSupabaseProject(projectId: string, updates: Partial<
   return data as SupabaseProject
 }
 
-// =============================================
-// NOTIFICATION FUNCTIONS
-// =============================================
-export async function createNotification(notificationData: Omit<Notification, 'id' | 'created_at'>) {
-  const masterSupabase = getMasterSupabase()
-  const { data, error } = await masterSupabase
-    .from('notifications')
-    .insert([notificationData])
-    .select()
-    .single()
-
-  if (error) throw error
-  return data as Notification
-}
-
-export async function getNotifications(limit: number = 20, unreadOnly: boolean = false) {
-  const masterSupabase = getMasterSupabase()
-  let query = masterSupabase
-    .from('notifications')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit)
-
-  if (unreadOnly) {
-    query = query.eq('is_read', false)
-  }
-
-  const { data, error } = await query
-  if (error) throw error
-  return data as Notification[]
-}
-
-export async function markNotificationAsRead(notificationId: string) {
-  const masterSupabase = getMasterSupabase()
-  const { data, error } = await masterSupabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', notificationId)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data as Notification
-}
 
 // =============================================
 // SETTINGS FUNCTIONS

@@ -1,20 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   Plus, 
-  Bell, 
   User,
   Menu,
   X,
   Globe,
   Sparkles
 } from 'lucide-react'
-import { type Notification } from '@/lib/master-supabase'
 
 // Force dynamic rendering - don't pre-render during build (requires auth)
 export const dynamic = 'force-dynamic'
@@ -26,30 +24,6 @@ export default function MasterLayout({
 }) {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-
-  useEffect(() => {
-    loadNotifications()
-    // Set up polling for notifications every 30 seconds
-    const interval = setInterval(loadNotifications, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const loadNotifications = async () => {
-    try {
-      const response = await fetch('/api/master/notifications?limit=10&unreadOnly=true')
-      if (response.ok) {
-        const result = await response.json()
-        if (result.success) {
-          setNotifications(result.data)
-          setUnreadCount(result.data.length)
-        }
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error)
-    }
-  }
 
   const navigation = [
     {
@@ -175,25 +149,6 @@ export default function MasterLayout({
             </div>
           </div>
 
-          {/* Recent Notifications */}
-          {notifications.length > 0 && (
-            <div className="mt-8 px-3">
-              <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Recent Alerts
-              </h3>
-              <div className="mt-4 space-y-2">
-                {notifications.slice(0, 3).map((notification) => (
-                  <div
-                    key={notification.id}
-                    className="px-4 py-3 text-xs bg-amber-500/10 border border-amber-500/30 rounded-lg backdrop-blur-sm"
-                  >
-                    <div className="font-medium text-amber-300">{notification.title}</div>
-                    <div className="truncate text-amber-400/80 mt-1">{notification.message}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </nav>
       </div>
 
@@ -212,35 +167,6 @@ export default function MasterLayout({
             </Button>
 
             <div className="flex items-center space-x-2 ml-auto">
-              {/* Notifications */}
-              <div className="relative">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="relative text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl"
-                >
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1">
-                      <Badge 
-                        className="h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center p-0 border-2 border-gray-900 animate-pulse"
-                      >
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </Badge>
-                    </div>
-                  )}
-                </Button>
-              </div>
-
-              {/* Activity */}
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl"
-              >
-                <Bell className="h-5 w-5" />
-              </Button>
-
               {/* User Menu */}
               <div className="flex items-center space-x-2">
                 <Button 
