@@ -33,15 +33,16 @@ export default function RootLayout({
     </html>
   )
   
-  // Only skip ClerkProvider if we explicitly don't have keys
-  // This allows build to succeed but runtime to work normally
-  if (!clerkPublishableKey || clerkPublishableKey === '') {
-    return content
+  // Always render with ClerkProvider in production
+  // The publishableKey is required in production
+  const finalPublishableKey = clerkPublishableKey || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+  
+  if (!finalPublishableKey) {
+    console.error('Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY')
   }
   
-  // Render with ClerkProvider when keys are available
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider publishableKey={finalPublishableKey}>
       {content}
     </ClerkProvider>
   )
