@@ -43,7 +43,7 @@ This document provides a comprehensive security audit and production readiness c
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx
 CLERK_SECRET_KEY=sk_live_xxxxx
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/master
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/master
 
 # =============================================
 # ADMIN SECURITY

@@ -28,7 +28,7 @@ Copy and paste these variables (one at a time) and replace the placeholder value
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxxxxxxx
 CLERK_SECRET_KEY=sk_live_xxxxxxxxxx
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/master
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/master
 ```
 
 **Where to get Clerk keys:**

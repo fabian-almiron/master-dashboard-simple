@@ -11,6 +11,15 @@ export function ClerkWrapper({ children }: { children: ReactNode }) {
 // Safe useUser hook that doesn't crash during build
 export function useSafeUser() {
   try {
+    // During build (server-side), return safe defaults immediately
+    if (typeof window === 'undefined') {
+      return {
+        user: null,
+        isLoaded: false,
+        isSignedIn: false
+      }
+    }
+    
     // Check if auth is bypassed in development
     const isDevelopment = process.env.NODE_ENV === 'development'
     const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
@@ -43,6 +52,14 @@ export function useSafeUser() {
 // Safe useSession hook that doesn't crash during build
 export function useSafeSession() {
   try {
+    // During build (server-side), return safe defaults immediately
+    if (typeof window === 'undefined') {
+      return {
+        session: null,
+        isLoaded: false
+      }
+    }
+    
     return useSession()
   } catch (error) {
     // During build (no ClerkProvider), return safe defaults
@@ -56,6 +73,15 @@ export function useSafeSession() {
 // Safe UserButton that doesn't crash during build
 export function SafeUserButton(props: any) {
   try {
+    // During build (server-side), return placeholder immediately
+    if (typeof window === 'undefined') {
+      return (
+        <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+          <span className="text-gray-400 text-sm">U</span>
+        </div>
+      )
+    }
+    
     return <UserButton {...props} />
   } catch (error) {
     // During build (no ClerkProvider), return placeholder
