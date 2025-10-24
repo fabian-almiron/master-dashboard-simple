@@ -1,50 +1,10 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { ClientOnly } from '@/components/client-only'
+import { ClerkSignIn } from '@/components/clerk-sign-in'
 
 // Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
 
-// Dynamically import SignIn with better error handling
-const SignIn = dynamic(
-  () => import('@clerk/nextjs').then(mod => mod.SignIn),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex justify-center">
-        <div className="w-80 h-96 bg-gray-900/80 backdrop-blur-xl border border-gray-800/50 rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <p className="text-gray-400 text-sm">Loading sign-in form...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-)
-
 export default function SignInPage() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black">
-        <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-12 w-12 bg-blue-400/20 blur-md animate-pulse mx-auto"></div>
-          </div>
-          <p className="text-gray-300">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black">
       <div className="w-full max-w-md mx-4">
@@ -65,32 +25,21 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* Dynamically Loaded Sign In Component */}
-        <SignIn 
-          signUpUrl={null}
-          appearance={{
-            elements: {
-              rootBox: "mx-auto",
-              card: "bg-gray-900/80 backdrop-blur-xl border-gray-800/50 shadow-2xl shadow-black/50",
-              headerTitle: "text-white",
-              headerSubtitle: "text-gray-400",
-              socialButtonsBlockButton: "bg-gray-800 border-gray-700 text-white hover:bg-gray-700",
-              socialButtonsBlockButtonText: "text-white",
-              formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
-              formFieldInput: "bg-gray-800 border-gray-700 text-white",
-              formFieldLabel: "text-gray-300",
-              identityPreviewText: "text-gray-300",
-              identityPreviewEditButton: "text-blue-400 hover:text-blue-300",
-              footerActionText: "text-gray-400",
-              footerActionLink: "text-blue-400 hover:text-blue-300",
-              dividerLine: "bg-gray-700",
-              dividerText: "text-gray-400",
-              otpCodeFieldInput: "bg-gray-800 border-gray-700 text-white",
-              alternativeMethodsBlockButton: "text-blue-400 hover:text-blue-300",
-              footerAction: "hidden", // Hide the sign-up link
-            }
-          }}
-        />
+        {/* Client-Only Clerk Sign In Component */}
+        <ClientOnly
+          fallback={
+            <div className="flex justify-center">
+              <div className="w-80 h-96 bg-gray-900/80 backdrop-blur-xl border border-gray-800/50 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
+                  <p className="text-gray-400 text-sm">Loading sign-in...</p>
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <ClerkSignIn />
+        </ClientOnly>
       </div>
     </div>
   )
