@@ -1,6 +1,6 @@
-# modern-saas-platform
+# hvac-specialist-pro
 
-Modern tech startup SaaS platform with dark gradient design
+Professional HVAC specialist website showcasing advanced certifications and expert services
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: Dark Modern Header
-- Hero: Dark Gradient Hero
-- Footer: Dark Minimal Footer
+- Header: Modern Navigation Header
+- Hero: Service Specialist Hero
+- Footer: Multi-Column Footer
 
 Generated using the Hybrid Component System.

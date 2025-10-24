@@ -124,92 +124,139 @@ async function deployWebsite(instanceId: string, data: DeploymentRequest, deploy
       log_data: { steps: ['instance-created', 'creating-bitbucket-repo'] }
     })
     
-    // First test the Bitbucket API connection
-    await testBitbucketConnection()
+    let bitbucketRepo = null
+    let vercelProject = null
     
-    const bitbucketRepo = await createBitbucketRepository(data.name, data.description)
-    
-    // Wait a moment for Bitbucket to sync the repository
-    console.log('⏳ Waiting for Bitbucket repository to sync...')
-    await new Promise(resolve => setTimeout(resolve, 10000))
-    
-    // Step 2: Create Vercel project first, then deploy with project linking
-    await updateDeploymentLog(deploymentLogId, {
-      status: 'building',
-      log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'creating-vercel'] }
-    })
-    
-    console.log('🚀 Creating Vercel project first...')
-    const vercelProject = await createVercelProjectAPI(instanceId, data.name, bitbucketRepo.clone_url)
+    try {
+      // Log naming strategy being used
+      if (data.domain) {
+        console.log(`🌐 Using custom domain for naming: "${data.domain}"`)
+        console.log(`📝 Project will be named based on domain instead of: "${data.name}"`)
+      } else {
+        console.log(`📝 Using project name for naming: "${data.name}" (no custom domain provided)`)
+      }
+      
+      // First test the Bitbucket API connection
+      await testBitbucketConnection()
+      
+      bitbucketRepo = await createBitbucketRepository(data.domain || data.name, data.description)
+      
+      // Wait a moment for Bitbucket to sync the repository
+      console.log('⏳ Waiting for Bitbucket repository to sync...')
+      await new Promise(resolve => setTimeout(resolve, 10000))
+      
+      // Step 2: Create Vercel project with Bitbucket repo
+      await updateDeploymentLog(deploymentLogId, {
+        status: 'building',
+        log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'creating-vercel'] }
+      })
+      
+      console.log('🚀 Creating Vercel project with repository...')
+      vercelProject = await createVercelProjectAPI(instanceId, data.domain || data.name, bitbucketRepo.clone_url)
+      
+    } catch (error) {
+      console.log('⚠️ Bitbucket repository creation failed, creating Vercel project without repository link:', error)
+      
+      // Step 2 Fallback: Create Vercel project without repository link
+      await updateDeploymentLog(deploymentLogId, {
+        status: 'building',
+        log_data: { steps: ['instance-created', 'creating-vercel-standalone'] }
+      })
+      
+      console.log('🚀 Creating standalone Vercel project...')
+      vercelProject = await createStandaloneVercelProject(instanceId, data.domain || data.name)
+    }
     
     // Wait for project to be ready
     console.log('⏳ Waiting for Vercel project to be ready...')
     await new Promise(resolve => setTimeout(resolve, 10000))
     
-    // Step 3: Deploy to the created project
-    console.log('🚀 Deploying to created project...')
-    try {
-      const deployment = await triggerDirectDeployment(vercelProject.id, bitbucketRepo.clone_url, data.name, bitbucketRepo.uuid)
-      console.log('✅ Direct deployment triggered:', deployment.url)
-      
-      // Update project with deployment URL
-      vercelProject.url = deployment.url
-    } catch (error) {
-      console.log('⚠️ Direct deployment failed, but project created successfully:', error)
+    // Step 3: Deploy to the created project (if we have a repository)
+    let deployment = null
+    if (bitbucketRepo) {
+      console.log('🚀 Deploying to created project with repository...')
+      try {
+        deployment = await triggerDirectDeployment(vercelProject.id, bitbucketRepo.clone_url, data.name, bitbucketRepo.uuid)
+        console.log('✅ Direct deployment triggered:', deployment.url)
+        
+        // Update project with deployment URL
+        vercelProject.url = deployment.url
+      } catch (error) {
+        console.log('⚠️ Direct deployment failed, but project created successfully:', error)
+      }
+    } else {
+      console.log('⚠️ No repository available - Vercel project created but requires manual repository connection')
     }
     
-    // Step 3: Configure basic environment variables
+    // Step 4: Configure basic environment variables
     await updateDeploymentLog(deploymentLogId, {
       status: 'building',
-      log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'configuring-env'] }
+      log_data: { steps: ['instance-created', 'vercel-created', 'configuring-env'] }
     })
     
     await configureBasicEnvironmentVariables(vercelProject.id)
     
-    // Step 4: Deploy to Vercel
+    // Step 5: Finalize deployment status
     await updateDeploymentLog(deploymentLogId, {
       status: 'building',
-      log_data: { steps: ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deploying'] }
+      log_data: { steps: ['instance-created', 'vercel-created', 'env-configured', 'deployment-ready'] }
     })
     
-    // Deployment already completed in step 3
-    console.log('✅ Deployment completed - project created with repository linked')
-    const deployment = { 
-      id: 'deployed', 
-      url: vercelProject.url || vercelProject.dashboard_url
+    if (deployment) {
+      console.log('✅ Deployment completed - project created with repository linked')
+    } else {
+      console.log('✅ Project created - manual repository connection required in Vercel dashboard')
+      deployment = { 
+        id: 'project-created', 
+        url: vercelProject.url || `https://${vercelProject.name}.vercel.app`
+      }
     }
     
-    // Step 5: Update instance with deployment details
+    // Step 6: Update instance with deployment details
     await updateCMSInstance(instanceId, {
       status: 'active',
       vercel_project_id: vercelProject.id,
       vercel_deployment_url: deployment.url,
-      vercel_git_repo: bitbucketRepo.clone_url,
+      vercel_git_repo: bitbucketRepo?.clone_url || undefined,
       last_deployed_at: new Date().toISOString()
     })
     
     // Complete deployment log
+    const deploymentSteps = bitbucketRepo 
+      ? ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deployed', 'completed']
+      : ['instance-created', 'vercel-created', 'env-configured', 'project-ready']
+      
     await updateDeploymentLog(deploymentLogId, {
       status: 'success',
       completed_at: new Date().toISOString(),
       duration_ms: Date.now() - startTime,
       log_data: { 
-        steps: ['instance-created', 'bitbucket-repo-created', 'vercel-created', 'env-configured', 'deployed', 'completed'],
+        steps: deploymentSteps,
         final_url: deployment.url,
-        repository_url: bitbucketRepo.clone_url
+        repository_url: bitbucketRepo?.clone_url || undefined,
+        requires_manual_connection: !bitbucketRepo
       }
     })
     
-    // Send success notification
+    // Send success notification with appropriate message
+    const notificationTitle = bitbucketRepo 
+      ? 'Website Repository Created Successfully'
+      : 'Vercel Project Created Successfully'
+      
+    const notificationMessage = bitbucketRepo
+      ? `${data.name} repository created with complete code. Project deployed and ready to use.`
+      : `${data.name} Vercel project created. Manual repository connection required in Vercel dashboard.`
+      
     await createNotification({
       cms_instance_id: instanceId,
       type: 'success',
-      title: 'Website Repository Created Successfully',
-      message: `${data.name} repository created with complete code. Connect to Vercel dashboard to deploy.`,
+      title: notificationTitle,
+      message: notificationMessage,
       is_read: false,
       metadata: {
-        repository_url: bitbucketRepo.web_url,
-        vercel_project_url: `https://vercel.com/${VERCEL_TEAM_ID}/${vercelProject.name}`
+        repository_url: bitbucketRepo?.web_url || undefined,
+        vercel_project_url: `https://vercel.com/${VERCEL_TEAM_ID ? `team/${VERCEL_TEAM_ID}/` : ''}${vercelProject.name}`,
+        requires_manual_setup: !bitbucketRepo
       }
     })
     
@@ -249,16 +296,58 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
     throw new Error('Vercel token not configured')
   }
   
-  // Use the provided repository URL (from Bitbucket)
-  const templateRepo = repositoryUrl
+  // Extract proper repository path from URL for Vercel (workspace/repo-name format)
+  const repoPath = repositoryUrl.replace('https://bitbucket.org/', '').replace('.git', '')
   
-  // Clean and format the project name (max 100 chars, but keep it short)
-  const projectName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '').substring(0, 30)
-  const fullProjectName = projectName.startsWith('cms-') ? projectName : `cms-${projectName}`
+  console.log(`🔍 Processing repository URL: "${repositoryUrl}"`)
+  console.log(`🔍 Extracted repo path for Vercel: "${repoPath}"`)
+  
+  // Use domain name if provided, otherwise fall back to project name
+  let projectName
+  if (name.includes('.')) {
+    // If name looks like a domain, use it directly (remove TLD for project name)
+    projectName = name.toLowerCase().replace(/\.(com|net|org|io|app|dev)$/, '').replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '')
+  } else {
+    // Clean regular project name
+    projectName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '').substring(0, 30)
+  }
+  
+  // Only add timestamp if name might conflict (shorter names are more likely to conflict)
+  const timestamp = Date.now().toString().slice(-4) // Shorter timestamp for cleaner names
+  const fullProjectName = projectName.length < 15 ? `${projectName}-${timestamp}` : projectName
+  
+  console.log(`🔍 Original name: "${name}"`)
+  console.log(`🔍 Cleaned project name: "${projectName}"`)
+  console.log(`🏷️ Final Vercel project name: "${fullProjectName}"`)
   
   console.log(`🏗️  Creating Vercel project: "${fullProjectName}"`)
   console.log(`🎯 Using Vercel Team ID: "${VERCEL_TEAM_ID}"`)
   console.log(`🔑 Vercel Token: ${VERCEL_TOKEN ? `${VERCEL_TOKEN.substring(0, 10)}...` : 'NOT SET'}`)
+  
+  // Check if project with this name already exists to prevent duplicates
+  console.log(`🔍 Checking if project "${fullProjectName}" already exists...`)
+  const checkUrl = VERCEL_TEAM_ID 
+    ? `${VERCEL_API_URL}/v9/projects/${fullProjectName}?teamId=${VERCEL_TEAM_ID}`
+    : `${VERCEL_API_URL}/v9/projects/${fullProjectName}`
+    
+  const checkResponse = await fetch(checkUrl, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${VERCEL_TOKEN}`,
+      ...(VERCEL_TEAM_ID && { 'X-Vercel-Team-Id': VERCEL_TEAM_ID })
+    }
+  })
+  
+  if (checkResponse.ok) {
+    const existingProject = await checkResponse.json()
+    console.log(`⚠️ Project "${fullProjectName}" already exists, using existing project`)
+    console.log(`   Existing project ID: ${existingProject.id}`)
+    return {
+      id: existingProject.id,
+      name: existingProject.name,
+      url: `https://${existingProject.name}.vercel.app`
+    }
+  }
   
   // Try to create Vercel project with Bitbucket repo first
   const apiUrl = VERCEL_TEAM_ID 
@@ -275,7 +364,7 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
     body: JSON.stringify({
       name: fullProjectName,
       gitRepository: {
-        repo: templateRepo,
+        repo: repoPath, // Use cleaned workspace/repo-name format
         type: 'bitbucket'
       },
       framework: 'nextjs',
@@ -302,7 +391,7 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
       body: JSON.stringify({
         name: fullProjectName,
         gitRepository: {
-          repo: templateRepo,
+          repo: repoPath, // Use cleaned workspace/repo-name format
           type: 'bitbucket',
           sourceless: false
         },
@@ -333,10 +422,41 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
       
       if (!response.ok) {
         const thirdError = await response.text()
-        throw new Error(`Failed to create Vercel project: ${thirdError}`)
+        
+        // Check if it's a project name conflict
+        if (thirdError.includes('already exists') || thirdError.includes('conflict')) {
+          console.log('⚠️  Project name conflict detected, trying with different suffix...')
+          
+          // Try with a different timestamp suffix
+          const retryTimestamp = (Date.now() + Math.floor(Math.random() * 1000)).toString().slice(-8)
+          const retryProjectName = projectName.startsWith('cms-') ? `${projectName}-${retryTimestamp}` : `cms-${projectName}-${retryTimestamp}`
+          
+          const retryResponse = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${VERCEL_TOKEN}`,
+              'Content-Type': 'application/json',
+              ...(VERCEL_TEAM_ID && { 'X-Vercel-Team-Id': VERCEL_TEAM_ID })
+            },
+            body: JSON.stringify({
+              name: retryProjectName,
+              framework: 'nextjs'
+            })
+          })
+          
+          if (!retryResponse.ok) {
+            const retryError = await retryResponse.text()
+            throw new Error(`Failed to create Vercel project after retry: ${retryError}`)
+          }
+          
+          console.log(`✅ Created empty Vercel project with unique name: "${retryProjectName}"`)
+          response = retryResponse
+        } else {
+          throw new Error(`Failed to create Vercel project: ${thirdError}`)
+        }
+      } else {
+        console.log('✅ Created empty Vercel project - connect repository manually in Vercel dashboard')
       }
-      
-      console.log('✅ Created empty Vercel project - connect repository manually in Vercel dashboard')
     } else {
       console.log('✅ Created Vercel project with public Bitbucket repository')
     }
@@ -358,6 +478,122 @@ async function createVercelProjectAPI(instanceId: string, name: string, reposito
   console.log('   Full response keys:', Object.keys(project))
   
   return project
+}
+
+// Fallback function to create Vercel project without repository link
+async function createStandaloneVercelProject(instanceId: string, name: string) {
+  if (!VERCEL_TOKEN) {
+    throw new Error('Vercel token not configured')
+  }
+  
+  // Use domain-aware naming (same logic as main function)
+  let projectName
+  if (name.includes('.')) {
+    // If name looks like a domain, use it directly (remove TLD for project name)
+    projectName = name.toLowerCase().replace(/\.(com|net|org|io|app|dev)$/, '').replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '')
+  } else {
+    // Clean regular project name
+    projectName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '').substring(0, 30)
+  }
+  
+  // Add minimal suffix for uniqueness (shorter than before)
+  const timestamp = Date.now().toString().slice(-4)
+  const fullProjectName = projectName.length < 15 ? `${projectName}-${timestamp}` : projectName
+  
+  console.log(`🏗️ Creating standalone Vercel project: "${fullProjectName}"`)
+  
+  // Check if project already exists first
+  console.log(`🔍 Checking if standalone project "${fullProjectName}" already exists...`)
+  const checkUrl = VERCEL_TEAM_ID 
+    ? `${VERCEL_API_URL}/v9/projects/${fullProjectName}?teamId=${VERCEL_TEAM_ID}`
+    : `${VERCEL_API_URL}/v9/projects/${fullProjectName}`
+    
+  const checkResponse = await fetch(checkUrl, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${VERCEL_TOKEN}`,
+      ...(VERCEL_TEAM_ID && { 'X-Vercel-Team-Id': VERCEL_TEAM_ID })
+    }
+  })
+  
+  if (checkResponse.ok) {
+    const existingProject = await checkResponse.json()
+    console.log(`⚠️ Standalone project "${fullProjectName}" already exists, using existing project`)
+    return {
+      id: existingProject.id,
+      name: existingProject.name,
+      url: `https://${existingProject.name}.vercel.app`
+    }
+  }
+  
+  const apiUrl = VERCEL_TEAM_ID 
+    ? `${VERCEL_API_URL}/v9/projects?teamId=${VERCEL_TEAM_ID}`
+    : `${VERCEL_API_URL}/v9/projects`
+  
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${VERCEL_TOKEN}`,
+      'Content-Type': 'application/json',
+      ...(VERCEL_TEAM_ID && { 'X-Vercel-Team-Id': VERCEL_TEAM_ID })
+    },
+    body: JSON.stringify({
+      name: fullProjectName,
+      framework: 'nextjs'
+    })
+  })
+  
+  if (!response.ok) {
+    const error = await response.text()
+    
+    // One more retry with even more unique name if conflict
+    if (error.includes('already exists') || error.includes('conflict')) {
+      const superUniqueTimestamp = Date.now().toString()
+      const superUniqueProjectName = name.includes('.') 
+        ? `${projectName}-${superUniqueTimestamp}` // Keep domain-based name
+        : `${projectName}-${superUniqueTimestamp}` // Or generic project name
+      
+      console.log(`🔄 Retry with super unique name: "${superUniqueProjectName}"`)
+      
+      const retryResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VERCEL_TOKEN}`,
+          'Content-Type': 'application/json',
+          ...(VERCEL_TEAM_ID && { 'X-Vercel-Team-Id': VERCEL_TEAM_ID })
+        },
+        body: JSON.stringify({
+          name: superUniqueProjectName,
+          framework: 'nextjs'
+        })
+      })
+      
+      if (!retryResponse.ok) {
+        const retryError = await retryResponse.text()
+        throw new Error(`Failed to create standalone Vercel project after retry: ${retryError}`)
+      }
+      
+      const retryProject = await retryResponse.json()
+      console.log('✅ Created standalone Vercel project with super unique name')
+      
+      return {
+        id: retryProject.id,
+        name: retryProject.name,
+        url: `https://${retryProject.name}.vercel.app`
+      }
+    }
+    
+    throw new Error(`Failed to create standalone Vercel project: ${error}`)
+  }
+  
+  const project = await response.json()
+  console.log('✅ Created standalone Vercel project successfully')
+  
+  return {
+    id: project.id,
+    name: project.name,
+    url: `https://${project.name}.vercel.app`
+  }
 }
 
 async function connectRepositoryToVercelProject(vercelProjectId: string, repositoryUrl: string) {
@@ -411,21 +647,29 @@ async function triggerDirectDeployment(vercelProjectId: string | null, repositor
   
   // Create deployment directly from git repository
   const simpleDeploymentName = `d${Date.now()}`
+  
+  // Extract proper repository path from URL (workspace/repo-name format)
+  const repoPath = repositoryUrl.replace('https://bitbucket.org/', '').replace('.git', '')
+  console.log(`🔍 Repository path for Vercel: "${repoPath}"`)
+  console.log(`🔍 Original repository URL: "${repositoryUrl}"`)
+  console.log(`🔍 Repository UUID: "${repoUuid}"`)
+  
   const deploymentPayload: any = {
     name: simpleDeploymentName,
     target: 'production',
     gitSource: {
       type: 'bitbucket',
-      repo: repositoryUrl.replace('https://bitbucket.org/', '').replace('.git', ''),
+      repo: repoPath, // Should be format: workspace/repository-name
       ref: 'main',
-      repoUuid: repoUuid
+      repoUuid: repoUuid // Required by Vercel for Bitbucket repositories
     }
   }
   
-  // Skip project linking for now - let deployment create its own project
-  // if (vercelProjectId) {
-  //   deploymentPayload.project = vercelProjectId
-  // }
+  // Link to existing project to prevent duplicate project creation
+  if (vercelProjectId) {
+    deploymentPayload.project = vercelProjectId
+    console.log(`🔗 Linking deployment to existing project: ${vercelProjectId}`)
+  }
   
   console.log('📤 Deployment payload:', JSON.stringify(deploymentPayload, null, 2))
   
@@ -681,8 +925,19 @@ async function createBitbucketRepository(websiteName: string, description?: stri
     throw new Error('Bitbucket credentials not configured. Please set BITBUCKET_API_TOKEN (recommended) or BITBUCKET_APP_PASSWORD (legacy)')
   }
 
-  // Clean and format the repository name
-  const repoName = websiteName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '')
+  // Use domain-aware naming for repository too
+  let baseRepoName
+  if (websiteName.includes('.')) {
+    // If websiteName looks like a domain, use it directly (remove TLD)
+    baseRepoName = websiteName.toLowerCase().replace(/\.(com|net|org|io|app|dev)$/, '').replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '')
+  } else {
+    // Clean regular project name
+    baseRepoName = websiteName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '').substring(0, 30)
+  }
+  
+  // Add timestamp for uniqueness (shorter for cleaner names)
+  const timestamp = Date.now().toString().slice(-4)
+  const repoName = `${baseRepoName}-${timestamp}`
   
   console.log(`🏗️ Creating Bitbucket repository: "${repoName}"`)
   console.log(`🎯 Using Bitbucket workspace: "${BITBUCKET_WORKSPACE}"`)
@@ -739,6 +994,35 @@ async function createBitbucketRepository(websiteName: string, description?: stri
     console.error(`   Status: ${createRepoResponse.status} ${createRepoResponse.statusText}`)
     console.error(`   Response: ${error}`)
     console.error(`   URL: https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${repoName}`)
+    
+    // Check if repository already exists - if so, try to use it
+    if (createRepoResponse.status === 400 && (error.includes('already exists') || error.includes('Repository name already exists'))) {
+      console.log('⚠️ Repository already exists, attempting to use existing repository...')
+      
+      // Try to get the existing repository
+      const getRepoResponse = await fetch(`https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${repoName}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+        }
+      })
+      
+      if (getRepoResponse.ok) {
+        const existingRepo = await getRepoResponse.json()
+        console.log('✅ Using existing repository:', existingRepo.name)
+        
+        // Return the existing repository details
+        return {
+          name: repoName,
+          full_name: existingRepo.full_name,
+          clone_url: `https://bitbucket.org/${BITBUCKET_WORKSPACE}/${repoName}.git`,
+          web_url: existingRepo.links.html.href,
+          uuid: existingRepo.uuid
+        }
+      }
+    }
+    
     throw new Error(`Failed to create Bitbucket repository (${createRepoResponse.status}): ${error}`)
   }
 

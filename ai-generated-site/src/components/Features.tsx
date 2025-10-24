@@ -1,47 +1,61 @@
-import Image from 'next/image'
-import { ArrowRight } from 'lucide-react'
+import { Shield, Award, Clock, CheckCircle, Wrench, Star } from 'lucide-react'
 
 export default function Features() {
   // Component data - will be populated by AI
   const data = {
-    headline: "Comprehensive Solutions",
-    description: "Discover how our integrated approach delivers exceptional results across every aspect of your business needs.",
+    headline: "Why Choose Our Professional Services",
+    description: "We stand behind our work with industry-leading guarantees and professional credentials that give you complete peace of mind.",
     features: [
       {
-        title: "Strategic Planning",
-        description: "Comprehensive strategic planning that aligns with your business objectives and market opportunities for sustainable growth.",
-        image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=600&h=400&fit=crop",
-        benefits: [
-          "Market analysis and competitive research",
-          "Goal setting and milestone planning",
-          "ROI optimization strategies"
-        ]
+        icon: "shield",
+        title: "Licensed & Insured",
+        description: "Fully licensed contractor with comprehensive liability and workers' compensation insurance for your protection.",
+        guarantee: "$2M Liability Coverage"
       },
       {
-        title: "Expert Implementation",
-        description: "Professional implementation by certified experts who understand the nuances of your industry and specific requirements.",
-        image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop",
-        benefits: [
-          "Certified implementation specialists",
-          "Best practices and proven methodologies",
-          "Quality assurance at every step"
-        ]
+        icon: "award",
+        title: "100% Satisfaction Guarantee",
+        description: "We're not satisfied until you are. If you're not completely happy with our work, we'll make it right.",
+        guarantee: "Money-Back Promise"
       },
       {
-        title: "Ongoing Support",
-        description: "Continuous support and optimization to ensure long-term success and adaptation to changing business needs.",
-        image: "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&h=400&fit=crop",
-        benefits: [
-          "24/7 technical support",
-          "Regular performance reviews",
-          "Continuous improvement programs"
-        ]
+        icon: "checkCircle",
+        title: "5-Year Warranty",
+        description: "All work comes with our comprehensive 5-year warranty covering both parts and labor.",
+        guarantee: "Parts & Labor Covered"
+      },
+      {
+        icon: "clock",
+        title: "On-Time Service",
+        description: "We respect your time. Arrive when promised or your service call is free.",
+        guarantee: "Punctuality Promise"
+      },
+      {
+        icon: "star",
+        title: "A+ BBB Rating",
+        description: "Accredited Business Bureau member with A+ rating and zero unresolved complaints.",
+        guarantee: "BBB Accredited"
+      },
+      {
+        icon: "wrench",
+        title: "Expert Workmanship",
+        description: "Over 25 years of experience with certified technicians and ongoing professional training.",
+        guarantee: "Certified Professionals"
       }
     ]
   }
 
+  const iconMap = {
+    shield: Shield,
+    award: Award,
+    clock: Clock,
+    checkCircle: CheckCircle,
+    wrench: Wrench,
+    star: Star
+  }
+
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-green-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
@@ -52,38 +66,33 @@ export default function Features() {
           </p>
         </div>
         
-        <div className="space-y-20">
-          {data.features.map((feature, index) => (
-            <div key={index} className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
-              index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
-            }`}>
-              <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {data.features.map((feature, index) => {
+            const IconComponent = iconMap[feature.icon as keyof typeof iconMap] || Shield
+            return (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-green-200 hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                  <IconComponent className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-lg text-gray-600 mb-6">
+                <p className="text-gray-600 mb-3">
                   {feature.description}
                 </p>
-                <ul className="space-y-3">
-                  {feature.benefits.map((benefit, benefitIndex) => (
-                    <li key={benefitIndex} className="flex items-center">
-                      <ArrowRight className="h-5 w-5 text-blue-600 mr-3" />
-                      <span className="text-gray-700">{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="bg-green-50 text-green-800 text-sm px-3 py-1 rounded-full inline-block">
+                  ✓ {feature.guarantee}
+                </div>
               </div>
-              <div className={index % 2 === 1 ? 'lg:col-start-1' : ''}>
-                <Image
-                  src={feature.image}
-                  alt={feature.title}
-                  width={600}
-                  height={400}
-                  className="rounded-lg shadow-xl"
-                />
-              </div>
-            </div>
-          ))}
+            )
+          })}
+        </div>
+        
+        <div className="text-center mt-12">
+          <div className="inline-flex items-center text-blue-600 bg-white px-6 py-3 rounded-lg shadow-sm border border-blue-200">
+            <Shield className="h-5 w-5 mr-2" />
+            <span className="font-semibold">Licensed, Bonded & Insured • BBB A+ Rating • 25+ Years Experience</span>
+          </div>
         </div>
       </div>
     </section>

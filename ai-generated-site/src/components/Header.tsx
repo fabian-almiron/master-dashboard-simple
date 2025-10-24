@@ -9,7 +9,7 @@ export default function Header() {
   
   // Component data - will be populated by AI
   const data = {
-    logo: "Nexus Cloud",
+    logo: "Elite Climate Solutions",
     navigation: [
       { label: "Home", href: "/" },
       { label: "About", href: "/about" },
@@ -21,11 +21,11 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-gray-900 border-b border-gray-800">
+    <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <Link href="/" className="text-2xl font-bold text-gray-900">
               {data.logo}
             </Link>
           </div>
@@ -35,7 +35,7 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
               >
                 {item.label}
               </Link>
@@ -45,7 +45,7 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <Link
               href={data.ctaHref}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
             >
               {data.ctaText}
             </Link>
@@ -54,7 +54,7 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-white"
+              className="text-gray-700 hover:text-gray-900"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -63,12 +63,12 @@ export default function Header() {
         
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {data.navigation.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium"
+                  className="text-gray-700 hover:text-gray-900 block px-3 py-2 text-base font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
@@ -76,7 +76,7 @@ export default function Header() {
               ))}
               <Link
                 href={data.ctaHref}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white block px-3 py-2 rounded-lg text-base font-medium hover:from-blue-600 hover:to-purple-700 mt-4"
+                className="bg-blue-600 text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 mt-4"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {data.ctaText}

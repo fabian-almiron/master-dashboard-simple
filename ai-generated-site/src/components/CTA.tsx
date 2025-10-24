@@ -1,99 +1,109 @@
 import Link from 'next/link'
-import { ArrowRight, Users, Star, TrendingUp, Zap } from 'lucide-react'
+import { Phone, Calendar, Shield, Award, CheckCircle, FileText } from 'lucide-react'
 
 export default function CTA() {
   // Component data - will be populated by AI
   const data = {
-    headline: "Join 10,000+ Successful Companies",
-    description: "Transform your business with our proven platform. Start your free trial today and see results in days, not months.",
-    stats: [
-      {
-        number: "10,000+",
-        label: "Happy Customers",
-        icon: "users"
-      },
-      {
-        number: "4.9/5",
-        label: "Customer Rating",
-        icon: "star"
-      },
-      {
-        number: "300%",
-        label: "Average ROI",
-        icon: "trendingUp"
-      },
-      {
-        number: "99.9%",
-        label: "Uptime SLA",
-        icon: "zap"
-      }
+    headline: "Ready for Professional Service?",
+    description: "Get a free, detailed estimate from licensed professionals. No obligations, no pressure - just honest advice and competitive pricing.",
+    guarantees: [
+      "100% Satisfaction Guarantee",
+      "Licensed & Insured",
+      "Free Written Estimates", 
+      "Upfront Pricing",
+      "5-Year Warranty",
+      "Emergency Service Available"
     ],
     primaryCta: {
-      text: "Start Free Trial",
-      href: "/signup"
+      text: "Get Free Estimate",
+      href: "/contact"
     },
-    secondaryCta: {
-      text: "Schedule Demo",
-      href: "/demo"
+    emergencyCta: {
+      text: "Emergency Service",
+      href: "tel:5554827826",
+      phone: "(555) 482-7826"
     },
-    socialProof: "Trusted by industry leaders worldwide"
-  }
-
-  const iconMap = {
-    users: Users,
-    star: Star,
-    trendingUp: TrendingUp,
-    zap: Zap
+    processSteps: [
+      "Call or schedule online",
+      "Free on-site assessment",
+      "Written estimate provided",
+      "Professional work completed"
+    ]
   }
 
   return (
-    <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
-      
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
-          <span className="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
-            {data.headline}
-          </span>
-        </h2>
-        <p className="text-xl text-blue-100 mb-12 max-w-3xl mx-auto">
-          {data.description}
-        </p>
-        
-        {/* Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          {data.stats.map((stat, index) => {
-            const IconComponent = iconMap[stat.icon as keyof typeof iconMap] || Users
-            return (
-              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20">
-                <IconComponent className="h-8 w-8 text-blue-200 mx-auto mb-3" />
-                <div className="text-3xl font-bold text-white mb-1">{stat.number}</div>
-                <div className="text-blue-200 text-sm font-medium">{stat.label}</div>
+    <section className="py-20 bg-gradient-to-br from-green-600 to-blue-600">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* Left Side - Main CTA */}
+            <div className="p-8 lg:p-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+                {data.headline}
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                {data.description}
+              </p>
+              
+              {/* Process Steps */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Our Simple Process:</h3>
+                <div className="space-y-3">
+                  {data.processSteps.map((step, index) => (
+                    <div key={index} className="flex items-center">
+                      <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <span className="text-gray-700">{step}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            )
-          })}
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href={data.primaryCta.href}
+                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-blue-700 transition-colors inline-flex items-center justify-center"
+                >
+                  <FileText className="mr-2 h-5 w-5" />
+                  {data.primaryCta.text}
+                </Link>
+                <Link
+                  href={data.emergencyCta.href}
+                  className="bg-red-600 text-white px-8 py-4 rounded-lg text-lg font-bold hover:bg-red-700 transition-colors inline-flex items-center justify-center"
+                >
+                  <Phone className="mr-2 h-5 w-5" />
+                  {data.emergencyCta.text}
+                </Link>
+              </div>
+            </div>
+            
+            {/* Right Side - Guarantees */}
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50 p-8 lg:p-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Our Guarantees</h3>
+              
+              <div className="space-y-4">
+                {data.guarantees.map((guarantee, index) => (
+                  <div key={index} className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
+                    <span className="text-gray-700 font-medium">{guarantee}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-8 p-6 bg-white rounded-xl border border-blue-200">
+                <div className="text-center">
+                  <Award className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                  <div className="font-bold text-gray-900 mb-1">A+ BBB Rating</div>
+                  <div className="text-sm text-gray-600 mb-3">Trusted by hundreds of satisfied customers</div>
+                  <div className="bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
+                    Licensed Contractor #123456
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <Link
-            href={data.primaryCta.href}
-            className="bg-white text-blue-600 px-10 py-4 rounded-xl text-xl font-bold hover:bg-blue-50 transition-all transform hover:scale-105 inline-flex items-center justify-center shadow-lg"
-          >
-            {data.primaryCta.text}
-            <ArrowRight className="ml-3 h-6 w-6" />
-          </Link>
-          <Link
-            href={data.secondaryCta.href}
-            className="border-2 border-white text-white px-10 py-4 rounded-xl text-lg font-medium hover:bg-white hover:text-blue-600 transition-all inline-flex items-center justify-center"
-          >
-            {data.secondaryCta.text}
-          </Link>
-        </div>
-        
-        <p className="text-blue-200 text-sm font-medium">
-          {data.socialProof}
-        </p>
       </div>
     </section>
   )

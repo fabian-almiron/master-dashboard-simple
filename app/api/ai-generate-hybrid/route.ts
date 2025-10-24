@@ -292,7 +292,9 @@ Match your content to the selected component styles:
 - Professional/Business: Highlight expertise, trust, professional results
 
 🔗 ICON NAMES (Lucide Icons Only):
-Use these exact names: "check", "star", "heart", "award", "shield", "zap", "clock", "users", "globe", "phone", "mail", "coffee", "utensils", "wheat", "chefHat", "sun", "leaf", "sparkles", "home", "map", "truck"
+Use these exact names: "check", "star", "heart", "award", "shield", "zap", "clock", "users", "globe", "phone", "mail", "coffee", "utensils", "wheat", "chefHat", "sun", "leaf", "sparkles", "home", "map", "truck", "settings", "wrench"
+
+❌ NEVER USE: "tool", "tools" (not valid Lucide icons)
 
 📧 CONTACT INFO FORMAT:
 - Email: realistic format (hello@company.com, info@business.com)

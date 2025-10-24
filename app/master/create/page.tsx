@@ -68,8 +68,8 @@ export default function CreateWebsite() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.ownerEmail)) return 'Please enter a valid email address'
     
-    // Domain format validation (if provided)
-    if (formData.domain && !/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/.test(formData.domain)) {
+    // Domain format validation (if provided) - simplified and more reliable
+    if (formData.domain && !/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.([a-zA-Z]{2,})$/.test(formData.domain)) {
       return 'Please enter a valid domain (e.g., example.com)'
     }
     

@@ -212,13 +212,20 @@ export const schemas = {
     name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
     domain: z.string().optional().refine((val) => {
       if (!val || val === '') return true; // Allow empty/undefined
-      try {
-        new URL(val);
-        return true;
-      } catch {
-        return false;
+      
+      // Simple and reliable domain validation
+      const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.([a-zA-Z]{2,})$/
+      const isValid = domainRegex.test(val)
+      
+      if (!isValid) {
+        console.log(`🚨 Domain validation failed for: "${val}"`)
+        console.log(`🔍 Domain regex test result: ${isValid}`)
+      } else {
+        console.log(`✅ Domain validation passed for: "${val}"`)
       }
-    }, { message: 'Invalid domain format' }),
+      
+      return isValid;
+    }, { message: 'Invalid domain format (use format: example.com)' }),
     subdomain: z.string().regex(/^[a-z0-9-]+$/, 'Invalid subdomain format').optional(),
     owner_name: z.string().min(1, 'Owner name is required').max(100),
     owner_email: z.string().email('Invalid email format'),
