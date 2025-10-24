@@ -72,19 +72,19 @@ export function useSafeSession() {
 
 // Safe UserButton that doesn't crash during build
 export function SafeUserButton(props: any) {
+  // Always return placeholder on server-side
+  if (typeof window === 'undefined') {
+    return (
+      <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+        <span className="text-gray-400 text-sm">U</span>
+      </div>
+    )
+  }
+  
   try {
-    // During build (server-side), return placeholder immediately
-    if (typeof window === 'undefined') {
-      return (
-        <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
-          <span className="text-gray-400 text-sm">U</span>
-        </div>
-      )
-    }
-    
     return <UserButton {...props} />
   } catch (error) {
-    // During build (no ClerkProvider), return placeholder
+    // If ClerkProvider isn't ready, return placeholder
     return (
       <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
         <span className="text-gray-400 text-sm">U</span>
