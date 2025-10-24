@@ -15,7 +15,7 @@ const nextConfig = {
   serverExternalPackages: ['@anthropic-ai/sdk'],
   // Force all authenticated routes to be fully dynamic
   experimental: {
-    missingSuspenseWithCSRBailout: false,
+    // Add any valid experimental features here if needed
   },
   // Prevent static generation of protected routes
   async generateBuildId() {
