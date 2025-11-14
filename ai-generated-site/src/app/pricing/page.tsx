@@ -1,14 +1,14 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-export default function Testimonials() {
+export default function Pricing() {
   return (
     <>
       <Header />
       <main className="min-h-screen py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">Testimonials</h1>
-          <p className="text-xl text-gray-600">Customer reviews and project showcases</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">Pricing</h1>
+          <p className="text-xl text-gray-600">Pricing tiers and plans</p>
         </div>
       </main>
       <Footer />

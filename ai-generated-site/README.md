@@ -1,6 +1,6 @@
-# professional-roofing-contractor
+# tech-startup-landing
 
-Professional roofing contractor website with emergency storm damage services, 25+ years experience, and customer testimonials
+Dark themed tech startup landing page with animated hero and pricing tiers
 
 ## Getting Started
 
@@ -26,8 +26,8 @@ This project uses:
 
 ## Components Used
 
-- Header: Modern Navigation Header
-- Hero: Professional Services Hero
-- Footer: Multi-Column Footer
+- Header: Dark Modern Header
+- Hero: Dark Gradient Hero
+- Footer: Dark Minimal Footer
 
 Generated using the Hybrid Component System.
