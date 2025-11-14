@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ClientClerkProvider } from '@/components/client-clerk-provider'
+import { DebugEnv } from '@/components/debug-env'
 
 export const metadata: Metadata = {
   title: 'Altira - CMS Management Platform',
@@ -28,6 +29,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <DebugEnv />
           </ThemeProvider>
         </ClientClerkProvider>
       </body>
