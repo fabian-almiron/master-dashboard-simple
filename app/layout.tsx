@@ -17,26 +17,20 @@ export default function RootLayout({
   // Allow build to succeed even without Clerk keys (they'll be required at runtime)
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   
-  // Only use ClerkProvider if publishableKey is available (runtime vs build time)
-  const content = (
+  return (
     <html lang="en" suppressHydrationWarning className="dark">
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <ClientClerkProvider publishableKey={clerkPublishableKey || ''}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </ClientClerkProvider>
       </body>
     </html>
-  )
-  
-  // Always render, but ClerkProvider only initializes on client-side
-  return (
-    <ClientClerkProvider publishableKey={clerkPublishableKey || ''}>
-      {content}
-    </ClientClerkProvider>
   )
 }
