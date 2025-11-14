@@ -40,13 +40,33 @@ export function ClientClerkProvider({ children, publishableKey }: ClientClerkPro
   const isDevelopment = process.env.NODE_ENV === 'development'
   const isValidKey = publishableKey && publishableKey !== ''
   
-  // If no publishable key, show error with helpful development information
+  // Debug info for production
+  const keyDebug = {
+    hasKey: !!publishableKey,
+    keyLength: publishableKey?.length || 0,
+    keyPrefix: publishableKey?.substring(0, 15) + '...' || 'NONE',
+    isEmpty: publishableKey === '',
+    isUndefined: publishableKey === undefined
+  }
+  
+  console.log('🔍 ClientClerkProvider Debug:', keyDebug)
+  
+  // If no publishable key, show error with helpful information
   if (!isValidKey) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center max-w-md mx-4">
           <h1 className="text-2xl font-bold text-red-400 mb-4">Clerk Configuration Required</h1>
           <p className="text-gray-400 mb-4">Clerk publishable key is missing</p>
+          
+          {/* Show debug info in production too */}
+          <div className="text-left bg-gray-800 p-4 rounded-lg border border-gray-700 mb-4">
+            <p className="text-yellow-400 text-sm mb-2">Debug Info:</p>
+            <p className="text-gray-300 text-xs">Key exists: {keyDebug.hasKey ? 'Yes' : 'No'}</p>
+            <p className="text-gray-300 text-xs">Key length: {keyDebug.keyLength}</p>
+            <p className="text-gray-300 text-xs">Key prefix: {keyDebug.keyPrefix}</p>
+          </div>
+          
           {isDevelopment && (
             <div className="text-left bg-gray-800 p-4 rounded-lg border border-gray-700">
               <p className="text-yellow-400 text-sm mb-2">For development:</p>
@@ -58,6 +78,14 @@ export function ClientClerkProvider({ children, publishableKey }: ClientClerkPro
               <p className="text-orange-400 text-xs mt-2">
                 ⚠️ Use test keys (pk_test_) for development, not production keys (pk_live_)
               </p>
+            </div>
+          )}
+          
+          {!isDevelopment && (
+            <div className="text-left bg-gray-800 p-4 rounded-lg border border-gray-700">
+              <p className="text-orange-400 text-sm mb-2">For production:</p>
+              <p className="text-gray-300 text-xs mb-1">Check Railway environment variables:</p>
+              <p className="text-gray-300 text-xs">Visit: /api/test-clerk-key for detailed diagnostics</p>
             </div>
           )}
         </div>
